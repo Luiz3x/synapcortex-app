@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nossa Loja Incrível</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Bem-vindo à Nossa Loja!</h1>
+        <p>Explore nossos produtos e ofertas.</p>
+        <p>Tente mover o mouse para fora da janela do navegador...</p>
+        <br>
+        <a href="{{ url_for('login') }}">Ir para a Área do Cliente</a>
+    </div>
+
+    <div id="popup-espiao" class="popup-container" style="display: none;">
+        <div class="popup-conteudo">
+            <button id="fechar-popup" class="fechar-btn">&times;</button>
+            <h2 id="popup-titulo-display"></h2>
+            <p id="popup-mensagem-display"></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='spy.js') }}"></script>
+</body>
+</html>

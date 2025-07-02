@@ -1,0 +1,86 @@
+{
+    "luiz": {
+        "email": "luiz@exemplo.com",
+        "senha": "scrypt:32768:8:1$bfUdP2gtvI2HWKRD$c3e2cc993f55333d91c022937f9f57a53fdd936f15995992b115535201b414461623ea1692fd5ebcc56246a368acb43018bd4f12504dd6e3fe76f6c76a6a6d4b",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "socio": {
+        "email": "socio@exemplo.com",
+        "senha": "scrypt:32768:8:1$MTTDTBRJ8QaYPRNp$392c21ea4ed7b31842586183c29d470b2ce7d1fb6ca825f3f62e30de5049c686afd153b7c01d839a3c8f8a88271e108240431aebaf2b2159ffdd7700ace8c4cf",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "uqgduwedv": {
+        "email": "uqgduwedv@exemplo.com",
+        "senha": "scrypt:32768:8:1$iO7SRulcO9412IwB$f5f58b8c8b9394f09cf394ad1343bc65f5ba4d63a6b16f709688894d56736f8cfa67c9a0427c3b9043769cb13ac99ae42420408a74dee87e0a64c0ac52fe0edb",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "fabio": {
+        "email": "fabio@exemplo.com",
+        "senha": "scrypt:32768:8:1$xKfCjWw6p7sLrd81$e9fb1fa1ff4db421e11fb376ea538f767e6fbe463be70e6a37a7115c6adf93cb926aeccc2a80fa98730a588efe336894a6ce2872216bfa379b1dfa0f6e39f5d8",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "roque": {
+        "email": "roque@exemplo.com",
+        "senha": "scrypt:32768:8:1$Nz3VazkG4z0jLRsN$b37621987017190a65aa66d0e5958aeb6db3835c38b14625d50fc0e578ef3676c344aefaa4015dafa64e5b44f8164a3b4c1580e01254bacad8404cc262d35f59",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "paulo": {
+        "email": "paulo@exemplo.com",
+        "senha": "scrypt:32768:8:1$rbHma6Izn6VQOc0B$b2bcc3fd675ce9fe9ca41e7fda1923bcc7e4751131f44c03e38b2e71033f9afde84139b5cd9cb1d93d082c18beab523bbc96c0c033770e684698b12428db8b52",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "mario": {
+        "email": "mario@exemplo.com",
+        "senha": "scrypt:32768:8:1$mlbujq66bw9CxQE4$0ec06eb21c1952ae1615e5a38f670ec43c98ab7784c4c3f4fdb721a7d2078158be218d98e79a30def41d5d2c70bc8c2f97a06527bb3b19aa92843074f649754b",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "jose": {
+        "email": "jose@exemplo.com",
+        "senha": "scrypt:32768:8:1$01guL0JdvyDLGqcq$9896bd59cc1d6d48ba6e5d16ed1b41264f81a179b13a2192cf4efa933fe0cbeebf100bf3e100f44cedc803dd6f78073bf1b2eb028a82b1b47369d49049d22afe",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "maria": {
+        "email": "maria@exemplo.com",
+        "senha": "scrypt:32768:8:1$AGiUfvrmzvBT7mcm$7af47a679dfece5c694697e6c1c33426c9975df8a23944e5235d1af05f24e31b47827ee1b4106bf0f70927574b55a2f01ca8e68e93ad0224262501dab6282358",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "antonio": {
+        "email": "antonio@exemplo.com",
+        "senha": "scrypt:32768:8:1$hxqagGpDHHiT81Np$fd67c1aa93f869e98c011f5ac1d61486ae9ab97a2e95fb3a2fbb807effe929b5bec8ae5e2c6d0548cd1148dbf16f50544db62007415bd1de19c7d5db95e52319",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "gomes": {
+        "email": "gomes@exemplo.com",
+        "senha": "scrypt:32768:8:1$qwguKPdVtU4OE7wI$34d6c962aeb12b1784c5dbb6d0e6049b16cfb8d73146416487c8293cd16afcdc9c2787b3f732c6a669c39b1d94b2654d9865737dacb30779f29fd710d0b49037",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "flavio": {
+        "email": "flavio@exemplo.com",
+        "senha": "scrypt:32768:8:1$09LaYtYAmqbWxjRj$7834dfb8feb6031443f7ab50daf04453273fc5f95145a2adf0a25e97dff4dbfac0a863256074d29a34b140e8153f6ee054e409fe47896c7ca16a49bcb91136ac",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "norma": {
+        "email": "norma@exemplo.com",
+        "senha": "scrypt:32768:8:1$Qk1vby3V6qbKI29Y$eafded4fee834b46b9928a82fb1f37a57ef6a489f2b06fc0566127ae63335ae2969bcb11f9e370ef19556d3809931d1a2268c6e807a3762ddd50b25df032ad8c",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    },
+    "hugo": {
+        "email": "hugo@exemplo.com",
+        "senha": "scrypt:32768:8:1$TDyFcjSI0oRPEgq0$cb7935e0aaafd0e0e4f9d2ad426e1bc921505f6a2a4c6c23ecaf28f10544fb649fd5fd5f1155e013a5a037c519acfccce6f9179f41f874460943893a07f755d5",
+        "status_assinatura": "pendente",
+        "data_fim_assinatura": null
+    }
+}

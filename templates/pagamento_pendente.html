@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagamento Pendente - Aisynapse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .pagamento-container {
+            text-align: center;
+        }
+        .pagamento-container .pagar-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #28a745; /* Cor verde para o botão de pagar */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+         .pagamento-container .logout-link {
+            display: block;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container pagamento-container">
+        <h3>Acesso Pendente</h3>
+        <p>Sua assinatura ainda não está ativa. Para liberar todas as funcionalidades do painel, por favor, realize o pagamento.</p>
+        
+        <a href="{{ link_de_pagamento }}" target="_blank" class="pagar-btn">
+            Realizar Pagamento Agora
+        </a>
+        
+        <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+    </div>
+</body>
+</html>

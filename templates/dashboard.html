@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Controle - Aisynapse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .header-logout { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 25px; }
+        .logout-link { font-size: 14px; text-decoration: none; color: #007bff; }
+        .logout-link:hover { text-decoration: underline; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .stats-section { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; }
+        .stats-section h4 { margin-top: 0; color: #333; }
+        .stats-data { font-size: 24px; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header-logout">
+            <h3>Painel de Controle de: {{ session.username }}</h3>
+            <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stats-section">
+                <h4>Visualizações</h4>
+                <p class="stats-data">{{ analytics.visualizacoes_popup }}</p>
+            </div>
+            <div class="stats-section">
+                <h4>Cliques</h4>
+                <p class="stats-data">{{ analytics.cliques_popup }}</p>
+            </div>
+            <div class="stats-section">
+                <h4>Conversão</h4>
+                <p class="stats-data">
+                    {% if analytics.visualizacoes_popup > 0 %}
+                        {{ "%.2f"|format((analytics.cliques_popup / analytics.visualizacoes_popup) * 100) }}%
+                    {% else %}
+                        0.00%
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
+            <label for="popup-titulo">Título do Pop-up:</label>
+            <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.titulo }}">
+            
+            <label for="popup-mensagem">Mensagem do Pop-up (aceita HTML):</label>
+            <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.mensagem }}</textarea>
+            
+            <button type="submit">Salvar Configurações</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

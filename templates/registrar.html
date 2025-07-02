@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Criar Conta - Aisynapse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h3>Crie sua Conta na Aisynapse</h3>
+        <p>Preencha os dados abaixo para começar.</p>
+        
+        <form method="POST" action="{{ url_for('registrar') }}">
+            
+            <label for="username">Nome de Usuário:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Registrar</button>
+        </form>
+        <br>
+        <a href="{{ url_for('login') }}">Já tem uma conta? Faça login</a>
+    </div>
+</body>
+</html>

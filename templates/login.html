@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Aisynapse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Aisynapse</h2>
+        <h3>Acesse seu Painel</h3>
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            
+            <label for="username">Nome de Usuário:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
+            
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% endif %}
+
+            <button type="submit">Entrar</button>
+        </form>
+        <br>
+        <a href="{{ url_for('registrar') }}">Não tem uma conta? Crie uma</a>
+    </div>
+</body>
+</html>

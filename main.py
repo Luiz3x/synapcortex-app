@@ -149,7 +149,7 @@ def create_app():
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         return jsonify(config)
 
-        @app.route('/api/track-view', methods=['POST'])
+    @app.route('/api/track-view', methods=['POST'])
     def track_view():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})

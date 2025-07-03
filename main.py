@@ -149,6 +149,18 @@ def create_app():
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         return jsonify(config)
 
+        @app.route('/api/track-view', methods=['POST'])
+    def track_view():
+        try:
+            analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
+            analytics['visualizacoes_popup'] += 1
+            salvar_json('analytics.json', analytics)
+            print("--- Visualização de popup registrada com sucesso! ---")
+            return jsonify({'status': 'success'}), 200
+        except Exception as e:
+            print(f"!!! Erro ao registrar visualização: {e} !!!")
+            return jsonify({'status': 'error'}), 500
+
     @app.route('/webhook-pagbank', methods=['POST'])
     def webhook_pagbank():
         print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA !!!!!!!!!!")

@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import xml.etree.ElementTree as ET
+from flask_cors import CORS
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -25,6 +26,7 @@ def salvar_json(nome_arquivo, dados):
 # =====================================================================
 def create_app():
     app = Flask(__name__)
+    CORS(app)
     app.secret_key = 'chave-super-secreta-para-aisynapse-123'
 
     # SUAS CREDENCIAIS

@@ -11,14 +11,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # FUNÇÕES DE AJUDA (Não mudam)
 # =====================================================================
 def carregar_json(nome_arquivo, dados_padrao):
-    if not os.path.exists(nome_arquivo):
-        with open(nome_arquivo, 'w', encoding='utf-8') as f:
+    # Define o caminho para o nosso "cofre" na Render
+    diretorio_de_dados = "/data"
+    caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
+
+    if not os.path.exists(caminho_completo):
+        with open(caminho_completo, 'w', encoding='utf-8') as f:
             json.dump(dados_padrao, f, indent=4)
-    with open(nome_arquivo, 'r', encoding='utf-8') as f:
+    with open(caminho_completo, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def salvar_json(nome_arquivo, dados):
-    with open(nome_arquivo, 'w', encoding='utf-8') as f:
+    # Define o caminho para o nosso "cofre" na Render
+    diretorio_de_dados = "/data"
+    caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
+    
+    with open(caminho_completo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4)
 
 # =====================================================================

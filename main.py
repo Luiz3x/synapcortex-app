@@ -62,15 +62,25 @@ def create_app():
     @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
         if request.method == 'POST':
+            # --- NOVOS CAMPOS SENDO COLETADOS DO FORMULÁRIO ---
+            fullname = request.form.get('fullname')
+            cpf = request.form.get('cpf')
+            ddd = request.form.get('ddd')
+            phone = request.form.get('phone')
             username = request.form.get('username')
             password = request.form.get('password')
+            
             usuarios = carregar_json('users.json', {})
 
             if username in usuarios:
                 return "Usuário já existe!"
             
+            # O email do comprador será extraído do nome de usuário por enquanto
+            # No futuro, podemos adicionar um campo de email separado
+            email_comprador = f"{username}@exemplo.com"
+
             usuarios[username] = {
-                "email": f"{username}@exemplo.com", 
+                "email": email_comprador, 
                 "senha": generate_password_hash(password),
                 "status_assinatura": "pendente", 
                 "data_fim_assinatura": None
@@ -79,11 +89,28 @@ def create_app():
             
             print(f"--- Iniciando criação de pedido para o usuário: {username} ---")
             url_api_pagbank = f"https://ws.pagseguro.uol.com.br/v2/checkout?email={PAGBANK_EMAIL}&token={PAGBANK_TOKEN}"
+            
             headers = {"Content-Type": "application/xml; charset=ISO-8859-1"}
+            
+            # --- XML AGORA INCLUI OS DADOS DO COMPRADOR (SENDER) ---
             dados_pedido_xml = f"""
             <checkout>
                 <currency>BRL</currency>
                 <reference>{username}</reference>
+                <sender>
+                    <name>{fullname}</name>
+                    <email>{email_comprador}</email>
+                    <phone>
+                        <areaCode>{ddd}</areaCode>
+                        <number>{phone}</number>
+                    </phone>
+                    <documents>
+                        <document>
+                            <type>CPF</type>
+                            <value>{cpf}</value>
+                        </document>
+                    </documents>
+                </sender>
                 <items>
                     <item>
                         <id>0001</id>
@@ -99,12 +126,17 @@ def create_app():
                 response = requests.post(url_api_pagbank, headers=headers, data=dados_pedido_xml.encode('ISO-8859-1'))
                 response.raise_for_status()
                 
-                root = ET.fromstring(response.content)
-                checkout_code = root.find('code').text
-                link_pagamento = f"https://pagseguro.uol.com.br/v2/checkout/payment.html?code={checkout_code}"
-                
-                print(f"--- Pedido criado com sucesso! Redirecionando para: {link_pagamento} ---")
-                return redirect(link_pagamento)
+                # Adicionamos uma verificação extra da resposta
+                if response.status_code == 200:
+                    root = ET.fromstring(response.content)
+                    checkout_code = root.find('code').text
+                    link_pagamento = f"https://pagseguro.uol.com.br/v2/checkout/payment.html?code={checkout_code}"
+                    
+                    print(f"--- Pedido criado com sucesso! Redirecionando para: {link_pagamento} ---")
+                    return redirect(link_pagamento)
+                else:
+                    print(f"!!! PagBank retornou um erro inesperado: {response.text} !!!")
+                    return "Ocorreu um erro ao criar seu pedido de pagamento. Tente novamente."
 
             except requests.exceptions.RequestException as e:
                 print(f"!!! Erro de comunicação com o PagBank: {e} !!!")

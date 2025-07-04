@@ -2,26 +2,47 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Criar Conta - Aisynapse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Aisynapse</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">
-        <h3>Crie sua Conta na Aisynapse</h3>
+        <h2>Crie sua Conta na Aisynapse</h2>
         <p>Preencha os dados abaixo para começar.</p>
         
-        <form method="POST" action="{{ url_for('registrar') }}">
-            
-            <label for="username">Nome de Usuário:</label>
-            <input type="text" id="username" name="username" required>
-            
-            <label for="password">Senha:</label>
-            <input type="password" id="password" name="password" required>
-            
-            <button type="submit">Registrar</button>
+        <form method="POST">
+            <div class="input-group">
+                <label for="fullname">Nome Completo</label>
+                <input type="text" id="fullname" name="fullname" required>
+            </div>
+            <div class="input-group">
+                <label for="cpf">CPF (somente números)</label>
+                <input type="text" id="cpf" name="cpf" required>
+            </div>
+            <div class="input-group-row">
+                <div class="input-group" style="width: 30%;">
+                    <label for="ddd">DDD</label>
+                    <input type="text" id="ddd" name="ddd" required>
+                </div>
+                <div class="input-group" style="width: 68%;">
+                    <label for="phone">Telefone (somente números)</label>
+                    <input type="text" id="phone" name="phone" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="username">Nome de Usuário (para login)</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Registrar e Ir para Pagamento</button>
         </form>
-        <br>
-        <a href="{{ url_for('login') }}">Já tem uma conta? Faça login</a>
+        <div class="extra-links">
+            <a href="{{ url_for('login') }}">Já tem uma conta? Faça login</a>
+        </div>
     </div>
 </body>
 </html>

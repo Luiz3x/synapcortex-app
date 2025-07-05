@@ -39,7 +39,9 @@ def create_app():
 
     # SUAS CREDENCIAIS
     PAGBANK_EMAIL = "grupoparceirao@gmail.com"
-    PAGBANK_TOKEN = "32ac7134-bf01-4740-a9e3-72983be5d00229e214d74df0b02d523ee864994e43c1a8c4-d445-40ab-8b62-3e2b88b8e429"
+    PAGBANK_TOKEN = "..." # O token antigo
+    PAGBANK_CLIENT_ID = "s6BhdRkqt3" # SUA NOVA CREDENCIAL
+    PAGBANK_CLIENT_SECRET = "4eC39HqLyjWDarjtT1zdp7dc" # SUA NOVA CREDENCIAL
 
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')
@@ -62,7 +64,7 @@ def create_app():
     @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
         if request.method == 'POST':
-            # --- NOVOS CAMPOS SENDO COLETADOS DO FORMULÁRIO ---
+            # Coletando todos os dados do formulário
             fullname = request.form.get('fullname')
             cpf = request.form.get('cpf')
             ddd = request.form.get('ddd')
@@ -71,13 +73,11 @@ def create_app():
             password = request.form.get('password')
             
             usuarios = carregar_json('users.json', {})
-
             if username in usuarios:
                 return "Usuário já existe!"
-            
-            # O email do comprador será extraído do nome de usuário por enquanto
-            # No futuro, podemos adicionar um campo de email separado
-            email_comprador = f"{username}@exemplo.com"
+
+            # Usaremos um e-mail de teste por enquanto, como na documentação
+            email_comprador = f"cliente_{username}@sandbox.pagbank.com.br"
 
             usuarios[username] = {
                 "email": email_comprador, 
@@ -87,64 +87,60 @@ def create_app():
             }
             salvar_json('users.json', usuarios)
             
-            print(f"--- Iniciando criação de pedido para o usuário: {username} ---")
-            url_api_pagbank = f"https://ws.sandbox.pagseguro.uol.com.br/v2/checkout?email={PAGBANK_EMAIL}&token={PAGBANK_TOKEN}"
+            # --- A NOVA API EM AÇÃO ---
+            print(f"--- Iniciando criação de pedido para o usuário: {username} via NOVA API ---")
+            url_api_pagbank = "https://sandbox.api.pagseguro.com/checkouts"
             
-            headers = {"Content-Type": "application/xml; charset=ISO-8859-1"}
+            # Montamos os novos headers com as credenciais que você conseguiu
+            headers = {
+                "accept": "application/json",
+                "Authorization": PAGBANK_CLIENT_SECRET, # Usando o Client Secret como token temporário para Sandbox
+                "Content-Type": "application/json"
+            }
             
-            # --- XML AGORA INCLUI OS DADOS DO COMPRADOR (SENDER) ---
-            dados_pedido_xml = f"""
-            <checkout>
-                <currency>BRL</currency>
-                <reference>{username}</reference>
-                <sender>
-                    <name>{fullname}</name>
-                    <email>{email_comprador}</email>
-                    <phone>
-                        <areaCode>{ddd}</areaCode>
-                        <number>{phone}</number>
-                    </phone>
-                    <documents>
-                        <document>
-                            <type>CPF</type>
-                            <value>{cpf}</value>
-                        </document>
-                    </documents>
-                </sender>
-                <items>
-                    <item>
-                        <id>0001</id>
-                        <description>Assinatura Mensal Aisynapse</description>
-                        <amount>50.00</amount>
-                        <quantity>1</quantity>
-                    </item>
-                </items>
-            </checkout>
-            """
-            
+            # Montamos o corpo do pedido em JSON, como a documentação pede
+            dados_pedido_json = {
+                "reference_id": username,
+                "customer": {
+                    "name": fullname,
+                    "email": email_comprador,
+                    "tax_id": cpf,
+                    "phones": [
+                        { "country": "55", "area": ddd, "number": phone, "type": "MOBILE" }
+                    ]
+                },
+                "items": [
+                    {
+                        "reference_id": "0001",
+                        "name": "Assinatura Mensal Aisynapse",
+                        "quantity": 1,
+                        "unit_amount": 5000 # O valor deve ser em centavos (50.00 = 5000)
+                    }
+                ],
+                "notification_urls": [
+                    f"https://{request.host}/webhook-pagbank" # URL dinâmica para o webhook
+                ]
+            }
+
             try:
-                response = requests.post(url_api_pagbank, headers=headers, data=dados_pedido_xml.encode('ISO-8859-1'))
+                response = requests.post(url_api_pagbank, json=dados_pedido_json, headers=headers)
                 response.raise_for_status()
-                
-                # Adicionamos uma verificação extra da resposta
-                if response.status_code == 200:
-                    root = ET.fromstring(response.content)
-                    checkout_code = root.find('code').text
-                    link_pagamento = f"https://pagseguro.uol.com.br/v2/checkout/payment.html?code={checkout_code}"
-                    
-                    print(f"--- Pedido criado com sucesso! Redirecionando para: {link_pagamento} ---")
-                    return redirect(link_pagamento)
-                else:
-                    print(f"!!! PagBank retornou um erro inesperado: {response.text} !!!")
-                    return "Ocorreu um erro ao criar seu pedido de pagamento. Tente novamente."
+                resposta_json = response.json()
+
+                # A nova API retorna uma lista de links de pagamento
+                if "links" in resposta_json:
+                    link_pagamento = next((link['href'] for link in resposta_json['links'] if link['rel'] == 'PAY'), None)
+                    if link_pagamento:
+                        print(f"--- Pedido criado com sucesso! Redirecionando para: {link_pagamento} ---")
+                        return redirect(link_pagamento)
+
+                print(f"!!! Link de pagamento não encontrado na resposta: {resposta_json} !!!")
+                return "Ocorreu um erro ao obter o link de pagamento."
 
             except requests.exceptions.RequestException as e:
                 print(f"!!! Erro de comunicação com o PagBank: {e} !!!")
+                print(f"!!! Resposta do servidor: {e.response.text if e.response else 'N/A'} !!!")
                 return "Ocorreu um erro de comunicação com nosso processador de pagamentos."
-            except ET.ParseError as e:
-                print(f"!!! Erro ao ler a resposta do PagBank: {e} !!!")
-                print(f"Resposta recebida: {response.text}")
-                return "Ocorreu um erro ao processar a resposta do pagamento."
 
         return render_template('registrar.html')
 

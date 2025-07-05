@@ -39,7 +39,7 @@ def create_app():
 
     # SUAS CREDENCIAIS
     PAGBANK_EMAIL = "grupoparceirao@gmail.com"
-    PAGBANK_TOKEN = "446b98d3-4db7-40ac-9a53-34de98bfdf3448d0e1d74ef58b28e808b89539974e053afc-624d-4284-808a-14e703c1e413"
+    PAGBANK_TOKEN = "32ac7134-bf01-4740-a9e3-72983be5d00229e214d74df0b02d523ee864994e43c1a8c4-d445-40ab-8b62-3e2b88b8e429"
 
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')
@@ -88,7 +88,7 @@ def create_app():
             salvar_json('users.json', usuarios)
             
             print(f"--- Iniciando criação de pedido para o usuário: {username} ---")
-            url_api_pagbank = f"https://ws.pagseguro.uol.com.br/v2/checkout?email={PAGBANK_EMAIL}&token={PAGBANK_TOKEN}"
+            url_api_pagbank = f"https://ws.sandbox.pagseguro.uol.com.br/v2/checkout?email={PAGBANK_EMAIL}&token={PAGBANK_TOKEN}"
             
             headers = {"Content-Type": "application/xml; charset=ISO-8859-1"}
             

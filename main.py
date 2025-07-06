@@ -42,6 +42,7 @@ def create_app():
     PAGBANK_TOKEN = "..." # O token antigo
     PAGBANK_CLIENT_ID = "s6BhdRkqt3" # SUA NOVA CREDENCIAL
     PAGBANK_CLIENT_SECRET = "4eC39HqLyjWDarjtT1zdp7dc" # SUA NOVA CREDENCIAL
+    url = "https://sandbox.api.pagseguro.com/oauth2/application"
 
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')

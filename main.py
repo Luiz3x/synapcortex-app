@@ -7,8 +7,11 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 # SUAS CREDENCIAIS
-PAGBANK_EMAIL = "grupoparceirao@gmail.com"
-PAGBANK_SANDBOX_TOKEN = "691ad8bf-4df8-4fd0-baee-c4eb7f9239e5c5c2b332423bbc6a1d6afd883dd3fdc28cef-b699-4ef8-9b7f-682f85b8ae12"
+# Configurações e credenciais agora vêm das Variáveis de Ambiente
+app.secret_key = os.environ.get('SECRET_KEY')
+
+PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL')
+PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN')
 # (Não precisamos mais do client_id e client_secret por enquanto)
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)

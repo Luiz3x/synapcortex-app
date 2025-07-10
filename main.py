@@ -6,10 +6,8 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-# SUAS CREDENCIAIS
 # Configurações e credenciais agora vêm das Variáveis de Ambiente
 app.secret_key = os.environ.get('SECRET_KEY')
-
 PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL')
 PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN')
 # (Não precisamos mais do client_id e client_secret por enquanto)

@@ -6,7 +6,10 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-
+# SUAS CREDENCIAIS
+PAGBANK_EMAIL = "grupoparceirao@gmail.com"
+PAGBANK_SANDBOX_TOKEN = "32ac7134-bf01-4740-a9e3-72983be5d00229e214d74df0b02d523ee864994e"
+# (Não precisamos mais do client_id e client_secret por enquanto)
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
 # =====================================================================
@@ -94,7 +97,7 @@ def create_app():
             # Montamos os novos headers com as credenciais que você conseguiu
             headers = {
                 "accept": "application/json",
-                "Authorization": PAGBANK_CLIENT_SECRET, # Usando o Client Secret como token temporário para Sandbox
+                "Authorization": PAGBANK_SANDBOX_TOKEN, # Usando o Client Secret como token temporário para Sandbox
                 "Content-Type": "application/json"
             }
             

@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from werkzeug.security import generate_password_hash, check_password_hash
 # SUAS CREDENCIAIS
 PAGBANK_EMAIL = "grupoparceirao@gmail.com"
-PAGBANK_SANDBOX_TOKEN = "32ac7134-bf01-4740-a9e3-72983be5d00229e214d74df0b02d523ee864994e"
+PAGBANK_SANDBOX_TOKEN = "691ad8bf-4df8-4fd0-baee-c4eb7f9239e5c5c2b332423bbc6a1d6afd883dd3fdc28cef-b699-4ef8-9b7f-682f85b8ae12"
 # (Não precisamos mais do client_id e client_secret por enquanto)
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
@@ -256,4 +256,3 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(port=5000, debug=True)
-    

@@ -50,7 +50,7 @@ def create_app():
     def index():
         return render_template('index.html')
 
-    @app.route('/login', methods=)
+    @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
             username = request.form.get('username')

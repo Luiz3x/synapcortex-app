@@ -107,7 +107,7 @@ def create_app():
                     "name": fullname,
                     "email": email_comprador,
                     "tax_id": cpf,
-                    "phones":
+                    "phones": ["+55-XX-XXXX-XXXX", "+55-YY-YYYY-YYYY"],
                 },
                 "items":,
                 "notification_urls":

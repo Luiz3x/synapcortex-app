@@ -63,7 +63,7 @@ def create_app():
             return render_template('login.html', error='Credenciais inválidas.')
         return render_template('login.html')
 
-    @app.route('/registrar', methods=)
+    @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
         if request.method == 'POST':
             # Coletando todos os dados do formulário

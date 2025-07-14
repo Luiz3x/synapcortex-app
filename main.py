@@ -6,11 +6,7 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-# Configurações e credenciais agora vêm das Variáveis de Ambiente
-app.secret_key = os.environ.get('SECRET_KEY')
-PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL')
-PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN')
-# (Não precisamos mais do client_id e client_secret por enquanto)
+
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
 # =====================================================================
@@ -39,20 +35,22 @@ def salvar_json(nome_arquivo, dados):
 def create_app():
     app = Flask(__name__)
     CORS(app)
-    app.secret_key = 'chave-super-secreta-para-aisynapse-123'
-
-    # SUAS CREDENCIAIS
-    PAGBANK_EMAIL = "grupoparceirao@gmail.com"
-    PAGBANK_TOKEN = "..." # O token antigo
-    PAGBANK_CLIENT_ID = "s6BhdRkqt3" # SUA NOVA CREDENCIAL
-    PAGBANK_CLIENT_SECRET = "4eC39HqLyjWDarjtT1zdp7dc" # SUA NOVA CREDENCIAL
+    
+    # Configurações e credenciais agora vêm das Variáveis de Ambiente
+    # Elas são carregadas AQUI, dentro da função, após 'app' ser definida
+    app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao') # Adicionei um valor padrão para desenvolvimento local
+    PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL')
+    PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN')
+    PAGBANK_TOKEN = os.environ.get('PAGBANK_TOKEN') # Mantendo o token antigo para o webhook, se necessário
+    PAGBANK_CLIENT_ID = os.environ.get('PAGBANK_CLIENT_ID')
+    PAGBANK_CLIENT_SECRET = os.environ.get('PAGBANK_CLIENT_SECRET')
 
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')
     def index():
         return render_template('index.html')
 
-    @app.route('/login', methods=['GET', 'POST'])
+    @app.route('/login', methods=)
     def login():
         if request.method == 'POST':
             username = request.form.get('username')
@@ -65,7 +63,7 @@ def create_app():
             return render_template('login.html', error='Credenciais inválidas.')
         return render_template('login.html')
 
-    @app.route('/registrar', methods=['GET', 'POST'])
+    @app.route('/registrar', methods=)
     def registrar():
         if request.method == 'POST':
             # Coletando todos os dados do formulário
@@ -109,21 +107,10 @@ def create_app():
                     "name": fullname,
                     "email": email_comprador,
                     "tax_id": cpf,
-                    "phones": [
-                        { "country": "55", "area": ddd, "number": phone, "type": "MOBILE" }
-                    ]
+                    "phones":
                 },
-                "items": [
-                    {
-                        "reference_id": "0001",
-                        "name": "Assinatura Mensal Aisynapse",
-                        "quantity": 1,
-                        "unit_amount": 5000 # O valor deve ser em centavos (50.00 = 5000)
-                    }
-                ],
-                "notification_urls": [
-                    f"https://{request.host}/webhook-pagbank" # URL dinâmica para o webhook
-                ]
+                "items":,
+                "notification_urls":
             }
 
             try:
@@ -138,12 +125,12 @@ def create_app():
                         print(f"--- Pedido criado com sucesso! Redirecionando para: {link_pagamento} ---")
                         return redirect(link_pagamento)
 
-                print(f"!!! Link de pagamento não encontrado na resposta: {resposta_json} !!!")
+                print(f"!!! Link de pagamento não encontrado na resposta: {resposta_json}!!!")
                 return "Ocorreu um erro ao obter o link de pagamento."
 
             except requests.exceptions.RequestException as e:
-                print(f"!!! Erro de comunicação com o PagBank: {e} !!!")
-                print(f"!!! Resposta do servidor: {e.response.text if e.response else 'N/A'} !!!")
+                print(f"!!! Erro de comunicação com o PagBank: {e}!!!")
+                print(f"!!! Resposta do servidor: {e.response.text if e.response else 'N/A'}!!!")
                 return "Ocorreu um erro de comunicação com nosso processador de pagamentos."
 
         return render_template('registrar.html')
@@ -162,11 +149,13 @@ def create_app():
             config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
             return render_template('dashboard.html', usuario=dados_usuario, analytics=analytics, config=config)
         else:
+            # Este link de pagamento parece ser para a API antiga ou um link fixo
+            # Se você estiver usando a nova API para registrar, este link pode precisar ser atualizado
             link_pagamento_base = "https://cobranca.pagbank.com/8eeb87d3-50bd-482f-a037-23b28fc42e7a"
             link_com_referencia = f"{link_pagamento_base}?referenceId={username}"
             return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia)
 
-    @app.route('/salvar-configuracoes', methods=['POST'])
+    @app.route('/salvar-configuracoes', methods=)
     def salvar_configuracoes():
         if 'username' not in session:
             return redirect(url_for('login'))
@@ -189,7 +178,7 @@ def create_app():
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         return jsonify(config)
 
-    @app.route('/api/track-view', methods=['POST'])
+    @app.route('/api/track-view', methods=)
     def track_view():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -198,10 +187,10 @@ def create_app():
             print("--- Visualização de popup registrada com sucesso! ---")
             return jsonify({'status': 'success'}), 200
         except Exception as e:
-            print(f"!!! Erro ao registrar visualização: {e} !!!")
+            print(f"!!! Erro ao registrar visualização: {e}!!!")
             return jsonify({'status': 'error'}), 500
 
-    @app.route('/api/track-click', methods=['POST'])
+    @app.route('/api/track-click', methods=)
     def track_click():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -210,12 +199,12 @@ def create_app():
             print("--- Clique em popup registrado com sucesso! ---")
             return jsonify({'status': 'success'}), 200
         except Exception as e:
-            print(f"!!! Erro ao registrar clique: {e} !!!")
+            print(f"!!! Erro ao registrar clique: {e}!!!")
             return jsonify({'status': 'error'}), 500
             
-    @app.route('/webhook-pagbank', methods=['POST'])
+    @app.route('/webhook-pagbank', methods=)
     def webhook_pagbank():
-        print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA !!!!!!!!!!")
+        print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA!!!!!!!!!!")
         try:
             data = request.form.to_dict()
             notification_code = data.get('notificationCode')
@@ -223,6 +212,7 @@ def create_app():
                 return jsonify({'status': 'sem codigo'}), 400
             
             print(f"--- Consultando notificação: {notification_code} ---")
+            # Este endpoint usa o PAGBANK_EMAIL e PAGBANK_TOKEN (o antigo)
             url_consulta = f"https://ws.pagseguro.uol.com.br/v3/transactions/notifications/{notification_code}?email={PAGBANK_EMAIL}&token={PAGBANK_TOKEN}"
             headers = {'Accept': 'application/xml;charset=ISO-8859-1'}
             response = requests.get(url_consulta, headers=headers)
@@ -230,7 +220,7 @@ def create_app():
             resposta_texto = response.text
             
             if '<reference>' in resposta_texto and ('<status>3</status>' in resposta_texto or '<status>4</status>' in resposta_texto):
-                print("$$$$$$$$$$ PAGAMENTO APROVADO! $$$$$$$$$$")
+                print("$$$$$$$$$$PAGAMENTO APROVADO!$$$$$$$$$$")
                 root = ET.fromstring(resposta_texto)
                 usuario_para_atualizar = root.find('reference').text
                 
@@ -247,7 +237,7 @@ def create_app():
                 print("--- Pagamento não aprovado ou sem referência na resposta. ---")
                 
         except Exception as e:
-            print(f"!!! Erro no webhook: {e} !!!")
+            print(f"!!! Erro no webhook: {e}!!!")
         return jsonify({'status': 'recebido'}), 200
 
     # RETORNAMOS O APP CONSTRUÍDO NO FINAL DA FUNÇÃO

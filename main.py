@@ -38,9 +38,19 @@ def create_app():
     
     # Configurações e credenciais agora vêm das Variáveis de Ambiente
     # Elas são carregadas AQUI, dentro da função, após 'app' ser definida
-    app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao') # Adicionei um valor padrão para desenvolvimento local
-    PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL')
-    PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN')
+    app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
+    
+    # CORREÇÃO CRÍTICA AQUI:
+    # As variáveis de ambiente devem ser lidas APENAS pelo nome.
+    # Os valores reais (email e token) devem ser configurados no painel do Render.
+    # Para teste local, você pode adicionar um segundo argumento como valor padrão.
+    PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL') # Apenas o nome da variável
+    PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN') # Apenas o nome da variável
+    
+    # Se você quiser testar LOCALMENTE, pode adicionar o valor como segundo argumento (valor padrão):
+    # PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL', 'grupoparceirao@gmail.com')
+    # PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN', '32ac7134-bf01-4740-a9e3-72983be5d00229e214d74df0b02d523ee864994e43c1a8c4-d445-40ab-8b62-3e2b88b8e429') # Coloque o token COMPLETO
+    
     PAGBANK_TOKEN = os.environ.get('PAGBANK_TOKEN') # Mantendo o token antigo para o webhook, se necessário
     PAGBANK_CLIENT_ID = os.environ.get('PAGBANK_CLIENT_ID')
     PAGBANK_CLIENT_SECRET = os.environ.get('PAGBANK_CLIENT_SECRET')
@@ -109,8 +119,14 @@ def create_app():
                     "tax_id": cpf,
                     "phones": ["+55-XX-XXXX-XXXX", "+55-YY-YYYY-YYYY"],
                 },
-                "items":,
-                "notification_urls":
+                "items": [{ 
+                    "name": "Assinatura Mensal SynapCortex", # CORREÇÃO: Removi a quebra de linha aqui
+                    "quantity": 1,
+                    "unit_amount": 1000, # Valor em centavos (ex: R$10,00) # CORREÇÃO: Removi a quebra de linha aqui
+                }],
+                "notification_urls": [ 
+                    "https://aisynapse-app.onrender.com/webhook-pagbank" # Substitua pelo seu domínio real
+                ]
             }
 
             try:
@@ -155,7 +171,7 @@ def create_app():
             link_com_referencia = f"{link_pagamento_base}?referenceId={username}"
             return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia)
 
-    @app.route('/salvar-configuracoes', methods=)
+    @app.route('/salvar-configuracoes', methods=['POST']) # CORREÇÃO ANTERIOR
     def salvar_configuracoes():
         if 'username' not in session:
             return redirect(url_for('login'))
@@ -178,7 +194,7 @@ def create_app():
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         return jsonify(config)
 
-    @app.route('/api/track-view', methods=)
+    @app.route('/api/track-view', methods=['POST']) # CORREÇÃO ANTERIOR
     def track_view():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -190,19 +206,19 @@ def create_app():
             print(f"!!! Erro ao registrar visualização: {e}!!!")
             return jsonify({'status': 'error'}), 500
 
-    @app.route('/api/track-click', methods=)
+    @app.route('/api/track-click', methods=['POST']) # CORREÇÃO ANTERIOR
     def track_click():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
             analytics['cliques_popup'] += 1
             salvar_json('analytics.json', analytics)
-            print("--- Clique em popup registrado com sucesso! ---")
+            print("--- Clique em popup registrada com sucesso! ---")
             return jsonify({'status': 'success'}), 200
         except Exception as e:
             print(f"!!! Erro ao registrar clique: {e}!!!")
             return jsonify({'status': 'error'}), 500
             
-    @app.route('/webhook-pagbank', methods=)
+    @app.route('/webhook-pagbank', methods=['POST']) # CORREÇÃO ANTERIOR
     def webhook_pagbank():
         print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA!!!!!!!!!!")
         try:

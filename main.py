@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # =====================================================================
 def carregar_json(nome_arquivo, dados_padrao):
     # Define o caminho para o nosso "cofre" na Render
-    diretorio_de_dados = "/data"
+    diretorio_de_dados = os.path.join(os.getcwd(), "data")
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
 
     if not os.path.exists(caminho_completo):
@@ -23,7 +23,7 @@ def carregar_json(nome_arquivo, dados_padrao):
 
 def salvar_json(nome_arquivo, dados):
     # Define o caminho para o nosso "cofre" na Render
-    diretorio_de_dados = "/data"
+    diretorio_de_dados = os.path.join(os.getcwd(), "data")
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
     
     with open(caminho_completo, 'w', encoding='utf-8') as f:
@@ -39,37 +39,20 @@ def create_app():
     # ... (imports e funções de ajuda) ...
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__) # <-- ESTA É A ÚNICA VEZ QUE app = Flask(__name__) DEVE APARECER AQUI
     CORS(app)
 
-    # === ESTA É A CORREÇÃO CRÍTICA QUE PRECISA SER ADICIONADA ===
-    diretorio_de_dados = "/data"
+    # === CORREÇÃO: Garante que o diretório /data exista dentro do projeto ===
+    diretorio_de_dados = os.path.join(os.getcwd(), "data") 
     if not os.path.exists(diretorio_de_dados):
         os.makedirs(diretorio_de_dados)
-    # ==========================================================
+    # ======================================================================
 
     # Configurações e credenciais agora vêm das Variáveis de Ambiente
-    # ... (restante do código main.py) ...
-    # Configurações e credenciais agora vêm das Variáveis de Ambiente
-    # Elas são carregadas AQUI, dentro da função, após 'app' ser definida
-    app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
-    
-    # CORREÇÃO CRÍTICA AQUI:
-    # As variáveis de ambiente devem ser lidas APENAS pelo nome.
-    # Os valores reais (email e token) devem ser configurados no painel do Render.
-    # Para teste local, você pode adicionar um segundo argumento como valor padrão.
-    PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL') # Apenas o nome da variável
-    PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN') # Apenas o nome da variável
-    
-    # Se você quiser testar LOCALMENTE, pode adicionar o valor como segundo argumento (valor padrão):
-    # PAGBANK_EMAIL = os.environ.get('PAGBANK_EMAIL', 'grupoparceirao@gmail.com')
-    # PAGBANK_SANDBOX_TOKEN = os.environ.get('PAGBANK_SANDBOX_TOKEN', '32ac7134-bf01-4740-a9e3-72983be5d00229e214d74df0b02d523ee864994e43c1a8c4-d445-40ab-8b62-3e2b88b8e429') # Coloque o token COMPLETO
-    
-    PAGBANK_TOKEN = os.environ.get('PAGBANK_TOKEN') # Mantendo o token antigo para o webhook, se necessário
-    PAGBANK_CLIENT_ID = os.environ.get('PAGBANK_CLIENT_ID')
-    PAGBANK_CLIENT_SECRET = os.environ.get('PAGBANK_CLIENT_SECRET')
+    # ... (PAGBANK_EMAIL, PAGBANK_SANDBOX_TOKEN, SECRET_KEY, etc.) ...
 
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
+    
     @app.route('/')
     def index():
         return render_template('index.html')

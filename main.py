@@ -36,6 +36,20 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
     
+    # ... (imports e funções de ajuda) ...
+
+def create_app():
+    app = Flask(__name__)
+    CORS(app)
+
+    # === ESTA É A CORREÇÃO CRÍTICA QUE PRECISA SER ADICIONADA ===
+    diretorio_de_dados = "/data"
+    if not os.path.exists(diretorio_de_dados):
+        os.makedirs(diretorio_de_dados)
+    # ==========================================================
+
+    # Configurações e credenciais agora vêm das Variáveis de Ambiente
+    # ... (restante do código main.py) ...
     # Configurações e credenciais agora vêm das Variáveis de Ambiente
     # Elas são carregadas AQUI, dentro da função, após 'app' ser definida
     app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')

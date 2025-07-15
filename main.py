@@ -125,7 +125,7 @@ def create_app():
                     "unit_amount": 1000, # Valor em centavos (ex: R$10,00) # CORREÇÃO: Removi a quebra de linha aqui
                 }],
                 "notification_urls": [ 
-                    "https://synapcortex-app.onrender.com/webhook-pagbank"" # Substitua pelo seu domínio real
+                    "https://synapcortex-app.onrender.com/webhook-pagbank" # Substitua pelo seu domínio real
                 ]
             }
 
@@ -263,4 +263,3 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(port=5000, debug=True)
-    

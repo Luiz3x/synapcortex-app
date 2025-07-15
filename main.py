@@ -125,7 +125,7 @@ def create_app():
                     "unit_amount": 1000, # Valor em centavos (ex: R$10,00) # CORREÇÃO: Removi a quebra de linha aqui
                 }],
                 "notification_urls": [ 
-                    "https://aisynapse-app.onrender.com/webhook-pagbank" # Substitua pelo seu domínio real
+                    "https://synapcortex-app.onrender.com/webhook-pagbank"" # Substitua pelo seu domínio real
                 ]
             }
 

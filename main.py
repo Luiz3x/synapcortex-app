@@ -74,62 +74,35 @@ def create_app():
 
     @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
-        if request.method == 'POST':
-            fullname = request.form.get('fullname')
-            cpf = request.form.get('cpf')
-            ddd = request.form.get('ddd')
-            phone = request.form.get('phone')
-            username = request.form.get('username')
-            password = request.form.get('password')
-            
-            usuarios = carregar_json('users.json', {}) 
-            if username in usuarios:
-                return "Usuário já existe!"
-
-            email_comprador = f"cliente_{username}@sandbox.pagbank.com.br"
-
-            usuarios[username] = {
-                "email": email_comprador, 
-                "senha": generate_password_hash(password),
-                "status_assinatura": "pendente", 
-                "data_fim_assinatura": None
-            }
-            salvar_json('users.json', usuarios)
-            
-            # --- A NOVA API EM AÇÃO ---
-
-                response = requests.post(url_api_pagbank, json=dados_pedido_json, headers=headers)
-                response.raise_for_status()
-                resposta_json = response.json()
-
-                if "links" in resposta_json:
-                    link_pagamento = next((link['href'] for link in resposta_json['links'] if link['rel'] == 'PAY'), None)
-                    if link_pagamento:
-                        print(f"--- Pedido criado com sucesso! Redirecionando para: {link_pagamento} ---")
-                        return redirect(link_pagamento)
-
-                print(f"!!! Link de pagamento não encontrado na resposta: {resposta_json}!!!")
-                return "Ocorreu um erro ao obter o link de pagamento."
-
-            except requests.exceptions.RequestException as e:
-                print(f"!!! Erro de comunicação com o PagBank: {e}!!!")
-                print(f"!!! Resposta do servidor: {e.response.text if e.response else 'N/A'}!!!")
-                return "Ocorreu um erro de comunicação com nosso processador de pagamentos."
-
-        return render_template('registrar.html')
-
-    @app.route('/registrar', methods=['GET', 'POST'])
-    def registrar():
     if request.method == 'POST':
-        # ... (coleta de dados do formulário e salvamento do usuario no users.json) ...
+        # Coletando todos os dados do formulário
+        fullname = request.form.get('fullname')
+        cpf = request.form.get('cpf')
+        ddd = request.form.get('ddd')
+        phone = request.form.get('phone')
+        username = request.form.get('username')
+        password = request.form.get('password')
 
-        # REDIRECIONAMENTO PARA PAGAMENTO PENDENTE (AGORA COM BOTÃO MANUAL)
-        username = request.form.get('username') # Certifique-se que 'username' está disponível
-        link_pagamento_base = "https://cobranca.pagbank.com/8eeb87d3-50bd-482f-a037-23b28fc42e7a" # Seu link fixo antigo ou um link genérico
-        link_com_referencia = f"{link_pagamento_base}?referenceId={username}" # Adapte se necessário
-        return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia) # Passa o link para o template
+        usuarios = carregar_json('users.json', {}) 
+        if username in usuarios:
+            return "Usuário já existe!"
+
+        # Usaremos um e-mail de teste por enquanto, como na documentação
+        email_comprador = f"cliente_{username}@sandbox.pagbank.com.br"
+
+        usuarios[username] = {
+            "email": email_comprador, 
+            "senha": generate_password_hash(password),
+            "status_assinatura": "pendente", 
+            "data_fim_assinatura": None
+        }
+        salvar_json('users.json', usuarios)
+
+        # --- AGORA, APÓS O REGISTRO, REDIRECIONAMOS PARA O DASHBOARD ---
+        print(f"--- Usuário {username} registrado com sucesso! Redirecionando para dashboard/pagamento pendente ---")
+        return redirect(url_for('dashboard')) 
     return render_template('registrar.html')
-
+    
     @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
         if 'username' not in session:

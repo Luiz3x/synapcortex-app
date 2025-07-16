@@ -74,35 +74,51 @@ def create_app():
 
     @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
-    if request.method == 'POST':
-        # Coletando todos os dados do formulário
-        fullname = request.form.get('fullname')
-        cpf = request.form.get('cpf')
-        ddd = request.form.get('ddd')
-        phone = request.form.get('phone')
-        username = request.form.get('username')
-        password = request.form.get('password')
+        if request.method == 'POST':
+            fullname = request.form.get('fullname')
+            cpf = request.form.get('cpf')
+            ddd = request.form.get('ddd')
+            phone = request.form.get('phone')
+            username = request.form.get('username')
+            password = request.form.get('password')
+            
+            usuarios = carregar_json('users.json', {}) 
+            if username in usuarios:
+                return "Usuário já existe!"
 
-        usuarios = carregar_json('users.json', {}) 
-        if username in usuarios:
-            return "Usuário já existe!"
+            email_comprador = f"cliente_{username}@sandbox.pagbank.com.br"
 
-        # Usaremos um e-mail de teste por enquanto, como na documentação
-        email_comprador = f"cliente_{username}@sandbox.pagbank.com.br"
-
-        usuarios[username] = {
-            "email": email_comprador, 
-            "senha": generate_password_hash(password),
-            "status_assinatura": "pendente", 
-            "data_fim_assinatura": None
-        }
-        salvar_json('users.json', usuarios)
-
-        # --- AGORA, APÓS O REGISTRO, REDIRECIONAMOS PARA O DASHBOARD ---
-        print(f"--- Usuário {username} registrado com sucesso! Redirecionando para dashboard/pagamento pendente ---")
-        return redirect(url_for('dashboard')) 
-    return render_template('registrar.html')
+            usuarios[username] = {
+                "email": email_comprador, 
+                "senha": generate_password_hash(password),
+                "status_assinatura": "pendente", 
+                "data_fim_assinatura": None
+            }
+            salvar_json('users.json', usuarios)
+            
+            # --- AGORA, APÓS O REGISTRO, REDIRECIONAMOS PARA O DASHBOARD ---
+            print(f"--- Usuário {username} registrado com sucesso! Redirecionando para dashboard/pagamento pendente ---")
+            return redirect(url_for('dashboard')) 
+        return render_template('registrar.html')
     
+    @app.route('/dashboard')
+    def dashboard():
+        if 'username' not in session:
+            return redirect(url_for('login'))
+
+        username = session['username']
+        usuarios = carregar_json('users.json', {})
+        dados_usuario = usuarios.get(username)
+
+        if dados_usuario and dados_usuario.get('status_assinatura') == 'ativo':
+            analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
+            config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+            return render_template('dashboard.html', usuario=dados_usuario, analytics=analytics, config=config)
+        else:
+            link_pagamento_base = "https://cobranca.pagbank.com/8eeb87d3-50bd-482f-a037-23b28fc42e7a"
+            link_com_referencia = f"{link_pagamento_base}?referenceId={username}"
+            return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia)
+
     @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
         if 'username' not in session:

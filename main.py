@@ -4,28 +4,35 @@ import requests
 import xml.etree.ElementTree as ET
 from flask_cors import CORS
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app # current_app importado aqui
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
 # =====================================================================
 def carregar_json(nome_arquivo, dados_padrao):
-    # Define o caminho para o nosso "cofre" na Render
+    # Define o caminho para o nosso "cofre" no Render
+    # O diretório 'data' agora será criado dentro do diretmo do projeto
     diretorio_de_dados = os.path.join(os.getcwd(), "data")
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
 
+    # Se o arquivo não existir, cria-o com os dados padrão.
+    # O diretório já terá sido garantido por create_app()
     if not os.path.exists(caminho_completo):
         with open(caminho_completo, 'w', encoding='utf-8') as f:
             json.dump(dados_padrao, f, indent=4)
+    
+    # Abre e retorna os dados do arquivo
     with open(caminho_completo, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def salvar_json(nome_arquivo, dados):
     # Define o caminho para o nosso "cofre" na Render
+    # O diretório 'data' agora será criado dentro do diretmo do projeto
     diretorio_de_dados = os.path.join(os.getcwd(), "data")
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
     
+    # Abre e salva os dados no arquivo
     with open(caminho_completo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4)
 
@@ -36,23 +43,23 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
     
-    # ... (imports e funções de ajuda) ...
-
-def create_app():
-    app = Flask(__name__) # <-- ESTA É A ÚNICA VEZ QUE app = Flask(__name__) DEVE APARECER AQUI
-    CORS(app)
-
-    # === CORREÇÃO: Garante que o diretório /data exista dentro do projeto ===
+    # === CORREÇÃO CRÍTICA: Garante que o diretório /data exista dentro do projeto ===
     diretorio_de_dados = os.path.join(os.getcwd(), "data") 
     if not os.path.exists(diretorio_de_dados):
         os.makedirs(diretorio_de_dados)
     # ======================================================================
-
+    
     # Configurações e credenciais agora vêm das Variáveis de Ambiente
-    # ... (PAGBANK_EMAIL, PAGBANK_SANDBOX_TOKEN, SECRET_KEY, etc.) ...
+    # ATENÇÃO: Armazene as credenciais em app.config para que sejam acessíveis em todo o aplicativo
+    app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
+    
+    app.config['PAGBANK_EMAIL'] = os.environ.get('PAGBANK_EMAIL')
+    app.config['PAGBANK_SANDBOX_TOKEN'] = os.environ.get('PAGBANK_SANDBOX_TOKEN')
+    app.config['PAGBANK_TOKEN'] = os.environ.get('PAGBANK_TOKEN') # Mantendo para o webhook
+    app.config['PAGBANK_CLIENT_ID'] = os.environ.get('PAGBANK_CLIENT_ID') # Se for usar
+    app.config['PAGBANK_CLIENT_SECRET'] = os.environ.get('PAGBANK_CLIENT_SECRET') # Se for usar
 
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
-    
     @app.route('/')
     def index():
         return render_template('index.html')
@@ -81,7 +88,7 @@ def create_app():
             username = request.form.get('username')
             password = request.form.get('password')
             
-            usuarios = carregar_json('users.json', {})
+            usuarios = carregar_json('users.json', {}) # Carrega o JSON vazio ou existente
             if username in usuarios:
                 return "Usuário já existe!"
 
@@ -103,7 +110,8 @@ def create_app():
             # Montamos os novos headers com as credenciais que você conseguiu
             headers = {
                 "accept": "application/json",
-                "Authorization": PAGBANK_SANDBOX_TOKEN, # Usando o Client Secret como token temporário para Sandbox
+                # ACESSANDO O TOKEN VIA current_app.config
+                "Authorization": current_app.config['PAGBANK_SANDBOX_TOKEN'], 
                 "Content-Type": "application/json"
             }
             
@@ -114,12 +122,12 @@ def create_app():
                     "name": fullname,
                     "email": email_comprador,
                     "tax_id": cpf,
-                    "phones": ["+55-XX-XXXX-XXXX", "+55-YY-YYYY-YYYY"],
+                    "phones": [f"+55-{ddd}-{phone}"], # Use o DDD e o telefone real do formulário
                 },
                 "items": [{ 
-                    "name": "Assinatura Mensal SynapCortex", # CORREÇÃO: Removi a quebra de linha aqui
+                    "name": "Assinatura Mensal SynapCortex",
                     "quantity": 1,
-                    "unit_amount": 1000, # Valor em centavos (ex: R$10,00) # CORREÇÃO: Removi a quebra de linha aqui
+                    "unit_amount": 1000, # Valor em centavos (ex: R$10,00)
                 }],
                 "notification_urls": [ 
                     "https://synapcortex-app.onrender.com/webhook-pagbank" # Substitua pelo seu domínio real
@@ -168,7 +176,7 @@ def create_app():
             link_com_referencia = f"{link_pagamento_base}?referenceId={username}"
             return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia)
 
-    @app.route('/salvar-configuracoes', methods=['POST']) # CORREÇÃO ANTERIOR
+    @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
         if 'username' not in session:
             return redirect(url_for('login'))
@@ -191,7 +199,7 @@ def create_app():
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         return jsonify(config)
 
-    @app.route('/api/track-view', methods=['POST']) # CORREÇÃO ANTERIOR
+    @app.route('/api/track-view', methods=['POST']) 
     def track_view():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -203,7 +211,7 @@ def create_app():
             print(f"!!! Erro ao registrar visualização: {e}!!!")
             return jsonify({'status': 'error'}), 500
 
-    @app.route('/api/track-click', methods=['POST']) # CORREÇÃO ANTERIOR
+    @app.route('/api/track-click', methods=['POST']) 
     def track_click():
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -215,7 +223,7 @@ def create_app():
             print(f"!!! Erro ao registrar clique: {e}!!!")
             return jsonify({'status': 'error'}), 500
             
-    @app.route('/webhook-pagbank', methods=['POST']) # CORREÇÃO ANTERIOR
+    @app.route('/webhook-pagbank', methods=['POST']) 
     def webhook_pagbank():
         print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA!!!!!!!!!!")
         try:
@@ -226,7 +234,7 @@ def create_app():
             
             print(f"--- Consultando notificação: {notification_code} ---")
             # Este endpoint usa o PAGBANK_EMAIL e PAGBANK_TOKEN (o antigo)
-            url_consulta = f"https://ws.pagseguro.uol.com.br/v3/transactions/notifications/{notification_code}?email={PAGBANK_EMAIL}&token={PAGBANK_TOKEN}"
+            url_consulta = f"https://ws.pagseguro.uol.com.br/v3/transactions/notifications/{notification_code}?email={current_app.config['PAGBANK_EMAIL']}&token={current_app.config['PAGBANK_TOKEN']}"
             headers = {'Accept': 'application/xml;charset=ISO-8859-1'}
             response = requests.get(url_consulta, headers=headers)
             response.raise_for_status()

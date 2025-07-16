@@ -31,9 +31,12 @@
         <h3>Acesso Pendente</h3>
         <p>Sua assinatura ainda não está ativa. Para liberar todas as funcionalidades do painel, por favor, realize o pagamento.</p>
         
-        <a href="{{ link_de_pagamento }}" target="_blank" class="pagar-btn">
-            Realizar Pagamento Agora
-        </a>
+        <!-- INICIO FORMULARIO BOTAO PAGBANK: NAO EDITE OS COMANDOS DAS LINHAS ABAIXO -->
+        <form action="https://pagseguro.uol.com.br/pre-approvals/request.html" method="post">
+        <input type="hidden" name="code" value="D8BEA86F0C0CF41664820FA9C0B8B253" />
+        <input type="hidden" name="iot" value="button" />
+        <input type="image" src="https://stc.pagseguro.uol.com.br/public/img/botoes/assinaturas/209x48-assinar-assina.gif" name="submit" alt="Pague com PagBank - É rápido, grátis e seguro!" width="209" height="48" />
+        </form>
         
         <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
     </div>

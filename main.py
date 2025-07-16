@@ -97,34 +97,7 @@ def create_app():
             salvar_json('users.json', usuarios)
             
             # --- A NOVA API EM AÇÃO ---
-            print(f"--- Iniciando criação de pedido para o usuário: {username} via NOVA API ---")
-            url_api_pagbank = "https://sandbox.api.pagseguro.com/checkouts"
-            
-            headers = {
-                "accept": "application/json",
-                "Authorization": current_app.config['PAGBANK_SANDBOX_TOKEN'], 
-                "Content-Type": "application/json"
-            }
-            
-            dados_pedido_json = {
-                "reference_id": username,
-                "customer": {
-                    "name": fullname,
-                    "email": email_comprador,
-                    "tax_id": cpf,
-                    "phones": [f"+55-{ddd}-{phone}"], 
-                },
-                "items": [{ 
-                    "name": "Assinatura Mensal SynapCortex",
-                    "quantity": 1,
-                    "unit_amount": 1000, 
-                }],
-                "notification_urls": [ 
-                    "https://synapcortex-app.onrender.com/webhook-pagbank" 
-                ]
-            }
 
-            try:
                 response = requests.post(url_api_pagbank, json=dados_pedido_json, headers=headers)
                 response.raise_for_status()
                 resposta_json = response.json()
@@ -145,23 +118,17 @@ def create_app():
 
         return render_template('registrar.html')
 
-    @app.route('/dashboard')
-    def dashboard():
-        if 'username' not in session:
-            return redirect(url_for('login'))
+    @app.route('/registrar', methods=['GET', 'POST'])
+    def registrar():
+    if request.method == 'POST':
+        # ... (coleta de dados do formulário e salvamento do usuario no users.json) ...
 
-        username = session['username']
-        usuarios = carregar_json('users.json', {})
-        dados_usuario = usuarios.get(username)
-
-        if dados_usuario and dados_usuario.get('status_assinatura') == 'ativo':
-            analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
-            config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
-            return render_template('dashboard.html', usuario=dados_usuario, analytics=analytics, config=config)
-        else:
-            link_pagamento_base = "https://cobranca.pagbank.com/8eeb87d3-50bd-482f-a037-23b28fc42e7a"
-            link_com_referencia = f"{link_pagamento_base}?referenceId={username}"
-            return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia)
+        # REDIRECIONAMENTO PARA PAGAMENTO PENDENTE (AGORA COM BOTÃO MANUAL)
+        username = request.form.get('username') # Certifique-se que 'username' está disponível
+        link_pagamento_base = "https://cobranca.pagbank.com/8eeb87d3-50bd-482f-a037-23b28fc42e7a" # Seu link fixo antigo ou um link genérico
+        link_com_referencia = f"{link_pagamento_base}?referenceId={username}" # Adapte se necessário
+        return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia) # Passa o link para o template
+    return render_template('registrar.html')
 
     @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():

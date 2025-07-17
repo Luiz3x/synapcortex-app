@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app 
 from werkzeug.security import generate_password_hash, check_password_hash
 import stripe # Importa a biblioteca do Stripe
+import Stripe
 
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
@@ -197,6 +198,42 @@ def create_app():
             return jsonify({'status': 'error'}), 500
             
     @app.route('/webhook-pagbank', methods=['POST']) 
+    def webhook_pagbank():
+        print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA!!!!!!!!!!")
+        try:
+            data = request.form.to_dict()
+            notification_code = data.get('notificationCode')
+            if not notification_code:
+                return jsonify({'status': 'sem codigo'}), 400
+            
+            print(f"--- Consultando notificação: {notification_code} ---")
+            url_consulta = f"https://ws.pagseguro.uol.com.br/v3/transactions/notifications/{notification_code}?email={current_app.config['PAGBANK_EMAIL']}&token={current_app.config['PAGBANK_TOKEN']}"
+            headers = {'Accept': 'application/xml;charset=ISO-8859-1'}
+            response = requests.get(url_consulta, headers=headers)
+            response.raise_for_status()
+            resposta_texto = response.text
+            
+            if '<reference>' in resposta_texto and ('<status>3</status>' in resposta_texto or '<status>4</status>' in resposta_texto):
+                print("$$$$$$$$$$PAGAMENTO APROVADO!$$$$$$$$$$")
+                root = ET.fromstring(resposta_texto)
+                usuario_para_atualizar = root.find('reference').text
+                
+                print(f"--- Referência encontrada: {usuario_para_atualizar} ---")
+                usuarios = carregar_json('users.json', {})
+                if usuario_para_atualizar in usuarios:
+                    print(f"--- Atualizando usuário: {usuario_para_atualizar} ---")
+                    usuarios[usuario_para_atualizar]['status_assinatura'] = 'ativo'
+                    data_expiracao = datetime.now() + timedelta(days=30)
+                    usuarios[usuario_para_atualizar]['data_fim_assinatura'] = data_expiracao.strftime('%Y-%m-%d')
+                    salvar_json('users.json', usuarios)
+                    print("--- Usuário atualizado com sucesso! ---")
+            else:
+                print("--- Pagamento não aprovado ou sem referência na resposta. ---")
+                
+        except Exception as e:
+            print(f"!!! Erro no webhook: {e}!!!")
+        return jsonify({'status': 'recebido'}), 200
+
     # RETORNAMOS O APP CONSTRUÍDO NO FINAL DA FUNÇÃO
     return app
 

@@ -6,6 +6,8 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app 
 from werkzeug.security import generate_password_hash, check_password_hash
+import stripe # NOVO: Importa a biblioteca do Stripe
+import stripe
 
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
@@ -54,6 +56,12 @@ def create_app():
     app.config['PAGBANK_CLIENT_ID'] = os.environ.get('PAGBANK_CLIENT_ID') 
     app.config['PAGBANK_CLIENT_SECRET'] = os.environ.get('PAGBANK_CLIENT_SECRET') 
 
+    # --- NOVO: Configurações do Stripe ---
+    app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
+    app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
+    stripe.api_key = app.config['STRIPE_SECRET_KEY_TEST'] # Define a chave secreta do Stripe para a biblioteca
+    # ====================================
+
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')
     def index():
@@ -96,11 +104,37 @@ def create_app():
             }
             salvar_json('users.json', usuarios)
             
-            # --- AGORA, APÓS O REGISTRO, REDIRECIONAMOS PARA O DASHBOARD ---
+            # --- APÓS O REGISTRO, REDIRECIONAMOS PARA O DASHBOARD ---
+            # A lógica da API de Pedidos do PagBank foi removida aqui.
             print(f"--- Usuário {username} registrado com sucesso! Redirecionando para dashboard/pagamento pendente ---")
             return redirect(url_for('dashboard')) 
         return render_template('registrar.html')
     
+    # --- NOVA ROTA: Criar PaymentIntent do Stripe ---
+    @app.route('/create-payment-intent', methods=['POST'])
+    def create_payment_intent():
+        if 'username' not in session:
+            return jsonify({'error': 'Usuário não logado'}), 401
+
+        username = session['username']
+        # Busca o valor da assinatura do seu plano. Por simplicidade, valor fixo em centavos.
+        # R$ 29,90 = 2990 centavos. Ajuste para o valor real da sua assinatura.
+        amount_in_cents = 2990 
+
+        try:
+            # Cria um PaymentIntent no Stripe
+            intent = stripe.PaymentIntent.create(
+                amount=amount_in_cents,
+                currency='brl', # Moeda brasileira
+                metadata={'integration_id': username}, # Para identificar o usuário no Stripe
+                payment_method_types=['card'], # Aceita pagamento com cartão
+            )
+            # Retorna o client_secret para o frontend
+            return jsonify(clientSecret=intent.client_secret)
+        except stripe.error.StripeError as e:
+            print(f"Erro ao criar PaymentIntent: {e}")
+            return jsonify(error={'message': str(e)}), 400
+
     @app.route('/dashboard')
     def dashboard():
         if 'username' not in session:
@@ -115,9 +149,12 @@ def create_app():
             config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
             return render_template('dashboard.html', usuario=dados_usuario, analytics=analytics, config=config)
         else:
-            link_pagamento_base = "https://cobranca.pagbank.com/8eeb87d3-50bd-482f-a037-23b28fc42e7a"
-            link_com_referencia = f"{link_pagamento_base}?referenceId={username}"
-            return render_template('pagamento_pendente.html', link_de_pagamento=link_com_referencia)
+            # Com a integração do Stripe, esta página de pagamento pendente será modificada
+            # para exibir o formulário do Stripe Elements.
+            # O link_de_pagamento_base pode não ser mais necessário aqui, dependendo de como
+            # o frontend do Stripe for configurado para redirecionar.
+            return render_template('pagamento_pendente.html', 
+                                    stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
 
     @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
@@ -176,37 +213,9 @@ def create_app():
                 return jsonify({'status': 'sem codigo'}), 400
             
             print(f"--- Consultando notificação: {notification_code} ---")
+            # Este endpoint usa o PAGBANK_EMAIL e PAGBANK_TOKEN (o antigo)
             url_consulta = f"https://ws.pagseguro.uol.com.br/v3/transactions/notifications/{notification_code}?email={current_app.config['PAGBANK_EMAIL']}&token={current_app.config['PAGBANK_TOKEN']}"
             headers = {'Accept': 'application/xml;charset=ISO-8859-1'}
             response = requests.get(url_consulta, headers=headers)
             response.raise_for_status()
-            resposta_texto = response.text
-            
-            if '<reference>' in resposta_texto and ('<status>3</status>' in resposta_texto or '<status>4</status>' in resposta_texto):
-                print("$$$$$$$$$$PAGAMENTO APROVADO!$$$$$$$$$$")
-                root = ET.fromstring(resposta_texto)
-                usuario_para_atualizar = root.find('reference').text
-                
-                print(f"--- Referência encontrada: {usuario_para_atualizar} ---")
-                usuarios = carregar_json('users.json', {})
-                if usuario_para_atualizar in usuarios:
-                    print(f"--- Atualizando usuário: {usuario_para_atualizar} ---")
-                    usuarios[usuario_para_atualizar]['status_assinatura'] = 'ativo'
-                    data_expiracao = datetime.now() + timedelta(days=30)
-                    usuarios[usuario_para_atualizar]['data_fim_assinatura'] = data_expiracao.strftime('%Y-%m-%d')
-                    salvar_json('users.json', usuarios)
-                    print("--- Usuário atualizado com sucesso! ---")
-            else:
-                print("--- Pagamento não aprovado ou sem referência na resposta. ---")
-                
-        except Exception as e:
-            print(f"!!! Erro no webhook: {e}!!!")
-        return jsonify({'status': 'recebido'}), 200
-
-    # RETORNAMOS O APP CONSTRUÍDO NO FINAL DA FUNÇÃO
-    return app
-
-# A SEÇÃO ABAIXO NÃO É MAIS USADA PELO GUNICORN, MAS É ÚTIL PARA TESTES LOCAIS
-if __name__ == '__main__':
-    app = create_app()
-    app.run(port=5000, debug=True)
+            resposta_texto

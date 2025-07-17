@@ -2,27 +2,44 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pagamento Pendente - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .pagamento-container {
             text-align: center;
+            padding: 20px;
         }
-        .pagamento-container .pagar-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 25px;
-            background-color: #28a745; /* Cor verde para o botão de pagar */
+        .pagamento-container #card-element {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .pagamento-container button {
+            background-color: #6772E5; /* Cor padrão do Stripe */
             color: white;
-            text-decoration: none;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
+            transition: background-color 0.2s ease;
         }
-         .pagamento-container .logout-link {
+        .pagamento-container button:hover {
+            background-color: #5765d7;
+        }
+        .pagamento-container .logout-link {
             display: block;
             margin-top: 30px;
             font-size: 14px;
             color: #888;
+        }
+        #card-errors {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -30,15 +47,22 @@
     <div class="login-container pagamento-container">
         <h3>Acesso Pendente</h3>
         <p>Sua assinatura ainda não está ativa. Para liberar todas as funcionalidades do painel, por favor, realize o pagamento.</p>
-        
-        <!-- INICIO FORMULARIO BOTAO PAGBANK: NAO EDITE OS COMANDOS DAS LINHAS ABAIXO -->
-        <form action="https://pagseguro.uol.com.br/pre-approvals/request.html" method="post">
-        <input type="hidden" name="code" value="D8BEA86F0C0CF41664820FA9C0B8B253" />
-        <input type="hidden" name="iot" value="button" />
-        <input type="image" src="https://stc.pagseguro.uol.com.br/public/img/botoes/assinaturas/209x48-assinar-assina.gif" name="submit" alt="Pague com PagBank - É rápido, grátis e seguro!" width="209" height="48" />
+
+        <form id="payment-form">
+            <div id="card-element">
+                </div>
+            <div id="card-errors" role="alert"></div>
+            <button id="submit-button">Pagar Assinatura</button>
         </form>
-        
+
         <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
     </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
+    <script>
+        // Passa a chave publicável do Flask para o JavaScript
+        var stripe_publishable_key = "{{ stripe_publishable_key }}";
+    </script>
 </body>
 </html>

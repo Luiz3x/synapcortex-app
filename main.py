@@ -150,8 +150,6 @@ def create_app():
         else:
             # Com a integração do Stripe, esta página de pagamento pendente será modificada
             # para exibir o formulário do Stripe Elements.
-            # O link_de_pagamento_base pode não ser mais necessário aqui, dependendo de como
-            # o frontend do Stripe for configurado para redirecionar.
             return render_template('pagamento_pendente.html', 
                                     stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
 
@@ -246,4 +244,3 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(port=5000, debug=True)
-    

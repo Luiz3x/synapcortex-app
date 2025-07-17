@@ -10,7 +10,7 @@ import stripe # Importa a biblioteca do Stripe
 
 # =====================================================================
 # FUNÇÕES DE AJUDA (Não mudam)
-=====================================================================
+# =====================================================================
 def carregar_json(nome_arquivo, dados_padrao):
     # Define o caminho para o nosso "cofre" na Render
     diretorio_de_dados = os.path.join(os.getcwd(), "data")
@@ -32,8 +32,7 @@ def salvar_json(nome_arquivo, dados):
     
     with open(caminho_completo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4)
-
-# =====================================================================
+        # =====================================================================
 # A GRANDE MUDANÇA: A FÁBRICA DE APLICATIVOS (Application Factory)
 # =====================================================================
 def create_app():
@@ -60,7 +59,6 @@ def create_app():
     app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
     stripe.api_key = app.config['STRIPE_SECRET_KEY_TEST'] # Define a chave secreta do Stripe para a biblioteca
     # ====================================
-
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')
     def index():
@@ -108,8 +106,7 @@ def create_app():
             print(f"--- Usuário {username} registrado com sucesso! Redirecionando para dashboard/pagamento pendente ---")
             return redirect(url_for('dashboard')) 
         return render_template('registrar.html')
-    
-    # --- NOVA ROTA: Criar PaymentIntent do Stripe ---
+        # --- NOVA ROTA: Criar PaymentIntent do Stripe ---
     @app.route('/create-payment-intent', methods=['POST'])
     def create_payment_intent():
         if 'username' not in session:
@@ -152,8 +149,7 @@ def create_app():
             # para exibir o formulário do Stripe Elements.
             return render_template('pagamento_pendente.html', 
                                     stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
-
-    @app.route('/salvar-configuracoes', methods=['POST']) 
+                                    @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
         if 'username' not in session:
             return redirect(url_for('login'))

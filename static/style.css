@@ -1,68 +1,197 @@
-/* Estilo Geral */
+/* style.css - Design Moderno e Tecnológico para SynapCortex */
+
+/* --- Variáveis de Cores --- */
+:root {
+    --primary-blue-dark: #0a0a2a; /* Fundo principal, quase preto azulado */
+    --secondary-blue-dark: #1a1a4a; /* Elementos de fundo secundários */
+    --accent-blue: #00ccff; /* Ciano vibrante para destaque e interatividade */
+    --accent-purple: #9933ff; /* Roxo elétrico para brilhos sutis */
+    --text-light: #ffffff; /* Branco puro para textos principais */
+    --text-fade: #bbbbbb; /* Cinza claro para textos secundários */
+    --border-light: #444466; /* Borda suave para elementos */
+    --error-red: #ff4444; /* Vermelho para mensagens de erro */
+}
+
+/* --- Reset Básico e Fontes --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #f4f7f6;
-    margin: 40px;
+    font-family: 'Roboto', 'Arial', sans-serif; /* Fonte moderna e legível */
+    background-color: var(--primary-blue-dark);
+    color: var(--text-light);
+    line-height: 1.6;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 80px);
-}
-
-.login-container {
-    background-color: #ffffff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 600px;
-}
-
-h2, h3 {
-    text-align: center;
-    color: #333;
-}
-
-/* Formulários */
-form {
-    display: flex;
+    min-height: 100vh; /* Ocupa a altura total da viewport */
     flex-direction: column;
+    padding: 20px; /* Adiciona um padding geral */
 }
 
-form label {
+a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--accent-purple);
+}
+
+/* --- Containers Principais --- */
+.login-container,
+.dashboard-container,
+.pagamento-container {
+    background-color: var(--secondary-blue-dark);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    margin-bottom: 20px; /* Espaçamento entre containers */
+}
+
+/* --- Títulos e Parágrafos --- */
+h1, h2, h3 {
+    color: var(--accent-blue);
+    margin-bottom: 20px;
+    font-weight: 500; /* Levemente mais fino */
+}
+
+p {
+    color: var(--text-fade);
+    margin-bottom: 15px;
+}
+
+/* --- Formulários e Campos de Input --- */
+form {
+    width: 100%;
+}
+
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-light);
+    font-size: 0.9em;
     font-weight: bold;
-    margin-top: 15px;
-    margin-bottom: 5px;
 }
 
-form input[type="text"],
-form input[type="email"],
-form input[type="password"],
-form textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-form textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-form button {
-    background-color: #007bff;
-    color: white;
+.input-group input[type="text"],
+.input-group input[type="password"],
+.input-group input[type="email"],
+#card-element { /* Para o Stripe Elements */
+    width: 100%;
     padding: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    background-color: var(--primary-blue-dark);
+    color: var(--text-light);
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="password"]:focus,
+.input-group input[type="email"]:focus,
+#card-element.StripeElement--focus { /* Foco do Stripe Element */
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(0, 204, 255, 0.3); /* Brilho sutil */
+    outline: none;
+}
+
+.input-group-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.input-group-row .input-group {
+    flex: 1; /* Distribui o espaço igualmente */
+    margin-bottom: 0;
+}
+
+/* --- Botões --- */
+button[type="submit"] {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--accent-blue);
+    color: var(--text-light);
     border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    border-radius: 5px;
+    font-size: 1.1em;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 10px;
 }
 
-form button:hover {
-    background-color: #0056b3;
+button[type="submit"]:hover {
+    background-color: var(--accent-purple); /* Muda para roxo no hover */
+    box-shadow: 0 4px 10px rgba(153, 51, 255, 0.4);
+}
+
+/* --- Links Adicionais --- */
+.extra-links {
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+.error-message {
+    color: var(--error-red);
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* --- Estilos do Pop-up (Existente, ajustado para as variáveis) --- */
+.popup-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    background-color: var(--secondary-blue-dark);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    z-index: 1000;
+    text-align: left; /* Alinha o texto do popup */
+}
+
+.popup-conteudo h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: var(--accent-blue);
+}
+
+.popup-conteudo p {
+    font-size: 0.9em;
+    color: var(--text-fade);
+    margin-bottom: 15px;
+}
+
+.fechar-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: var(--text-fade);
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+
+.fechar-btn:hover {
+    color: var(--text-light);
 }

@@ -9,36 +9,31 @@
 <body>
     <div class="login-container">
         <h2>Crie sua Conta na SynapCortex</h2>
-        <p>Preencha os dados abaixo para começar.</p>
+        <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
         
         <form method="POST">
             <div class="input-group">
-                <label for="fullname">Nome Completo</label>
-                <input type="text" id="fullname" name="fullname" required>
+                <label for="nome_empresa">Nome da Empresa</label>
+                <input type="text" id="nome_empresa" name="nome_empresa" required>
             </div>
             <div class="input-group">
-                <label for="cpf">CPF (somente números)</label>
-                <input type="text" id="cpf" name="cpf" required>
-            </div>
-            <div class="input-group-row">
-                <div class="input-group" style="width: 30%;">
-                    <label for="ddd">DDD</label>
-                    <input type="text" id="ddd" name="ddd" required>
-                </div>
-                <div class="input-group" style="width: 68%;">
-                    <label for="phone">Telefone (somente números)</label>
-                    <input type="text" id="phone" name="phone" required>
-                </div>
+                <label for="cnpj">CNPJ (somente números)</label>
+                <input type="text" id="cnpj" name="cnpj" required pattern="\d{14}" title="Por favor, insira 14 dígitos numéricos para o CNPJ.">
             </div>
             <div class="input-group">
-                <label for="username">Nome de Usuário (para login)</label>
-                <input type="text" id="username" name="username" required>
+                <label for="email">E-mail Comercial (seu login)</label>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="input-group">
-                <label for="password">Senha</label>
+                <label for="password">Crie sua Senha</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Registrar e Ir para Pagamento</button>
+            
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+
+            <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
         </form>
         <div class="extra-links">
             <a href="{{ url_for('login') }}">Já tem uma conta? Faça login</a>

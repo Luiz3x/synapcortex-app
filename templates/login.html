@@ -3,28 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SynapCortex</title> <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Login - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">
-        <h2>SynapCortex</h2> <h3>Acesse seu Painel</h3>
+        <h2>SynapCortex</h2>
+        <h3>Acesse seu Painel</h3>
         
+        {% if message %}
+            <p style="color: var(--accent-blue); margin-bottom: 15px;">{{ message }}</p>
+        {% endif %}
+
         <form method="POST" action="{{ url_for('login') }}">
             
-            <div class="input-group"> <label for="username">Nome de Usuário:</label>
-                <input type="text" id="username" name="username" required>
+            <div class="input-group">
+                <label for="email">E-mail Comercial:</label>
+                <input type="email" id="email" name="email" required>
             </div>
             
-            <div class="input-group"> <label for="password">Senha:</label>
+            <div class="input-group">
+                <label for="password">Senha:</label>
                 <input type="password" id="password" name="password" required>
             </div>
             
             {% if error %}
-                <p class="error-message">{{ error }}</p> {% endif %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
 
             <button type="submit">Entrar</button>
         </form>
-        <div class="extra-links"> <a href="{{ url_for('registrar') }}">Não tem uma conta? Crie uma</a>
+        <div class="extra-links">
+            <a href="{{ url_for('registrar') }}">Não tem uma conta? Crie uma</a>
         </div>
     </div>
 </body>

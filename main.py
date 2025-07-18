@@ -10,7 +10,7 @@ import stripe # Importa a biblioteca do Stripe
 import Stripe
 
 # =====================================================================
-# FUNÇÕES DE AJUDA (Não mudam)
+# =====================================================================
 # =====================================================================
 def carregar_json(nome_arquivo, dados_padrao):
     # Define o caminho para o nosso "cofre" na Render

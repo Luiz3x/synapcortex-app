@@ -65,11 +65,10 @@
 
     <script src="https://js.stripe.com/v3/"></script>
     
-    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
-    
     <script>
-        // Passa a chave publicável do Flask (backend) para o JavaScript (frontend)
         var stripe_publishable_key = "{{ stripe_publishable_key }}";
     </script>
-</body>
+
+    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
+    </body>
 </html>

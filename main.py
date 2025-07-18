@@ -149,8 +149,8 @@ def create_app():
             # Com a integração do Stripe, esta página de pagamento pendente será modificada
             # para exibir o formulário do Stripe Elements.
             return render_template('pagamento_pendente.html', 
-                                    stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
-                                    @app.route('/salvar-configuracoes', methods=['POST']) 
+      stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
+    @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
         if 'username' not in session:
             return redirect(url_for('login'))

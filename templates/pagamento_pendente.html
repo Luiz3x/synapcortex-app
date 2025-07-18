@@ -6,17 +6,22 @@
     <title>Pagamento Pendente - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        /* Estilos CSS específicos para esta página */
         .pagamento-container {
             text-align: center;
             padding: 20px;
         }
-        .pagamento-container #card-element {
-            border: 1px solid #ccc;
+        #card-element { /* Estilo básico para o campo do cartão do Stripe */
+            border: 1px solid var(--border-light); /* Usando variável do style.css */
             padding: 10px;
             border-radius: 4px;
             margin-bottom: 20px;
+            background-color: var(--primary-blue-dark); /* Usando variável do style.css */
+            color: var(--text-light); /* Usando variável do style.css */
         }
-        .pagamento-container button {
+        /* Os estilos para o botão submit e links já estão no style.css geral,
+           mas podemos ajustá-los aqui se necessário */
+        #payment-form button {
             background-color: #6772E5; /* Cor padrão do Stripe */
             color: white;
             padding: 12px 24px;
@@ -27,19 +32,19 @@
             font-weight: bold;
             transition: background-color 0.2s ease;
         }
-        .pagamento-container button:hover {
+        #payment-form button:hover {
             background-color: #5765d7;
         }
-        .pagamento-container .logout-link {
+        #card-errors { /* Para mensagens de erro do Stripe Elements */
+            color: var(--error-red); /* Usando variável do style.css */
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .logout-link { /* Garante que o link sair fique bom */
             display: block;
             margin-top: 30px;
             font-size: 14px;
-            color: #888;
-        }
-        #card-errors {
-            color: red;
-            text-align: center;
-            margin-bottom: 10px;
+            color: var(--text-fade);
         }
     </style>
 </head>
@@ -47,21 +52,24 @@
     <div class="login-container pagamento-container">
         <h3>Acesso Pendente</h3>
         <p>Sua assinatura ainda não está ativa. Para liberar todas as funcionalidades do painel, por favor, realize o pagamento.</p>
-
+        
         <form id="payment-form">
             <div id="card-element">
                 </div>
             <div id="card-errors" role="alert"></div>
             <button id="submit-button">Pagar Assinatura</button>
         </form>
-
+        
         <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
     </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
     
-</body>
+    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
+    
     <script>
+        // Passa a chave publicável do Flask (backend) para o JavaScript (frontend)
         var stripe_publishable_key = "{{ stripe_publishable_key }}";
     </script>
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
+</body>
 </html>

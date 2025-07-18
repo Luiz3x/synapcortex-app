@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app 
 from werkzeug.security import generate_password_hash, check_password_hash
 import stripe # Importa a biblioteca do Stripe
-import Stripe
 
 # =====================================================================
 # =====================================================================

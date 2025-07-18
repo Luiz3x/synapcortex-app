@@ -57,12 +57,11 @@
 
         <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
     </div>
-
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
+    
+</body>
     <script>
-        // Passa a chave publicável do Flask para o JavaScript
         var stripe_publishable_key = "{{ stripe_publishable_key }}";
     </script>
-</body>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
 </html>

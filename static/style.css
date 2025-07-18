@@ -333,3 +333,81 @@ body {
 .modal-content .login-logo {
     margin-top: 0; /* Ajusta margem se for dentro do modal */
 }
+/* style.css - Adições/Ajustes para alinhamento no Dashboard (Mobile) */
+
+/* Garante que o body possa centralizar seus filhos */
+body {
+    display: flex; /* Já temos isso, mas reforça */
+    justify-content: center; /* Centraliza o conteúdo principal horizontalmente */
+    align-items: flex-start; /* Alinha no topo verticalmente */
+    min-height: 100vh;
+    flex-direction: column;
+    padding: 20px;
+    width: 100%; /* Garante que o body ocupa a largura total para centralizar */
+}
+
+/* Ajusta o container principal para estar sempre centralizado e com largura máxima controlada */
+.login-container,
+.dashboard-container,
+.pagamento-container {
+    background-color: var(--secondary-blue-dark);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 450px; /* Mantém a largura máxima em desktop */
+    text-align: center; /* Centraliza o texto dentro do container */
+    margin: 20px auto; /* Centraliza o bloco na página, adicionando margem vertical */
+}
+
+/* Ajustes específicos para o cabeçalho do Dashboard em mobile */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 20px; /* Reduz padding em telas menores */
+    }
+
+    .header-logout {
+        flex-direction: column; /* Empilha os itens */
+        align-items: center; /* Centraliza os itens empilhados (título e Sair) */
+        text-align: center; /* Centraliza o texto do título também */
+        gap: 15px; /* Espaçamento entre os elementos empilhados */
+    }
+    
+    .header-logout h3 {
+        margin-bottom: 0; /* Remove margem extra */
+        width: 100%; /* Garante que o título ocupe a largura total para centralizar */
+        text-align: center; /* Centraliza o texto do título */
+    }
+
+    .logout-link {
+        margin-top: 5px; /* Ajusta a margem do link Sair */
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr; /* Força uma única coluna para as estatísticas em mobile */
+        gap: 15px;
+    }
+
+    .stats-section {
+        padding: 15px; /* Padding menor nas caixas de estatísticas */
+    }
+
+    /* Garante que o formulário de configurações também esteja bem centralizado */
+    form {
+        text-align: center; /* Centraliza o formulário */
+    }
+
+    .input-group label {
+        text-align: center; /* Centraliza os labels se for o caso */
+    }
+}
+
+/* Para telas muito pequenas (celulares) */
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 15px; /* Padding ainda menor */
+    }
+    .header-logout h3 {
+        font-size: 1.2em; /* Diminui um pouco a fonte do título em telas bem pequenas */
+    }
+}

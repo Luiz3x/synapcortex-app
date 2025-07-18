@@ -5,34 +5,35 @@ import xml.etree.ElementTree as ET
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app 
-from werkzeug.security import generate_password_hash, check_password_hash
-import stripe # Importa a biblioteca do Stripe
+from werkzeug.security import generate_password_hash, check_password_hash # Importações corretas
 
 # =====================================================================
+# Funções para carregar e salvar JSON
 # =====================================================================
-# =====================================================================
+# Definindo o caminho para o arquivo de usuários
+USERS_FILE = os.path.join(os.path.dirname(__file__), 'data', 'users.json')
+ANALYTICS_FILE = os.path.join(os.path.dirname(__file__), 'data', 'analytics.json')
+CONFIG_POPUP_FILE = os.path.join(os.path.dirname(__file__), 'data', 'config_popup.json')
+
 def carregar_json(nome_arquivo, dados_padrao):
-    # Define o caminho para o nosso "cofre" na Render
     diretorio_de_dados = os.path.join(os.getcwd(), "data")
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
 
-    # Se o arquivo não existir, cria-o com os dados padrão.
     if not os.path.exists(caminho_completo):
         with open(caminho_completo, 'w', encoding='utf-8') as f:
             json.dump(dados_padrao, f, indent=4)
     
-    # Abre e retorna os dados do arquivo
     with open(caminho_completo, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def salvar_json(nome_arquivo, dados):
-    # Define o caminho para o nosso "cofre" na Render
     diretorio_de_dados = os.path.join(os.getcwd(), "data")
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
     
     with open(caminho_completo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4)
-        # =====================================================================
+
+# =====================================================================
 # A GRANDE MUDANÇA: A FÁBRICA DE APLICATIVOS (Application Factory)
 # =====================================================================
 def create_app():
@@ -57,8 +58,10 @@ def create_app():
     # --- NOVO: Configurações do Stripe ---
     app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
     app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
+    import stripe # Importa a biblioteca do Stripe (garante que esteja no escopo correto)
     stripe.api_key = app.config['STRIPE_SECRET_KEY_TEST'] # Define a chave secreta do Stripe para a biblioteca
     # ====================================
+
     # AGORA, TODAS AS ROTAS SÃO REGISTRADAS DENTRO DA FÁBRICA
     @app.route('/')
     def index():
@@ -66,53 +69,73 @@ def create_app():
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
+        message = request.args.get('message') # Para exibir mensagens de sucesso do registro
         if request.method == 'POST':
-            username = request.form.get('username')
+            email = request.form.get('email').lower() # Coleta o email (agora é o identificador)
             password = request.form.get('password')
+            
             usuarios = carregar_json('users.json', {}) 
-            user_data = usuarios.get(username)
+            user_data = usuarios.get(email) # Busca pelo email
+            
+            # Usa check_password_hash do Werkzeug
             if user_data and check_password_hash(user_data['senha'], password):
-                session['username'] = username
+                session['logged_in'] = True # Usar uma flag booleana é bom
+                session['email'] = email    # Armazena o email na sessão
                 return redirect(url_for('dashboard'))
-            return render_template('login.html', error='Credenciais inválidas.')
-        return render_template('login.html')
+            else:
+                message = 'E-mail ou senha incorretos.'
+        return render_template('login.html', message=message)
 
     @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
         if request.method == 'POST':
-            fullname = request.form.get('fullname')
-            cpf = request.form.get('cpf')
-            ddd = request.form.get('ddd')
-            phone = request.form.get('phone')
-            username = request.form.get('username')
+            # Coletar dados do formulário
+            email = request.form.get('email').lower() # E-mail será o identificador principal
             password = request.form.get('password')
-            
+            cnpj = request.form.get('cnpj') # Novo campo para CNPJ
+            nome_empresa = request.form.get('nome_empresa', '') # Novo campo opcional para nome da empresa
+
             usuarios = carregar_json('users.json', {}) 
-            if username in usuarios:
-                return "Usuário já existe!"
 
-            email_comprador = f"cliente_{username}@sandbox.pagbank.com.br"
+            # 1. Verificar se o e-mail já está cadastrado
+            if email in usuarios:
+                return render_template('registrar.html', error='Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.')
 
-            usuarios[username] = {
-                "email": email_comprador, 
-                "senha": generate_password_hash(password),
-                "status_assinatura": "pendente", 
-                "data_fim_assinatura": None
+            # 2. Verificar se o CNPJ já está cadastrado (prevenção de abuso de trial)
+            # Percorre os valores (dados de usuário) do dicionário 'usuarios'
+            for user_email, user_data in usuarios.items(): # Itera sobre os itens para pegar o email associado
+                if user_data.get('cnpj') == cnpj:
+                    return render_template('registrar.html', error='Este CNPJ já possui um cadastro. Entre em contato para mais informações.')
+
+            # Hash da senha usando generate_password_hash do Werkzeug
+            hashed_password = generate_password_hash(password)
+
+            # 3. Definir o mês grátis: status 'ativo' e data de expiração
+            data_inicio_assinatura = datetime.now()
+            data_fim_assinatura = data_inicio_assinatura + timedelta(days=30) # Mês grátis
+
+            # Criar novo usuário com a nova estrutura, usando email como chave
+            usuarios[email] = {
+                'senha': hashed_password,
+                'cnpj': cnpj,
+                'nome_empresa': nome_empresa,
+                'status_assinatura': 'ativo', # Ativado para o período de teste
+                'data_inicio_assinatura': data_inicio_assinatura.strftime('%Y-%m-%d'),
+                'data_fim_assinatura': data_fim_assinatura.strftime('%Y-%m-%d')
             }
             salvar_json('users.json', usuarios)
             
-            # --- APÓS O REGISTRO, REDIRECIONAMOS PARA O DASHBOARD ---
-            # A lógica da API de Pedidos do PagBank foi removida aqui.
-            print(f"--- Usuário {username} registrado com sucesso! Redirecionando para dashboard/pagamento pendente ---")
-            return redirect(url_for('dashboard')) 
+            print(f"--- Usuário {email} registrado com sucesso! Mês grátis ativado. Redirecionando para login ---")
+            return redirect(url_for('login', message='Cadastro realizado com sucesso! Aproveite seu mês grátis.')) 
         return render_template('registrar.html')
-        # --- NOVA ROTA: Criar PaymentIntent do Stripe ---
+
+    # --- NOVA ROTA: Criar PaymentIntent do Stripe ---
     @app.route('/create-payment-intent', methods=['POST'])
     def create_payment_intent():
-        if 'username' not in session:
+        if 'logged_in' not in session or not session['logged_in']:
             return jsonify({'error': 'Usuário não logado'}), 401
 
-        username = session['username']
+        email_usuario = session.get('email') # Pega o email da sessão
         # Busca o valor da assinatura do seu plano. Por simplicidade, valor fixo em centavos.
         # R$ 29,90 = 2990 centavos. Ajuste para o valor real da sua assinatura.
         amount_in_cents = 2990 
@@ -122,7 +145,7 @@ def create_app():
             intent = stripe.PaymentIntent.create(
                 amount=amount_in_cents,
                 currency='brl', # Moeda brasileira
-                metadata={'integration_id': username}, # Para identificar o usuário no Stripe
+                metadata={'user_email': email_usuario}, # Para identificar o usuário no Stripe com o email
                 payment_method_types=['card'], # Aceita pagamento com cartão
             )
             # Retorna o client_secret para o frontend
@@ -133,25 +156,46 @@ def create_app():
 
     @app.route('/dashboard')
     def dashboard():
-        if 'username' not in session:
+        if 'logged_in' not in session or not session['logged_in']:
             return redirect(url_for('login'))
 
-        username = session['username']
+        email_usuario = session.get('email')
         usuarios = carregar_json('users.json', {})
-        dados_usuario = usuarios.get(username)
+        dados_usuario = usuarios.get(email_usuario)
 
-        if dados_usuario and dados_usuario.get('status_assinatura') == 'ativo':
-            analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
-            config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+        if not dados_usuario:
+            # Caso o usuário logado não seja encontrado (ex: deletado manualmente do JSON)
+            session.pop('logged_in', None)
+            session.pop('email', None)
+            return redirect(url_for('login', error='Sua sessão expirou ou usuário não encontrado.')) # Erro para login
+
+        # Carregar dados de analytics e config_popup
+        analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
+        config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+
+        # NOVO: Lógica de verificação de expiração do trial
+        status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
+        data_fim_str = dados_usuario.get('data_fim_assinatura')
+        
+        if status_assinatura == 'ativo' and data_fim_str:
+            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d')
+            if datetime.now() > data_fim:
+                # Se a data de fim passou, marca como pendente e salva
+                dados_usuario['status_assinatura'] = 'pendente'
+                salvar_json('users.json', usuarios) # Salva a atualização no JSON
+                status_assinatura = 'pendente' # Atualiza a variável local
+                print(f"--- Assinatura de {email_usuario} expirada e atualizada para 'pendente' ---")
+
+        if status_assinatura == 'ativo':
             return render_template('dashboard.html', usuario=dados_usuario, analytics=analytics, config=config)
         else:
-            # Com a integração do Stripe, esta página de pagamento pendente será modificada
-            # para exibir o formulário do Stripe Elements.
+            # Se a assinatura estiver pendente (ou expirou), redireciona para a página de pagamento
             return render_template('pagamento_pendente.html', 
-      stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
+                stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
+
     @app.route('/salvar-configuracoes', methods=['POST']) 
     def salvar_configuracoes():
-        if 'username' not in session:
+        if 'logged_in' not in session or not session['logged_in']:
             return redirect(url_for('login'))
         
         novo_titulo = request.form.get('popup_titulo')
@@ -164,7 +208,8 @@ def create_app():
 
     @app.route('/logout')
     def logout():
-        session.pop('username', None)
+        session.pop('logged_in', None)
+        session.pop('email', None) # Remove o email da sessão
         return redirect(url_for('login'))
 
     @app.route('/api/get-config')
@@ -206,6 +251,7 @@ def create_app():
                 return jsonify({'status': 'sem codigo'}), 400
             
             print(f"--- Consultando notificação: {notification_code} ---")
+            # ATENÇÃO: Verifique se essa URL está correta para seu ambiente PagBank (sandbox/produção)
             url_consulta = f"https://ws.pagseguro.uol.com.br/v3/transactions/notifications/{notification_code}?email={current_app.config['PAGBANK_EMAIL']}&token={current_app.config['PAGBANK_TOKEN']}"
             headers = {'Accept': 'application/xml;charset=ISO-8859-1'}
             response = requests.get(url_consulta, headers=headers)
@@ -215,17 +261,21 @@ def create_app():
             if '<reference>' in resposta_texto and ('<status>3</status>' in resposta_texto or '<status>4</status>' in resposta_texto):
                 print("$$$$$$$$$$PAGAMENTO APROVADO!$$$$$$$$$$")
                 root = ET.fromstring(resposta_texto)
-                usuario_para_atualizar = root.find('reference').text
+                # A 'reference' deve ser o EMAIL do usuário para corresponder à chave no users.json
+                email_para_atualizar = root.find('reference').text 
                 
-                print(f"--- Referência encontrada: {usuario_para_atualizar} ---")
+                print(f"--- Referência encontrada: {email_para_atualizar} ---")
                 usuarios = carregar_json('users.json', {})
-                if usuario_para_atualizar in usuarios:
-                    print(f"--- Atualizando usuário: {usuario_para_atualizar} ---")
-                    usuarios[usuario_para_atualizar]['status_assinatura'] = 'ativo'
-                    data_expiracao = datetime.now() + timedelta(days=30)
-                    usuarios[usuario_para_atualizar]['data_fim_assinatura'] = data_expiracao.strftime('%Y-%m-%d')
+                if email_para_atualizar in usuarios:
+                    print(f"--- Atualizando usuário: {email_para_atualizar} ---")
+                    usuarios[email_para_atualizar]['status_assinatura'] = 'ativo'
+                    # Ao renovar, adiciona mais 30 dias à data atual (ou à data de fim, se quiser acumular)
+                    data_expiracao = datetime.now() + timedelta(days=30) 
+                    usuarios[email_para_atualizar]['data_fim_assinatura'] = data_expiracao.strftime('%Y-%m-%d')
                     salvar_json('users.json', usuarios)
                     print("--- Usuário atualizado com sucesso! ---")
+                else:
+                    print(f"--- Usuário com referência '{email_para_atualizar}' não encontrado no JSON. ---")
             else:
                 print("--- Pagamento não aprovado ou sem referência na resposta. ---")
                 

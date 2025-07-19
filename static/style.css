@@ -319,3 +319,17 @@ body {
         padding: 20px; /* Reduz padding em telas pequenas */
     }
 }
+/* style.css - NOVO: Estilo para o logo nas páginas de login/registro */
+.login-logo {
+    max-width: 120px; /* Tamanho do logo */
+    height: auto;
+    margin-bottom: 25px; /* Espaço abaixo do logo */
+    display: block; /* Garante que ocupe sua própria linha */
+    margin-left: auto; /* Centraliza o logo */
+    margin-right: auto; /* Centraliza o logo */
+}
+
+/* Ajustes para o modal também, se necessário */
+.modal-content .login-logo {
+    margin-top: 0; /* Ajusta margem se for dentro do modal */
+}

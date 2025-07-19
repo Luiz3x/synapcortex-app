@@ -9,6 +9,29 @@
 <body>
     <div class="login-container">
         <h2>Crie sua Conta na SynapCortex</h2>
+        <!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
+
+        <h2>Crie sua Conta na SynapCortex</h2>
+        <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
+        
+        <form method="POST">
+            </form>
+        <div class="extra-links">
+            <a href="{{ url_for('login') }}">Já tem uma conta? Faça login</a>
+        </div>
+    </div>
+</body>
+</html>
         <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
         
         <form method="POST">

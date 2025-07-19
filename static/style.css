@@ -173,3 +173,149 @@
         padding: 20px;
     }
 }
+/* --- style.css - Adições/Ajustes para a estética Google-like no Modal --- */
+
+/* Ajustes gerais para centralizar e dar mais espaço nos containers */
+.login-container,
+.dashboard-container,
+.pagamento-container,
+.modal-content { /* Aplica-se também ao conteúdo do modal */
+    /* Garante que o conteúdo dentro desses blocos tenha mais espaço */
+    text-align: center; /* Centraliza o texto e blocos internos */
+    padding: 30px 40px; /* Mantém um padding decente */
+    /* Remove 'margin: auto;' de containers se 'display: flex' já os centralizar no body */
+}
+
+/* Campos de Input - Estilo mais clean e foco sutil */
+.input-group input[type="text"],
+.input-group input[type="password"],
+.input-group input[type="email"],
+#card-element,
+.modal-content input[type="email"], /* Inputs dentro do modal */
+.modal-content input[type="password"],
+.modal-content input[type="text"] {
+    width: 100%;
+    padding: 14px 16px; /* Aumenta o padding para um visual mais espaçoso */
+    border: 1px solid var(--border-light);
+    border-radius: 8px; /* Bordas um pouco mais arredondadas */
+    background-color: var(--primary-blue-dark);
+    color: var(--text-light);
+    font-size: 1.1em; /* Fonte um pouco maior */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    -webkit-appearance: none; /* Remove estilos padrão do navegador */
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="password"]:focus,
+.input-group input[type="email"]:focus,
+#card-element.StripeElement--focus,
+.modal-content input[type="email"]:focus,
+.modal-content input[type="password"]:focus,
+.modal-content input[type="text"]:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.4); /* Brilho mais pronunciado ao focar */
+    outline: none;
+}
+
+/* Botões - Estilo mais suave e convidativo */
+button[type="submit"],
+.modal-content button[type="submit"],
+.login-register-button {
+    width: 100%;
+    padding: 16px; /* Mais padding para um botão maior */
+    background-color: var(--accent-blue);
+    color: var(--text-light);
+    border: none;
+    border-radius: 8px; /* Bordas mais arredondadas */
+    font-size: 1.2em; /* Fonte maior */
+    font-weight: 600; /* Um pouco mais encorpado */
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 25px; /* Mais espaço acima do botão */
+}
+
+button[type="submit"]:hover,
+.modal-content button[type="submit"]:hover,
+.login-register-button:hover {
+    background-color: var(--accent-purple); /* Mantém o roxo no hover */
+    box-shadow: 0 6px 12px rgba(153, 51, 255, 0.5); /* Sombra mais destacada */
+}
+
+/* Títulos e Parágrafos dentro do Modal (mais espaçamento) */
+.modal-content h2, .modal-content h3 {
+    margin-bottom: 25px; /* Mais espaço abaixo dos títulos */
+    font-weight: 400; /* Mais leve, como o Google */
+    color: var(--text-light); /* Texto principal branco para títulos no modal */
+}
+
+.modal-content p {
+    color: var(--text-fade); /* Para parágrafos, mantém o tom suave */
+    margin-bottom: 20px; /* Mais espaçamento */
+}
+
+/* Mensagens de erro no modal */
+.modal-content .error-message {
+    font-size: 0.9em;
+    padding: 10px;
+    background-color: rgba(255, 68, 68, 0.1); /* Fundo sutil para o erro */
+    border-left: 4px solid var(--error-red);
+    border-radius: 4px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    text-align: left; /* Alinha o texto do erro */
+}
+
+/* Ajustes específicos para as abas do modal */
+.modal-tabs {
+    margin-bottom: 30px; /* Mais espaço abaixo das abas */
+}
+
+.tab-button {
+    padding: 12px 25px; /* Mais padding para os botões de aba */
+    font-size: 1.2em; /* Um pouco maior */
+}
+
+.tab-button.active {
+    border-bottom: 4px solid var(--accent-blue); /* Linha de destaque mais grossa */
+}
+
+/* Estilo para o botão de Login/Registro no cabeçalho (posição) */
+/* Você pode adicionar isso ao seu header no shop.html ou style.css */
+header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--secondary-blue-dark); /* Cor de fundo do cabeçalho */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+header .logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--accent-blue);
+    text-decoration: none;
+}
+
+/* Ajuste o body para que o conteúdo não seja sobreposto pelo header */
+body {
+    padding-top: 80px; /* Espaço para o cabeçalho fixo, se for o caso */
+}
+
+/* Para garantir que o modal cubra tudo corretamente se o body tiver padding */
+.modal {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0; /* Remove padding do modal se o body tiver */
+}
+
+/* Responsividade: Ajusta o padding do modal em telas menores */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 20px; /* Reduz padding em telas pequenas */
+    }
+}

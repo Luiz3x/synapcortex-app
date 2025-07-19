@@ -79,6 +79,62 @@
 <body>
     <div class="login-container dashboard-container"> <div class="header-logout">
             <h3>Painel de Controle de: {{ session.username }}</h3>
+            <!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ... (seus estilos específicos para o Dashboard) ... */
+
+        /* NOVO: Estilo para a mensagem de status da assinatura */
+        .status-message {
+            background-color: var(--secondary-blue-dark);
+            border: 1px solid var(--border-light);
+            border-left: 5px solid var(--accent-blue); /* Borda de destaque */
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 0.95em;
+            color: var(--text-light);
+        }
+
+        .status-message.warning {
+            border-left-color: #ff9900; /* Laranja para aviso */
+        }
+
+        .status-message.error {
+            border-left-color: var(--error-red); /* Vermelho para erro/expirado */
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container dashboard-container">
+        <div class="header-logout">
+            <h3>Painel de Controle de: {{ usuario.nome_empresa if usuario.nome_empresa else usuario.email }}</h3> {# Exibe nome da empresa ou email #}
+            <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+        </div>
+
+        {% if mensagem_status_assinatura %}
+            <div class="status-message {% if dias_restantes is not none and dias_restantes <= 7 %}warning{% elif usuario.status_assinatura == 'pendente' %}error{% endif %}">
+                <p>{{ mensagem_status_assinatura }}</p>
+                {% if usuario.status_assinatura == 'pendente' %}
+                    <p><a href="{{ url_for('dashboard') }}" style="color: var(--accent-blue); text-decoration: underline;">Clique aqui para regularizar.</a></p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="stats-grid">
+            </div>
+
+        <h4>Configurações do Pop-up</h4>
+        </div>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>
             <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
         </div>
         

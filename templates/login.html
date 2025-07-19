@@ -8,42 +8,14 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>SynapCortex</h2>
-        <h3>Acesse seu Painel</h3>
-        <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="login-container">
         <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-        
-        <h2>SynapCortex</h2>
-        <h3>Acesse seu Painel</h3>
+        <h2>Acesse seu Painel</h2>
         
         {% if message %}
             <p style="color: var(--accent-blue); margin-bottom: 15px;">{{ message }}</p>
         {% endif %}
 
         <form method="POST" action="{{ url_for('login') }}">
-            </form>
-        <div class="extra-links">
-            <a href="{{ url_for('registrar') }}">Não tem uma conta? Crie uma</a>
-        </div>
-    </div>
-</body>
-</html>
-        
-        {% if message %}
-            <p style="color: var(--accent-blue); margin-bottom: 15px;">{{ message }}</p>
-        {% endif %}
-
-        <form method="POST" action="{{ url_for('login') }}">
-            
             <div class="input-group">
                 <label for="email">E-mail Comercial:</label>
                 <input type="email" id="email" name="email" required>

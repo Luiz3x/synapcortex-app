@@ -86,8 +86,6 @@ def create_app():
                 message = 'E-mail ou senha incorretos.'
         return render_template('login.html', message=message)
 
-    # ... (código anterior do app.py) ...
-
     @app.route('/registrar', methods=['GET', 'POST'])
     def registrar():
         if request.method == 'POST':
@@ -157,80 +155,91 @@ def create_app():
             return jsonify(error={'message': str(e)}), 400
 
     @app.route('/dashboard')
-    def dashboard():
-    if 'logged_in' not in session or not session['logged_in']:
-        return redirect(url_for('login'))
+    def dashboard(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços da margem de 'def create_app():'
+        if 'logged_in' not in session or not session['logged_in']:
+            return redirect(url_for('login'))
 
-    email_usuario = session.get('email')
-    usuarios = carregar_json('users.json', {})
-    dados_usuario = usuarios.get(email_usuario)
+        email_usuario = session.get('email')
+        usuarios = carregar_json('users.json', {})
+        dados_usuario = usuarios.get(email_usuario)
 
-    if not dados_usuario:
-        session.pop('logged_in', None)
-        session.pop('email', None)
-        return redirect(url_for('login', error='Sua sessão expirou ou usuário não encontrado.'))
+        if not dados_usuario:
+            session.pop('logged_in', None)
+            session.pop('email', None)
+            return redirect(url_for('login', error='Sua sessão expirou ou usuário não encontrado.'))
 
-    analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
-    config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+        analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
+        config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
 
-    # NOVO: Lógica de verificação de expiração do trial e mensagens
-    status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
-    data_fim_str = dados_usuario.get('data_fim_assinatura')
-    mensagem_status_assinatura = ""
-    dias_restantes = None # Inicializa como None
+        # NOVO: Lógica de verificação de expiração do trial e mensagens
+        status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
+        data_fim_str = dados_usuario.get('data_fim_assinatura')
+        mensagem_status_assinatura = ""
+        dias_restantes = None # Inicializa como None
 
-    if status_assinatura == 'ativo' and data_fim_str:
-        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d')
-        hoje = datetime.now()
+        if status_assinatura == 'ativo' and data_fim_str:
+            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d')
+            hoje = datetime.now()
 
-        if hoje > data_fim:
-            # Assinatura expirou
-            dados_usuario['status_assinatura'] = 'pendente'
-            salvar_json('users.json', usuarios) # Salva a atualização
-            status_assinatura = 'pendente' # Atualiza a variável local
-            print(f"--- Assinatura de {email_usuario} expirada e atualizada para 'pendente' ---")
-            mensagem_status_assinatura = "Sua avaliação gratuita expirou. Por favor, renove sua assinatura para manter o acesso."
-        else:
-            # Assinatura ainda ativa, calcula dias restantes
-            dias_restantes = (data_fim - hoje).days
-            if dias_restantes <= 7: # Avisa se faltam 7 dias ou menos
-                mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s). Renove agora para não perder o acesso!"
+            if hoje > data_fim:
+                # Assinatura expirou
+                dados_usuario['status_assinatura'] = 'pendente'
+                salvar_json('users.json', usuarios) # Salva a atualização
+                status_assinatura = 'pendente' # Atualiza a variável local
+                print(f"--- Assinatura de {email_usuario} expirada e atualizada para 'pendente' ---")
+                mensagem_status_assinatura = "Sua avaliação gratuita expirou. Por favor, renove sua assinatura para manter o acesso."
             else:
-                mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
-    elif status_assinatura == 'pendente':
-        mensagem_status_assinatura = "Sua assinatura está pendente. Por favor, realize o pagamento para ativar seu acesso."
-    # FIM DA LÓGICA DE VERIFICAÇÃO E MENSAGENS
+                # Assinatura ainda ativa, calcula dias restantes
+                dias_restantes = (data_fim - hoje).days
+                if dias_restantes <= 7: # Avisa se faltam 7 dias ou menos
+                    mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s). Renove agora para não perder o acesso!"
+                else:
+                    mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
+        elif status_assinatura == 'pendente':
+            mensagem_status_assinatura = "Sua assinatura está pendente. Por favor, realize o pagamento para ativar seu acesso."
+        # FIM DA LÓGICA DE VERIFICAÇÃO E MENSAGENS
 
-    if status_assinatura == 'ativo':
-        return render_template('dashboard.html', 
-                               usuario=dados_usuario, 
-                               analytics=analytics, 
-                               config=config,
-                               mensagem_status_assinatura=mensagem_status_assinatura, # Passa a mensagem
-                               dias_restantes=dias_restantes # Passa os dias restantes
-                              )
-    else:
-        # Se a assinatura estiver pendente (ou expirou), redireciona para a página de pagamento
-        return render_template('pagamento_pendente.html', 
-                               stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'],
-                               mensagem_status_assinatura=mensagem_status_assinatura # Passa a mensagem para a tela de pagamento também
-                              )
+        if status_assinatura == 'ativo':
+            return render_template('dashboard.html', 
+                                   usuario=dados_usuario, 
+                                   analytics=analytics, 
+                                   config=config,
+                                   mensagem_status_assinatura=mensagem_status_assinatura, # Passa a mensagem
+                                   dias_restantes=dias_restantes # Passa os dias restantes
+                                  )
+        else:
+            # Se a assinatura estiver pendente (ou expirou), redireciona para a página de pagamento
+            return render_template('pagamento_pendente.html', 
+                                   stripe_publishable_key=current_app.config['STRIPE_PUBLISHABLE_KEY_TEST'],
+                                   mensagem_status_assinatura=mensagem_status_assinatura # Passa a mensagem para a tela de pagamento também
+                                  )
 
-# ... (restante do código do app.py) ...
+    @app.route('/salvar-configuracoes', methods=['POST']) 
+    def salvar_configuracoes(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços
+        if 'logged_in' not in session or not session['logged_in']:
+            return redirect(url_for('login'))
+        
+        novo_titulo = request.form.get('popup_titulo')
+        nova_mensagem = request.form.get('popup_mensagem')
+        config_atual = carregar_json('config_popup.json', {})
+        config_atual['titulo'] = novo_titulo
+        config_atual['mensagem'] = nova_mensagem
+        salvar_json('config_popup.json', config_atual)
+        return redirect(url_for('dashboard'))
 
     @app.route('/logout')
-    def logout():
+    def logout(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços
         session.pop('logged_in', None)
         session.pop('email', None) # Remove o email da sessão
         return redirect(url_for('login'))
 
     @app.route('/api/get-config')
-    def get_config():
+    def get_config(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         return jsonify(config)
 
     @app.route('/api/track-view', methods=['POST']) 
-    def track_view():
+    def track_view(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
             analytics['visualizacoes_popup'] += 1
@@ -242,7 +251,7 @@ def create_app():
             return jsonify({'status': 'error'}), 500
 
     @app.route('/api/track-click', methods=['POST']) 
-    def track_click():
+    def track_click(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços
         try:
             analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
             analytics['cliques_popup'] += 1
@@ -254,7 +263,7 @@ def create_app():
             return jsonify({'status': 'error'}), 500
             
     @app.route('/webhook-pagbank', methods=['POST']) 
-    def webhook_pagbank():
+    def webhook_pagbank(): # Certifique-se que esta função e TODO o seu conteúdo estejam indentados 4 espaços
         print("!!!!!!!!!! ROTA WEBHOOK FOI ACESSADA!!!!!!!!!!")
         try:
             data = request.form.to_dict()

@@ -254,3 +254,259 @@ header .logo {
         padding: 10px 15px;
     }
 }
+/* style.css - Ajustes FINAIS para o Modal e Estética Google-Like */
+
+/* Garante que o body tenha padding para o header fixo */
+body {
+    padding-top: 60px; /* Ajuste se seu header for mais alto */
+    /* Mantenha suas outras regras de body */
+}
+
+/* Header fixo para a shop.html */
+header {
+    background-color: var(--primary-blue-dark); /* Cor de fundo escura */
+    padding: 15px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+}
+
+header .logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--accent-blue);
+    text-decoration: none;
+    margin-left: 10px; /* Um pequeno afastamento da borda */
+}
+
+.login-register-button {
+    background-color: var(--accent-blue);
+    color: var(--text-light);
+    padding: 8px 15px; /* Um pouco menor para o cabeçalho */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-right: 10px; /* Um pequeno afastamento da borda */
+}
+
+.login-register-button:hover {
+    background-color: var(--accent-purple);
+    box-shadow: 0 2px 8px rgba(153, 51, 255, 0.4);
+}
+
+
+/* Estilos para o Modal (Fundo escuro e centralizado) */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    z-index: 1000; /* Fica no topo de tudo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.85); /* Fundo BEM escuro e opaco */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: var(--secondary-blue-dark); /* Cor de fundo do modal, agora SÓLIDA */
+    padding: 40px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 480px; /* Largura máxima para um visual limpo */
+    box-shadow: 0 5px 25px rgba(0,0,0,0.7); /* Sombra mais intensa */
+    position: relative;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+    text-align: center;
+    color: var(--text-light); /* Garante que o texto dentro do modal seja claro */
+}
+
+/* Animação de entrada do modal */
+@keyframes animatetop {
+    from {opacity: 0; transform: translateY(-50px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.close-button {
+    color: var(--text-fade);
+    font-size: 32px;
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: var(--text-light);
+}
+
+/* Estilos para as Abas do Modal (Login / Cadastre-se) */
+.modal-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 5px;
+}
+
+.tab-button {
+    background-color: transparent;
+    border: none;
+    padding: 12px 25px;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--text-fade);
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    margin: 0 10px;
+}
+
+.tab-button.active {
+    color: var(--accent-blue);
+    border-bottom: 3px solid var(--accent-blue);
+}
+
+.tab-button:hover:not(.active) {
+    color: var(--text-light);
+}
+
+/* Estilos para os conteúdos das abas dentro do modal */
+.modal-content .tab-content h3 { /* Ajusta o h3 dentro do modal */
+    margin-top: 15px; /* Pequena margem superior para separar do logo */
+    margin-bottom: 25px;
+    font-size: 1.6em;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.modal-content .tab-content p {
+    color: var(--text-fade);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Campos de Input e Botões dentro do Modal (reutilizando estilos gerais, mas reforçando) */
+.modal-content .input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.modal-content .input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-light);
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: left;
+}
+
+.modal-content input[type="email"],
+.modal-content input[type="password"],
+.modal-content input[type="text"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background-color: var(--primary-blue-dark); /* Fundo do input */
+    color: var(--text-light);
+    font-size: 1.1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.modal-content input[type="email"]:focus,
+.modal-content input[type="password"]:focus,
+.modal-content input[type="text"]:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.4);
+    outline: none;
+}
+
+.modal-content button[type="submit"] {
+    width: 100%;
+    padding: 16px;
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 25px;
+}
+
+.modal-content button[type="submit"]:hover {
+    background-color: var(--accent-purple);
+    box-shadow: 0 6px 12px rgba(153, 51, 255, 0.5);
+}
+
+.modal-content .error-message {
+    color: var(--error-red);
+    font-size: 0.9em;
+    padding: 10px;
+    background-color: rgba(255, 68, 68, 0.1);
+    border-left: 4px solid var(--error-red);
+    border-radius: 4px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.modal-content .extra-links {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.modal-content .extra-links a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.modal-content .extra-links a:hover {
+    text-decoration: underline;
+}
+
+/* Logo dentro do modal */
+.modal-content .login-logo {
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsividade para o modal em telas menores */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 25px;
+        margin: 10px;
+    }
+    .modal-content h2, .modal-content h3 {
+        font-size: 1.4em;
+    }
+    .tab-button {
+        font-size: 1em;
+        padding: 10px 15px;
+    }
+}

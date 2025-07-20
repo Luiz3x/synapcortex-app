@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nossa Loja Incrível - SynapCortex</title> <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Nossa Loja Incrível - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
@@ -13,10 +14,13 @@
         </nav>
     </header>
 
-    <div class="main-content"> <div class="login-container"> <h1>Bem-vindo à SynapCortex!</h1> <p>Descubra como a inteligência dinâmica pode transformar suas vendas. Experimente um mês grátis!</p>
+    <div class="main-content">
+        <div class="login-container">
+            <h1>Bem-vindo à SynapCortex!</h1>
+            <p>Descubra como a inteligência dinâmica pode transformar suas vendas. Experimente um mês grátis!</p>
             <p>Tente mover o mouse para fora da janela do navegador... (apenas para teste do pop-up de saída)</p>
             <br>
-            </div>
+        </div>
 
         <div id="popup-espiao" class="popup-container" style="display: none;">
             <div class="popup-conteudo">
@@ -35,8 +39,9 @@
 
             <div id="loginTab" class="tab-content active">
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                <h3>Acesse seu Painel</h3>
-                <form id="loginForm" method="POST"> <div class="input-group">
+                <h2>SynapCortex</h2> <h3>Acesse seu Painel</h3>
+                <form id="loginForm" method="POST">
+                    <div class="input-group">
                         <label for="modal-email-login">E-mail Comercial:</label>
                         <input type="email" id="modal-email-login" name="email" required>
                     </div>
@@ -54,9 +59,10 @@
 
             <div id="registerTab" class="tab-content">
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                <h3>Crie sua Conta na SynapCortex</h3>
+                <h2>SynapCortex</h2> <h3>Crie sua Conta na SynapCortex</h3>
                 <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
-                <form id="registerForm" method="POST"> <div class="input-group">
+                <form id="registerForm" method="POST">
+                    <div class="input-group">
                         <label for="modal-nome_empresa">Nome da Empresa</label>
                         <input type="text" id="modal-nome_empresa" name="nome_empresa" required>
                     </div>
@@ -123,23 +129,20 @@
 
             // Intercepta o envio do formulário de Login via AJAX
             loginForm.addEventListener('submit', function(e) {
-                e.preventDefault(); // Impede o envio padrão do formulário
-                loginErrorMessage.style.display = 'none'; // Limpa mensagens anteriores
+                e.preventDefault();
+                loginErrorMessage.style.display = 'none';
 
                 const formData = new FormData(loginForm);
-                fetch("{{ url_for('login') }}", { // Envia para a rota de login do Flask
+                fetch("{{ url_for('login') }}", {
                     method: 'POST',
                     body: new URLSearchParams(formData)
                 })
-                .then(response => response.text()) // Pega a resposta como texto
+                .then(response => response.text())
                 .then(text => {
-                    // Verifica se a resposta contém alguma mensagem de erro
                     if (text.includes('E-mail ou senha incorretos.') || text.includes('Sua sessão expirou ou usuário não encontrado.')) {
-                        loginErrorMessage.textContent = 'E-mail ou senha incorretos.'; // Mensagem genérica para segurança
+                        loginErrorMessage.textContent = 'E-mail ou senha incorretos.';
                         loginErrorMessage.style.display = 'block';
                     } else {
-                        // Se não for erro, assume que foi bem-sucedido e o Flask fará o redirect
-                        // Ou podemos forçar um redirect para o dashboard
                         window.location.href = "{{ url_for('dashboard') }}"; 
                     }
                 })
@@ -152,15 +155,15 @@
 
             // Intercepta o envio do formulário de Registro via AJAX
             registerForm.addEventListener('submit', function(e) {
-                e.preventDefault(); // Impede o envio padrão do formulário
-                registerErrorMessage.style.display = 'none'; // Limpa mensagens anteriores
+                e.preventDefault();
+                registerErrorMessage.style.display = 'none';
 
                 const formData = new FormData(registerForm);
-                fetch("{{ url_for('registrar') }}", { // Envia para a rota de registro do Flask
+                fetch("{{ url_for('registrar') }}", {
                     method: 'POST',
                     body: new URLSearchParams(formData)
                 })
-                .then(response => response.text()) // Pega a resposta como texto
+                .then(response => response.text())
                 .then(text => {
                     if (text.includes('Este e-mail já está cadastrado.')) {
                         registerErrorMessage.textContent = 'Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.';
@@ -170,7 +173,6 @@
                         registerErrorMessage.style.display = 'block';
                     }
                     else {
-                        // Se não for erro, assume que foi bem-sucedido e o Flask fará o redirect
                         window.location.href = "{{ url_for('login', message='Cadastro realizado com sucesso! Aproveite seu mês grátis.') }}"; 
                     }
                 })
@@ -182,5 +184,6 @@
             });
         });
     </script>
-    <script src="{{ url_for('static', filename='spy.js') }}"></script> </body>
+    <script src="{{ url_for('static', filename='spy.js') }}"></script>
+</body>
 </html>

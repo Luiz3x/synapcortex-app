@@ -340,3 +340,107 @@ header .logo {
         padding: 10px 15px;
     }
 }
+/* style.css - Ajustes FINAIS para o Dashboard (Responsividade Mobile) */
+
+/* Garante que o body possa centralizar seus filhos */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Alinha no topo verticalmente */
+    min-height: 100vh;
+    flex-direction: column;
+    padding: 20px;
+    width: 100%;
+}
+
+/* Ajusta o container principal do dashboard para estar sempre centralizado e com largura máxima controlada */
+.dashboard-container {
+    background-color: var(--secondary-blue-dark);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 700px; /* Aumentei um pouco o max-width para telas maiores, se necessário */
+    margin: 20px auto; /* Centraliza o bloco na página, adicionando margem vertical */
+    box-sizing: border-box; /* Garante que padding não aumente a largura total */
+}
+
+/* Ajustes específicos para o cabeçalho do Dashboard em mobile */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 20px; /* Reduz padding em telas menores */
+        max-width: 95%; /* Ocupa mais espaço em telas pequenas */
+    }
+
+    .header-logout {
+        flex-direction: column; /* Empilha os itens (título e Sair) */
+        align-items: center; /* Centraliza os itens empilhados */
+        text-align: center; /* Centraliza o texto do título também */
+        gap: 15px; /* Espaçamento entre os elementos empilhados */
+        padding-bottom: 15px; /* Mantém o padding da borda inferior */
+        margin-bottom: 25px; /* Mantém a margem inferior */
+        width: 100%; /* Garante que ocupe a largura total para alinhar */
+    }
+    
+    .header-logout h3 {
+        margin-bottom: 0; /* Remove margem extra */
+        width: 100%; /* Garante que o título ocupe a largura total para centralizar */
+        text-align: center; /* Centraliza o texto do título */
+        font-size: 1.4em; /* Ajusta o tamanho da fonte para mobile */
+        line-height: 1.2; /* Ajusta a altura da linha para nomes longos */
+    }
+
+    .logout-link {
+        margin-top: 5px; /* Ajusta a margem do link Sair */
+        font-size: 0.9em; /* Diminui um pouco o tamanho da fonte */
+    }
+
+    /* Estilo para a mensagem de status da assinatura no mobile */
+    .status-message {
+        padding: 10px 15px; /* Menor padding */
+        font-size: 0.9em;
+        margin-bottom: 15px; /* Espaçamento */
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr; /* Força uma única coluna para as estatísticas em mobile */
+        gap: 15px; /* Espaçamento entre os blocos de estatística */
+        margin-bottom: 20px;
+    }
+
+    .stats-section {
+        padding: 15px; /* Padding menor nas caixas de estatísticas */
+        min-width: unset; /* Remove min-width se houver algum atrapalhando */
+    }
+
+    /* Ajustes para os formulários de configurações do pop-up */
+    form {
+        text-align: left; /* Mantém alinhado à esquerda para formulários */
+    }
+
+    .input-group label {
+        text-align: left; /* Garante que labels se alinhem à esquerda */
+    }
+
+    textarea {
+        min-height: 60px; /* Ajusta a altura mínima do textarea para mobile */
+    }
+
+    button[type="submit"] {
+        padding: 12px; /* Botões um pouco menores */
+        font-size: 1.0em;
+    }
+}
+
+/* Para telas muito pequenas (celulares menores) */
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 15px; /* Padding ainda menor */
+    }
+    .header-logout h3 {
+        font-size: 1.1em; /* Diminui um pouco a fonte do título em telas bem pequenas */
+    }
+    .status-message {
+        font-size: 0.85em;
+    }
+}

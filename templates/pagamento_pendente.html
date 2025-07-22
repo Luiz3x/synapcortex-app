@@ -60,17 +60,19 @@
             <button id="submit-button">Pagar Assinatura</button>
         </form>
         
-        <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+        <a 
+    href="{{ url_for('logout') }}" class="logout-link">Sair</a>
     </div>
 
-    <script>
-        // ESSENCIAL: Defina a chave publicável do Stripe AQUI, antes de carregar o SDK do Stripe
-        // e antes de qualquer outro script que dependa dela.
+    </div> <script>
+        // Passa as variáveis do Flask para o JavaScript de forma segura
         var stripe_publishable_key = "{{ stripe_publishable_key }}";
+        var companyName = "{{ usuario.nome_empresa | e }}";
+        var clientSecret = ""; // Esta variável será preenchida pelo script abaixo
     </script>
-    
+        
     <script src="https://js.stripe.com/v3/"></script>
-    
+        
     <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
-    </body>
-</html>
+
+</body>

@@ -1,5 +1,5 @@
 Flask
 gunicorn
-requests
-flask-cors
+Flask-Cors
 stripe
+whitenoise

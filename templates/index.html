@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sua Página Principal - SynapCortex</title> <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Sua Página Principal - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
@@ -14,7 +15,8 @@
     </header>
 
     <div class="main-content">
-        <div class="login-container"> <h1>Bem-vindo à SynapCortex!</h1>
+        <div class="login-container">
+            <h1>Bem-vindo à SynapCortex!</h1>
             <p>Descubra como a inteligência dinâmica pode transformar suas vendas. Experimente um mês grátis!</p>
             <p>Tente mover o mouse para fora da janela do navegador... (apenas para teste do pop-up de saída)</p>
             <br>
@@ -27,7 +29,9 @@
                 <p id="popup-mensagem-display"></p>
             </div>
         </div>
-    </div> <div id="loginRegisterModal" class="modal">
+    </div>
+
+    <div id="loginRegisterModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <div class="modal-tabs">
@@ -36,7 +40,9 @@
             </div>
 
             <div id="loginTab" class="tab-content active">
+                
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
+                
                 <h2>SynapCortex</h2>
                 <h3>Acesse seu Painel</h3>
                 <form id="loginForm" method="POST">
@@ -57,7 +63,9 @@
             </div>
 
             <div id="registerTab" class="tab-content">
+
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
+
                 <h2>SynapCortex</h2>
                 <h3>Crie sua Conta na SynapCortex</h3>
                 <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
@@ -86,105 +94,94 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('loginRegisterModal');
-            const openModalBtn = document.getElementById('openLoginRegisterModal');
-            const closeButton = document.querySelector('.close-button');
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const loginErrorMessage = document.getElementById('loginErrorMessage');
-            const registerErrorMessage = document.getElementById('registerErrorMessage');
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('loginRegisterModal');
+        const openModalBtn = document.getElementById('openLoginRegisterModal');
+        const closeButton = document.querySelector('.close-button');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginErrorMessage = document.getElementById('loginErrorMessage');
+        const registerErrorMessage = document.getElementById('registerErrorMessage');
 
-            // Função para abrir o modal
-            openModalBtn.onclick = function() {
-                modal.style.display = 'flex';
-                loginErrorMessage.style.display = 'none';
-                registerErrorMessage.style.display = 'none';
-            }
+        // Funções para abrir/fechar o modal
+        if(openModalBtn) {
+            openModalBtn.onclick = () => { modal.style.display = 'flex'; };
+        }
+        if(closeButton) {
+            closeButton.onclick = () => { modal.style.display = 'none'; };
+        }
+        window.onclick = (event) => { if (event.target == modal) { modal.style.display = 'none'; } };
 
-            // Função para fechar o modal
-            closeButton.onclick = function() {
-                modal.style.display = 'none';
-            }
-
-            // Fechar modal ao clicar fora do conteúdo
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            }
-
-            // Lógica das abas
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-
-                    this.classList.add('active');
-                    document.getElementById(this.dataset.tab + 'Tab').classList.add('active');
-                });
-            });
-
-            // Intercepta o envio do formulário de Login via AJAX
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                loginErrorMessage.style.display = 'none';
-
-                const formData = new FormData(loginForm);
-                fetch("{{ url_for('login') }}", {
-                    method: 'POST',
-                    body: new URLSearchParams(formData)
-                })
-                .then(response => response.text())
-                .then(text => {
-                    if (text.includes('E-mail ou senha incorretos.') || text.includes('Sua sessão expirou ou usuário não encontrado.')) {
-                        loginErrorMessage.textContent = 'E-mail ou senha incorretos.';
-                        loginErrorMessage.style.display = 'block';
-                    } else {
-                        window.location.href = "{{ url_for('dashboard') }}"; 
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro no login:', error);
-                    loginErrorMessage.textContent = 'Ocorreu um erro na comunicação. Tente novamente.';
-                    loginErrorMessage.style.display = 'block';
-                });
-            });
-
-            // Intercepta o envio do formulário de Registro via AJAX
-            registerForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                registerErrorMessage.style.display = 'none';
-
-                const formData = new FormData(registerForm);
-                fetch("{{ url_for('registrar') }}", {
-                    method: 'POST',
-                    body: new URLSearchParams(formData)
-                })
-                .then(response => response.text())
-                .then(text => {
-                    if (text.includes('Este e-mail já está cadastrado.')) {
-                        registerErrorMessage.textContent = 'Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.';
-                        registerErrorMessage.style.display = 'block';
-                    } else if (text.includes('Este CNPJ já possui um cadastro.')) {
-                        registerErrorMessage.textContent = 'Este CNPJ já possui um cadastro. Entre em contato para mais informações.';
-                        registerErrorMessage.style.display = 'block';
-                    }
-                    else {
-                        window.location.href = "{{ url_for('login', message='Cadastro realizado com sucesso! Aproveite seu mês grátis.') }}"; 
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro no registro:', error);
-                    registerErrorMessage.textContent = 'Ocorreu um erro na comunicação. Tente novamente.';
-                    console.error('Erro no registro:', error);
-                    registerErrorMessage.textContent = 'Ocorreu um erro na comunicação. Tente novamente.';
-                    registerErrorMessage.style.display = 'block';
-                });
+        // Lógica das abas
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + 'Tab').classList.add('active');
             });
         });
+
+        // Intercepta o envio do formulário de Login com a nova lógica JSON
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            loginErrorMessage.style.display = 'none';
+            const formData = new FormData(loginForm);
+
+            fetch("{{ url_for('login') }}", {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                }
+            })
+            .catch(error => {
+                console.error('Erro no login:', error);
+                loginErrorMessage.textContent = error.message || 'Ocorreu um erro na comunicação.';
+                loginErrorMessage.style.display = 'block';
+            });
+        });
+
+        // Intercepta o envio do formulário de Registro com a nova lógica JSON
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            registerErrorMessage.style.display = 'none';
+            const formData = new FormData(registerForm);
+
+            fetch("{{ url_for('registrar') }}", {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                }
+            })
+            .catch(error => {
+                console.error('Erro no registro:', error);
+                registerErrorMessage.textContent = error.message || 'Ocorreu um erro na comunicação.';
+                registerErrorMessage.style.display = 'block';
+            });
+        });
+    });
     </script>
     <script src="{{ url_for('static', filename='spy.js') }}"></script>
 </body>

@@ -1,18 +1,17 @@
-/* style.css - Design Moderno e Tecnológico para SynapCortex (VERSÃO CONSOLIDADA E FINAL) */
+/* style.css - Design Moderno e Tecnológico para SynapCortex */
 
-/* --- Variáveis de Cores --- */
+/* --- Variáveis de Cores (baseado nas suas imagens) --- */
 :root {
-    --primary-blue-dark: #0a0a2a; /* Fundo principal, quase preto azulado */
-    --secondary-blue-dark: #1a1a4a; /* Elementos de fundo secundários */
-    --accent-blue: #00ccff; /* Ciano vibrante para destaque e interatividade */
-    --accent-purple: #9933ff; /* Roxo elétrico para brilhos sutis */
-    --text-light: #ffffff; /* Branco puro para textos principais */
-    --text-fade: #bbbbbb; /* Cinza claro para textos secundários */
-    --border-light: #444466; /* Borda suave para elementos */
-    --error-red: #ff4444; /* Vermelho para mensagens de erro */
+    --primary-blue-dark: #0a0a2a; /* Fundo principal, azul quase preto */
+    --secondary-blue-dark: #1a1a4a; /* Fundo de containers e cards */
+    --accent-blue: #00ccff;       /* Ciano vibrante para botões, títulos e links */
+    --text-light: #ffffff;       /* Textos principais */
+    --text-fade: #bbbbbb;        /* Textos secundários e placeholders */
+    --border-light: #444466;     /* Bordas suaves */
+    --error-red: #ff4444;        /* Mensagens de erro */
 }
 
-/* --- Reset Básico e Fontes --- */
+/* --- Reset Básico e Estilo Geral --- */
 * {
     margin: 0;
     padding: 0;
@@ -20,18 +19,36 @@
 }
 
 body {
-    font-family: 'Roboto', 'Arial', sans-serif; /* Fonte moderna e legível */
+    font-family: 'Roboto', 'Arial', sans-serif;
     background-color: var(--primary-blue-dark);
     color: var(--text-light);
     line-height: 1.6;
-    display: flex;
-    justify-content: center; /* Centraliza o conteúdo principal horizontalmente */
-    align-items: flex-start; /* Alinha no topo verticalmente */
-    min-height: 100vh; /* Ocupa a altura total da viewport */
-    flex-direction: column;
-    padding: 20px; /* Adiciona um padding geral */
-    width: 100%; /* Garante que o body ocupa a largura total para centralizar */
-    padding-top: 60px; /* Espaço para o cabeçalho fixo, se for o caso */
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/* --- Container Principal (Login, Registro, Dashboard) --- */
+.login-container, .dashboard-container {
+    background-color: var(--secondary-blue-dark);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 450px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+/* --- Títulos e Textos --- */
+h2, h3 {
+    color: var(--accent-blue);
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+p {
+    color: var(--text-fade);
+    margin-bottom: 15px;
 }
 
 a {
@@ -41,85 +58,23 @@ a {
 }
 
 a:hover {
-    color: var(--accent-purple);
+    color: #8a2be2; /* Um roxo para o hover, como alternativa */
 }
 
-/* --- Cabeçalho Fixo para shop.html (e outras páginas, se aplicado) --- */
-header {
-    background-color: var(--primary-blue-dark); /* Cor de fundo escura */
-    padding: 15px 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 999; /* Garante que ele fique acima do conteúdo, mas abaixo do modal */
-}
-
-header .logo {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: var(--accent-blue);
-    text-decoration: none;
-    margin-left: 10px; /* Um pequeno afastamento da borda */
-}
-
-.login-register-button {
-    background-color: var(--accent-blue);
-    color: var(--text-light);
-    padding: 8px 15px; /* Um pouco menor para o cabeçalho */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    margin-right: 10px;
-}
-
-.login-register-button:hover {
-    background-color: var(--accent-purple);
-    box-shadow: 0 2px 8px rgba(153, 51, 255, 0.4);
-}
-
-/* --- Containers Principais (Login, Dashboard, Pagamento) --- */
-.login-container,
-.dashboard-container,
-.pagamento-container {
-    background-color: var(--secondary-blue-dark);
-    padding: 30px 40px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-    width: 100%;
-    max-width: 450px; /* Mantém a largura máxima em desktop */
-    text-align: center; /* Centraliza o texto dentro do container */
-    margin: 20px auto; /* Centraliza o bloco na página, adicionando margem vertical */
-    box-sizing: border-box; /* Garante que padding não aumente a largura total */
-}
-
-/* --- Títulos e Parágrafos --- */
-h1, h2, h3 {
-    color: var(--accent-blue);
+/* --- Logo --- */
+.login-logo {
+    max-width: 80px; /* Tamanho do símbolo */
+    height: auto;
     margin-bottom: 20px;
-    font-weight: 500; /* Levemente mais fino */
 }
 
-p {
-    color: var(--text-fade);
-    margin-bottom: 15px;
-}
-
-/* --- Formulários e Campos de Input --- */
+/* --- Formulários --- */
 form {
     width: 100%;
-    text-align: left; /* Mantém alinhado à esquerda para formulários em geral */
 }
 
 .input-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     text-align: left;
 }
 
@@ -128,68 +83,45 @@ form {
     margin-bottom: 8px;
     color: var(--text-light);
     font-size: 0.9em;
-    font-weight: bold;
-    text-align: left; /* Garante que labels se alinhem à esquerda */
 }
 
-.input-group input[type="text"],
-.input-group input[type="password"],
-.input-group input[type="email"],
-#card-element { /* Para o Stripe Elements */
+.input-group input {
     width: 100%;
-    padding: 14px 16px; /* Aumenta o padding para um visual mais espaçoso */
+    padding: 14px;
     border: 1px solid var(--border-light);
-    border-radius: 8px; /* Bordas um pouco mais arredondadas */
-    background-color: var(--primary-blue-dark); /* Fundo do input */
+    border-radius: 8px;
+    background-color: var(--primary-blue-dark);
     color: var(--text-light);
-    font-size: 1.1em; /* Fonte um pouco maior */
+    font-size: 1em;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    -webkit-appearance: none; /* Remove estilos padrão do navegador */
-    -moz-appearance: none;
-    appearance: none;
 }
 
-.input-group input[type="text"]:focus,
-.input-group input[type="password"]:focus,
-.input-group input[type="email"]:focus,
-#card-element.StripeElement--focus { /* Foco do Stripe Element */
+.input-group input:focus {
     border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.4); /* Brilho mais pronunciado ao focar */
+    box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.3);
     outline: none;
 }
 
-.input-group-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.input-group-row .input-group {
-    flex: 1; /* Distribui o espaço igualmente */
-    margin-bottom: 0;
-}
-
-/* --- Botões --- */
 button[type="submit"] {
     width: 100%;
-    padding: 16px; /* Mais padding para um botão maior */
+    padding: 15px;
     background-color: var(--accent-blue);
-    color: var(--text-light);
+    color: var(--primary-blue-dark);
     border: none;
-    border-radius: 8px; /* Bordas mais arredondadas */
-    font-size: 1.2em; /* Fonte maior */
-    font-weight: 600; /* Um pouco mais encorpado */
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    margin-top: 25px; /* Mais espaço acima do botão */
+    margin-top: 10px;
 }
 
 button[type="submit"]:hover {
-    background-color: var(--accent-purple); /* Muda para roxo no hover */
-    box-shadow: 0 6px 12px rgba(153, 51, 255, 0.5); /* Sombra mais destacada */
+    background-color: #8a2be2;
+    color: var(--text-light);
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
 }
 
-/* --- Links Adicionais --- */
 .extra-links {
     margin-top: 20px;
     font-size: 0.9em;
@@ -199,349 +131,41 @@ button[type="submit"]:hover {
     color: var(--error-red);
     margin-top: 10px;
     font-weight: bold;
-    font-size: 0.9em;
-    padding: 10px;
-    background-color: rgba(255, 68, 68, 0.1); /* Fundo sutil para o erro */
-    border-left: 4px solid var(--error-red);
-    border-radius: 4px;
-    margin-bottom: 15px;
-    text-align: left;
 }
 
-/* --- Estilos do Pop-up (Existente, ajustado para as variáveis) --- */
-.popup-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    background-color: var(--secondary-blue-dark);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 15px;
-    z-index: 1000;
-    text-align: left; /* Alinha o texto do popup */
-}
-
-.popup-conteudo h2 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-    color: var(--accent-blue);
-}
-
-.popup-conteudo p {
-    font-size: 0.9em;
-    color: var(--text-fade);
-    margin-bottom: 15px;
-}
-
-.fechar-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    color: var(--text-fade);
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.3s ease;
-}
-
-.fechar-btn:hover {
-    color: var(--text-light);
-}
-
-/* --- Estilos para o Dashboard --- */
-.header-logout {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: 15px;
-    margin-bottom: 25px;
-}
-.header-logout h3 {
-    margin-bottom: 0;
-    color: var(--accent-blue); /* Cor do título */
-    font-weight: 500;
-}
-.logout-link {
-    font-size: 14px;
-    text-decoration: none;
-    color: var(--accent-blue);
-    transition: color 0.3s ease;
-}
-.logout-link:hover {
-    color: var(--accent-purple);
-}
+/* --- Estilos específicos do Dashboard --- */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 20px;
     margin-bottom: 25px;
 }
+
 .stats-section {
     background-color: var(--primary-blue-dark);
     border: 1px solid var(--border-light);
     border-radius: 8px;
     padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
 .stats-section h4 {
     margin-top: 0;
-    color: var(--text-light);
+    color: var(--text-fade);
     font-weight: 500;
     margin-bottom: 10px;
 }
+
 .stats-data {
     font-size: 24px;
     font-weight: bold;
     color: var(--accent-blue);
 }
 
-/* Estilo para a mensagem de status da assinatura */
 .status-message {
     background-color: var(--secondary-blue-dark);
-    border: 1px solid var(--border-light);
     border-left: 5px solid var(--accent-blue);
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 5px;
     text-align: left;
-    font-size: 0.95em;
-    color: var(--text-light);
-}
-
-.status-message.warning {
-    border-left-color: #ff9900; /* Laranja para aviso */
-}
-
-.status-message.error {
-    border-left-color: var(--error-red); /* Vermelho para erro/expirado */
-}
-
-/* Logo nas páginas de login/registro (fora do modal) */
-.login-logo {
-    max-width: 120px;
-    height: auto;
-    margin-bottom: 25px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Estilos para o Modal (Fundo escuro e centralizado) */
-.modal {
-    display: none !important; /* Escondido por padrão, e força a regra */
-    position: fixed;
-    z-index: 1000; /* Fica no topo de tudo */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.85); /* Fundo BEM escuro e opaco para o overlay */
-    display: flex; /* Para centralizar o conteúdo */
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.modal-content {
-    background-color: var(--secondary-blue-dark); /* Cor de fundo do modal, agora SÓLIDA E OPACA */
-    padding: 40px;
-    border: 1px solid var(--border-light);
-    border-radius: 10px;
-    width: 100%;
-    max-width: 480px; /* Largura máxima para um visual limpo */
-    box-shadow: 0 5px 25px rgba(0,0,0,0.7); /* Sombra mais intensa */
-    position: relative;
-    animation-name: animatetop;
-    animation-duration: 0.4s;
-    text-align: center;
-    color: var(--text-light); /* Garante que o texto dentro do modal seja claro */
-}
-
-/* Animação de entrada do modal */
-@keyframes animatetop {
-    from {opacity: 0; transform: translateY(-50px);}
-    to {opacity: 1; transform: translateY(0);}
-}
-
-.close-button {
-    color: var(--text-fade);
-    font-size: 32px;
-    position: absolute;
-    top: 15px;
-    right: 25px;
-    cursor: pointer;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: var(--text-light);
-}
-
-/* Estilos para as Abas do Modal */
-.modal-tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: 5px;
-}
-
-.tab-button {
-    background-color: transparent;
-    border: none;
-    padding: 12px 25px;
-    cursor: pointer;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: var(--text-fade);
-    transition: color 0.3s ease, border-bottom 0.3s ease;
-    margin: 0 10px;
-}
-
-.tab-button.active {
-    color: var(--accent-blue);
-    border-bottom: 3px solid var(--accent-blue);
-}
-
-.tab-button:hover:not(.active) {
-    color: var(--text-light);
-}
-
-/* Estilos para os conteúdos das abas dentro do modal */
-.modal-content .tab-content h2 { /* Estilo para o H2 da marca dentro do modal */
-    font-size: 1.8em;
-    font-weight: bold;
-    color: var(--accent-blue);
-    margin-bottom: 10px; /* Menor margem antes do h3 */
-}
-
-.modal-content .tab-content h3 {
-    margin-top: 15px; /* Pequena margem superior para separar do logo */
-    margin-bottom: 25px;
-    font-size: 1.6em;
-    font-weight: 500;
-    color: var(--text-light);
-}
-
-.modal-content .tab-content p {
-    color: var(--text-fade);
-    margin-bottom: 20px;
-    line-height: 1.5;
-}
-
-/* Campos de Input e Botões dentro do Modal */
-.modal-content .input-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.modal-content .input-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-light);
-    font-size: 0.9em;
-    font-weight: bold;
-    text-align: left;
-}
-
-.modal-content input[type="email"],
-.modal-content input[type="password"],
-.modal-content input[type="text"] {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    background-color: var(--primary-blue-dark);
-    color: var(--text-light);
-    font-size: 1.1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
-
-.modal-content input[type="email"]:focus,
-.modal-content input[type="password"]:focus,
-.modal-content input[type="text"]:focus {
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.4);
-    outline: none;
-}
-
-.modal-content button[type="submit"] {
-    width: 100%;
-    padding: 16px;
-    background-color: var(--accent-blue);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    margin-top: 25px;
-}
-
-.modal-content button[type="submit"]:hover {
-    background-color: var(--accent-purple);
-    box-shadow: 0 6px 12px rgba(153, 51, 255, 0.5);
-}
-
-.modal-content .error-message {
-    color: var(--error-red);
-    font-size: 0.9em;
-    padding: 10px;
-    background-color: rgba(255, 68, 68, 0.1);
-    border-left: 4px solid var(--error-red);
-    border-radius: 4px;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.modal-content .extra-links {
-    text-align: center;
-    margin-top: 15px;
-}
-
-.modal-content .extra-links a {
-    color: var(--accent-blue);
-    text-decoration: none;
-    font-size: 0.9em;
-}
-
-.modal-content .extra-links a:hover {
-    text-decoration: underline;
-}
-
-/* Logo dentro do modal */
-.modal-content .login-logo {
-    max-width: 100px;
-    height: auto;
-    margin-bottom: 20px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Responsividade para o modal em telas menores */
-@media (max-width: 600px) {
-    .modal-content {
-        padding: 25px;
-        margin: 10px;
-    }
-    .modal-content h2, .modal-content h3 {
-        font-size: 1.4em;
-    }
-    .tab-button {
-        font-size: 1em;
-        padding: 10px 15px;
-    }
 }

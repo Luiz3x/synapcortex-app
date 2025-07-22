@@ -6,9 +6,75 @@
     <title>Painel de Controle - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* ... (seus estilos específicos para o Dashboard) ... */
+        /* Estilos CSS específicos para o Dashboard, usando as variáveis do style.css */
+        .header-logout {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light); /* Usando variável */
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header-logout h3 { /* Ajusta o título para não ter margem extra */
+            margin-bottom: 0;
+        }
+        .logout-link {
+            font-size: 14px;
+            text-decoration: none;
+            color: var(--accent-blue); /* Usando variável */
+            transition: color 0.3s ease;
+        }
+        .logout-link:hover {
+            color: var(--accent-purple); /* Usando variável */
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsivo para 3 colunas ou menos */
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stats-section {
+            background-color: var(--primary-blue-dark); /* Usando variável */
+            border: 1px solid var(--border-light); /* Usando variável */
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Sombra para destaque */
+        }
+        .stats-section h4 {
+            margin-top: 0;
+            color: var(--text-light); /* Cor do texto */
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .stats-data {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-blue); /* Usando variável para destaque */
+        }
 
-        /* NOVO: Estilo para a mensagem de status da assinatura */
+        /* Ajustes para o formulário de configurações do pop-up */
+        form {
+            text-align: left; /* Alinha o texto do formulário à esquerda */
+        }
+        textarea { /* Estilo para o campo de texto grande */
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 5px;
+            background-color: var(--primary-blue-dark);
+            color: var(--text-light);
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            min-height: 80px; /* Altura mínima para o textarea */
+        }
+        textarea:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(0, 204, 255, 0.3);
+            outline: none;
+        }
+
+        /* Estilo para a mensagem de status da assinatura */
         .status-message {
             background-color: var(--secondary-blue-dark);
             border: 1px solid var(--border-light);
@@ -47,10 +113,41 @@
         {% endif %}
 
         <div class="stats-grid">
+            <div class="stats-section">
+                <h4>Visualizações</h4>
+                <p class="stats-data">{{ analytics.visualizacoes_popup }}</p>
             </div>
+            <div class="stats-section">
+                <h4>Cliques</h4>
+                <p class="stats-data">{{ analytics.cliques_popup }}</p>
+            </div>
+            <div class="stats-section">
+                <h4>Conversão</h4>
+                <p class="stats-data">
+                    {% if analytics.visualizacoes_popup > 0 %}
+                        {{ "%.2f"|format((analytics.cliques_popup / analytics.visualizacoes_popup) * 100) }}%
+                    {% else %}
+                        0.00%
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
         <h4>Configurações do Pop-up</h4>
-        </div>
+        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
+            <div class="input-group">
+                <label for="popup-titulo">Título do Pop-up:</label>
+                <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.titulo }}">
+            </div>
+            
+            <div class="input-group">
+                <label for="popup-mensagem">Mensagem do Pop-up (aceita HTML):</label>
+                <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.mensagem }}</textarea>
+            </div>
+            
+            <button type="submit">Salvar Configurações</button>
+        </form>
+    </div>
     <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* style.css - Design Moderno e Tecnológico para SynapCortex (VERSÃO CONSOLIDADA) */
+/* style.css - Design Moderno e Tecnológico para SynapCortex (VERSÃO CONSOLIDADA E LIMPA) */
 
 /* --- Variáveis de Cores --- */
 :root {
@@ -334,7 +334,7 @@ button[type="submit"]:hover {
 
 /* Estilos para o Modal (Fundo escuro e centralizado) */
 .modal {
-    display: none; /* Escondido por padrão */
+    display: none !important; /* Escondido por padrão, e força a regra */
     position: fixed;
     z-index: 1000; /* Fica no topo de tudo */
     left: 0;
@@ -343,9 +343,8 @@ button[type="submit"]:hover {
     height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0,0.85); /* Fundo BEM escuro e opaco para o overlay */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
     padding: 20px;
 }
 
@@ -458,7 +457,7 @@ button[type="submit"]:hover {
     padding: 14px 16px;
     border: 1px solid var(--border-light);
     border-radius: 8px;
-    background-color: var(--primary-blue-dark); /* Fundo do input */
+    background-color: var(--primary-blue-dark);
     color: var(--text-light);
     font-size: 1.1em;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;

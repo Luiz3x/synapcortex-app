@@ -1,4 +1,4 @@
-/* style.css - Design Moderno e Tecnológico para SynapCortex (VERSÃO CONSOLIDADA E LIMPA) */
+/* style.css - Design Moderno e Tecnológico para SynapCortex (VERSÃO CONSOLIDADA E FINAL) */
 
 /* --- Variáveis de Cores --- */
 :root {
@@ -343,8 +343,9 @@ button[type="submit"]:hover {
     height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0,0.85); /* Fundo BEM escuro e opaco para o overlay */
-    justify-content: center; /* Centraliza horizontalmente */
-    align-items: center; /* Centraliza verticalmente */
+    display: flex; /* Para centralizar o conteúdo */
+    align-items: center;
+    justify-content: center;
     padding: 20px;
 }
 

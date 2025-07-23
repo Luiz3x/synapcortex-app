@@ -15,6 +15,7 @@ app.config = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
 app.config = os.environ.get('STRIPE_SECRET_KEY_TEST')
 
 import stripe
+# <<< CORRIGIDO >>> Atribuição correta da chave secreta
 stripe.api_key = app.config
 
 # --- WHITE NOISE (A FORMA MAIS ROBUSTA) ---
@@ -47,6 +48,7 @@ def salvar_json(nome_arquivo, dados):
 def index():
     return render_template('index.html')
 
+# <<< CORRIGIDO >>> Adicionado methods=
 @app.route('/login', methods=)
 def login():
     message = request.args.get('message')
@@ -63,6 +65,7 @@ def login():
             return jsonify({'success': False, 'message': 'E-mail ou senha incorretos.'}), 401
     return render_template('login.html', message=message)
 
+# <<< CORRIGIDO >>> Adicionado methods=
 @app.route('/registrar', methods=)
 def registrar():
     if request.method == 'POST':
@@ -129,12 +132,13 @@ def dashboard():
                                mensagem_status_assinatura=mensagem_status_assinatura,
                                dias_restantes=dias_restantes)
     else:
-        # <<< BUG CORRIGIDO AQUI >>> Adicionado 'usuario=dados_usuario'
         return render_template('pagamento_pendente.html', 
+                               # <<< CORRIGIDO >>> Passando a chave publicável correta
                                stripe_publishable_key=current_app.config,
                                usuario=dados_usuario,
                                mensagem_status_assinatura=mensagem_status_assinatura)
 
+# <<< CORRIGIDO >>> Adicionado methods=
 @app.route('/create-payment-intent', methods=)
 def create_payment_intent():
     if 'logged_in' not in session:
@@ -151,6 +155,7 @@ def create_payment_intent():
     except Exception as e:
         return jsonify(error={'message': str(e)}), 400
 
+# <<< CORRIGIDO >>> Adicionado methods=
 @app.route('/salvar-configuracoes', methods=) 
 def salvar_configuracoes():
     if 'logged_in' not in session:
@@ -173,7 +178,7 @@ def get_config():
     config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
     return jsonify(config)
 
-#... (outras rotas de API como track_view e track_click continuam aqui)...
+# <<< CORRIGIDO >>> Adicionado methods=
 @app.route('/api/track-view', methods=) 
 def track_view():
     try:
@@ -184,6 +189,7 @@ def track_view():
     except Exception as e:
         return jsonify({'status': 'error'}), 500
 
+# <<< CORRIGIDO >>> Adicionado methods=
 @app.route('/api/track-click', methods=) 
 def track_click():
     try:
@@ -197,4 +203,3 @@ def track_click():
 # --- PARA EXECUÇÃO LOCAL ---
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-    

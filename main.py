@@ -9,15 +9,19 @@ from whitenoise import WhiteNoise
 from flask_cors import CORS
 
 # --- INICIALIZAÇÃO DO APP FLASK ---
-app = Flask(__name__)
+# Sendo explícito sobre a pasta static, ajudamos o Flask em ambientes de deploy
+app = Flask(__name__, static_folder='static')
 
 # --- CONFIGURAÇÕES DO APLICATIVO ---
-# Chave secreta para a sessão do Flask. Essencial para segurança.
 app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
+# ... (suas outras configs) ...
 
-# Configuração correta das chaves do Stripe
-app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
-app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
+# --- MIDDLEWARE ---
+CORS(app)
+# Configuração SIMPLIFICADA do WhiteNoise. Ele apenas 'melhora' o sistema do Flask.
+app.wsgi_app = WhiteNoise(app.wsgi_app)
+
+# ... (resto do seu código, como as funções e rotas) ...
 
 # --- MIDDLEWARE (Executado em todas as requisições) ---
 # Habilita o CORS

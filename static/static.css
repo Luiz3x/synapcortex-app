@@ -169,3 +169,16 @@ button[type="submit"]:hover {
     border-radius: 5px;
     text-align: left;
 }
+/* --- Ajustes para posicionar o modal de login no canto esquerdo --- */
+
+/* O fundo escurecido que cobre a tela inteira */
+.modal {
+    justify-content: flex-start; /* Alinha o conteúdo à esquerda */
+    align-items: center; /* Centraliza verticalmente */
+}
+
+/* O conteúdo do modal (a "janelinha") */
+.modal-content {
+    margin-left: 50px; /* Distância da borda esquerda */
+    max-width: 420px; /* Garante que não fique muito largo */
+}

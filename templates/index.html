@@ -5,56 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sua Página Principal - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Estilos específicos para o modal, que podem ir para o style.css depois */
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0;
-            top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgba(0,0,0,0.6); 
-            justify-content: center; /* Revertido para centralizar por padrão */
-            align-items: center; 
-            display: flex;
-        }
-        .modal-content {
-            background-color: var(--secondary-blue-dark);
-            margin: auto;
-            padding: 20px;
-            border: 1px solid var(--border-light);
-            width: 90%;
-            max-width: 450px;
-            border-radius: 10px;
-            position: relative;
-        }
-        .close-button {
-            color: var(--text-fade);
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: var(--text-light);
-            text-decoration: none;
-            cursor: pointer;
-        }
-        /* Ajustes de posicionamento conforme o pedido */
-        .modal {
-            justify-content: flex-start;
-            align-items: center;
-        }
-        .modal-content {
-            margin-left: 50px;
-            max-width: 420px;
-        }
-    </style>
 </head>
 <body>
     <header>
@@ -66,16 +16,11 @@
 
     <div class="main-content">
         <div class="login-container">
-            
             <video class="cerebro-animado" autoplay loop muted playsinline>
                 <source src="{{ url_for('static', filename='videos/cerebro_animado.mp4') }}" type="video/mp4">
-                Seu navegador não suporta vídeos.
             </video>
-
             <h1>Bem-vindo à SynapCortex!</h1>
-            <p>Descubra como a inteligência dinâmica pode transformar suas vendas. Experimente um mês grátis!</p>
-            <p>Tente mover o mouse para fora da janela do navegador... (apenas para teste do pop-up de saída)</p>
-            <br>
+            <p>Descubra como a inteligência dinâmica pode transformar suas vendas.</p>
         </div>
 
         <div id="popup-espiao" class="popup-container" style="display: none;">
@@ -139,7 +84,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='auth.js') }}"></script> <script src="{{ url_for('static', filename='spy.js') }}"></script>
-
+    <script src="{{ url_for('static', filename='spy.js') }}"></script>
 </body>
 </html>

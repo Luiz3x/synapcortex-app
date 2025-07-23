@@ -10,7 +10,7 @@ from flask_cors import CORS
 
 # --- INICIALIZAÇÃO DO APP FLASK ---
 # Sendo explícito sobre a pasta static, ajudamos o Flask em ambientes de deploy
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='public', static_url_path='/static')
 
 # --- CONFIGURAÇÕES DO APLICATIVO ---
 app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')

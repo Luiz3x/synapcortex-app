@@ -182,3 +182,12 @@ button[type="submit"]:hover {
     margin-left: 50px; /* Distância da borda esquerda */
     max-width: 420px; /* Garante que não fique muito largo */
 }
+/* --- Estilo para o Cérebro Animado --- */
+.cerebro-animado {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    display: block;
+    margin: 0 auto 25px auto;
+    border-radius: 50%;
+}

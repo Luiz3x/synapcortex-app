@@ -5,6 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sua Página Principal - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Estilos específicos para o modal, que podem ir para o style.css depois */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); 
+            justify-content: center; /* Revertido para centralizar por padrão */
+            align-items: center; 
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--secondary-blue-dark);
+            margin: auto;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .close-button {
+            color: var(--text-fade);
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--text-light);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Ajustes de posicionamento conforme o pedido */
+        .modal {
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .modal-content {
+            margin-left: 50px;
+            max-width: 420px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -16,6 +66,12 @@
 
     <div class="main-content">
         <div class="login-container">
+            
+            <video class="cerebro-animado" autoplay loop muted playsinline>
+                <source src="{{ url_for('static', filename='videos/cerebro_animado.mp4') }}" type="video/mp4">
+                Seu navegador não suporta vídeos.
+            </video>
+
             <h1>Bem-vindo à SynapCortex!</h1>
             <p>Descubra como a inteligência dinâmica pode transformar suas vendas. Experimente um mês grátis!</p>
             <p>Tente mover o mouse para fora da janela do navegador... (apenas para teste do pop-up de saída)</p>
@@ -31,7 +87,7 @@
         </div>
     </div>
 
-    <div id="loginRegisterModal" class="modal">
+    <div id="loginRegisterModal" class="modal" style="display:none;">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <div class="modal-tabs">
@@ -40,11 +96,8 @@
             </div>
 
             <div id="loginTab" class="tab-content active">
-                
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                
-                <h2>SynapCortex</h2>
-                <h3>Acesse seu Painel</h3>
+                <h2>Acesse seu Painel</h2>
                 <form id="loginForm" method="POST">
                     <div class="input-group">
                         <label for="modal-email-login">E-mail Comercial:</label>
@@ -57,18 +110,11 @@
                     <p class="error-message" id="loginErrorMessage" style="display:none;"></p>
                     <button type="submit">Entrar</button>
                 </form>
-                <div class="extra-links">
-                    <a href="#" id="forgotPasswordLink">Esqueceu a senha?</a>
-                </div>
             </div>
 
             <div id="registerTab" class="tab-content">
-
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-
-                <h2>SynapCortex</h2>
-                <h3>Crie sua Conta na SynapCortex</h3>
-                <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
+                <h2>Crie sua Conta</h2>
                 <form id="registerForm" method="POST">
                     <div class="input-group">
                         <label for="modal-nome_empresa">Nome da Empresa</label>
@@ -76,10 +122,10 @@
                     </div>
                     <div class="input-group">
                         <label for="modal-cnpj">CNPJ (somente números)</label>
-                        <input type="text" id="modal-cnpj" name="cnpj" required pattern="\d{14}" title="Por favor, insira 14 dígitos numéricos para o CNPJ.">
+                        <input type="text" id="modal-cnpj" name="cnpj" required pattern="\d{14}">
                     </div>
                     <div class="input-group">
-                        <label for="modal-email-register">E-mail Comercial (seu login)</label>
+                        <label for="modal-email-register">E-mail Comercial</label>
                         <input type="email" id="modal-email-register" name="email" required>
                     </div>
                     <div class="input-group">
@@ -93,96 +139,7 @@
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('loginRegisterModal');
-        const openModalBtn = document.getElementById('openLoginRegisterModal');
-        const closeButton = document.querySelector('.close-button');
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const loginErrorMessage = document.getElementById('loginErrorMessage');
-        const registerErrorMessage = document.getElementById('registerErrorMessage');
+    <script src="{{ url_for('static', filename='auth.js') }}"></script> <script src="{{ url_for('static', filename='spy.js') }}"></script>
 
-        // Funções para abrir/fechar o modal
-        if(openModalBtn) {
-            openModalBtn.onclick = () => { modal.style.display = 'flex'; };
-        }
-        if(closeButton) {
-            closeButton.onclick = () => { modal.style.display = 'none'; };
-        }
-        window.onclick = (event) => { if (event.target == modal) { modal.style.display = 'none'; } };
-
-        // Lógica das abas
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab + 'Tab').classList.add('active');
-            });
-        });
-
-        // Intercepta o envio do formulário de Login com a nova lógica JSON
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            loginErrorMessage.style.display = 'none';
-            const formData = new FormData(loginForm);
-
-            fetch("{{ url_for('login') }}", {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: new URLSearchParams(formData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.redirect_url;
-                }
-            })
-            .catch(error => {
-                console.error('Erro no login:', error);
-                loginErrorMessage.textContent = error.message || 'Ocorreu um erro na comunicação.';
-                loginErrorMessage.style.display = 'block';
-            });
-        });
-
-        // Intercepta o envio do formulário de Registro com a nova lógica JSON
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            registerErrorMessage.style.display = 'none';
-            const formData = new FormData(registerForm);
-
-            fetch("{{ url_for('registrar') }}", {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: new URLSearchParams(formData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.redirect_url;
-                }
-            })
-            .catch(error => {
-                console.error('Erro no registro:', error);
-                registerErrorMessage.textContent = error.message || 'Ocorreu um erro na comunicação.';
-                registerErrorMessage.style.display = 'block';
-            });
-        });
-    });
-    </script>
-    <script src="{{ url_for('static', filename='spy.js') }}"></script>
 </body>
 </html>

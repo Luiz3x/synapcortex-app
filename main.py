@@ -1,84 +1,118 @@
+# --- Importações Essenciais ---
 import os
 import json
-from flask_cors import CORS
-from datetime import datetime, timedelta
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app 
+import stripe
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
 from whitenoise import WhiteNoise
+from flask_cors import CORS
 
-# --- INICIALIZAÇÃO DIRETA E SIMPLIFICADA DO APP ---
+# --- INICIALIZAÇÃO DO APP FLASK ---
 app = Flask(__name__)
 
-# --- CONFIGURAÇÕES APLICADAS DIRETAMENTE ---
+# --- CONFIGURAÇÕES DO APLICATIVO ---
+# Chave secreta para a sessão do Flask. Essencial para segurança.
 app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
-app.config = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
-app.config = os.environ.get('STRIPE_SECRET_KEY_TEST')
 
-import stripe
-# <<< CORRIGIDO >>> Atribuição correta da chave secreta
-stripe.api_key = app.config
+# Configuração correta das chaves do Stripe
+app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
+app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 
-# --- WHITE NOISE (A FORMA MAIS ROBUSTA) ---
-app.wsgi_app = WhiteNoise(app.wsgi_app)
-
+# --- MIDDLEWARE (Executado em todas as requisições) ---
+# Habilita o CORS
 CORS(app)
+# Configuração do WhiteNoise para servir arquivos estáticos em produção (CSS, JS, Imagens)
+# Esta linha garante que o Flask encontre a pasta 'static' quando estiver rodando na Render.
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
-# Garante que o diretório /data exista
-diretorio_de_dados = os.path.join(os.getcwd(), "data") 
+
+# --- GERENCIAMENTO DE DIRETÓRIO DE DADOS ---
+# Garante que o diretório /data exista para salvar os arquivos JSON.
+diretorio_de_dados = os.path.join(os.getcwd(), "data")
 if not os.path.exists(diretorio_de_dados):
     os.makedirs(diretorio_de_dados)
 
-# --- FUNÇÕES AUXILIARES ---
+# --- FUNÇÕES AUXILIARES PARA MANIPULAÇÃO DE JSON ---
 def carregar_json(nome_arquivo, dados_padrao):
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
-    if not os.path.exists(caminho_completo):
-        with open(caminho_completo, 'w', encoding='utf-8') as f:
-            json.dump(dados_padrao, f, indent=4)
-    with open(caminho_completo, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    try:
+        if not os.path.exists(caminho_completo):
+            with open(caminho_completo, 'w', encoding='utf-8') as f:
+                json.dump(dados_padrao, f, indent=4)
+        with open(caminho_completo, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (IOError, json.JSONDecodeError):
+        # Em caso de erro, retorna os dados padrão para não quebrar a aplicação
+        return dados_padrao
 
 def salvar_json(nome_arquivo, dados):
     caminho_completo = os.path.join(diretorio_de_dados, nome_arquivo)
     with open(caminho_completo, 'w', encoding='utf-8') as f:
-        json.dump(dados, f, indent=4)
+        json.dump(dados, f, indent=4, ensure_ascii=False)
 
-# --- ROTAS DO APLICATIVO ---
+# --- ROTAS PRINCIPAIS DO APLICATIVO ---
 
 @app.route('/')
 def index():
+    # A página inicial não precisa de lógica complexa, apenas renderiza o template.
+    # O template 'index.html' já contém a lógica do modal de login/registro.
     return render_template('index.html')
 
-# <<< CORRIGIDO >>> Adicionado methods=
-@app.route('/login', methods=)
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    message = request.args.get('message')
+    # Verifica se a requisição é um POST (envio de formulário)
     if request.method == 'POST':
         email = request.form.get('email').lower()
         password = request.form.get('password')
-        usuarios = carregar_json('users.json', {}) 
+        usuarios = carregar_json('users.json', {})
         user_data = usuarios.get(email)
-        if user_data and check_password_hash(user_data['senha'], password):
+
+        if user_data and check_password_hash(user_data.get('senha', ''), password):
             session['logged_in'] = True
             session['email'] = email
-            return jsonify({'success': True, 'redirect_url': url_for('dashboard')})
+            # Se a requisição foi feita via JavaScript (pelo modal do index.html), retorna JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'redirect_url': url_for('dashboard')})
+            else: # Se foi um POST de formulário normal, redireciona
+                return redirect(url_for('dashboard'))
         else:
-            return jsonify({'success': False, 'message': 'E-mail ou senha incorretos.'}), 401
+            # Se a requisição foi via JavaScript, retorna erro em JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': 'E-mail ou senha incorretos.'}), 401
+            else: # Se foi um POST normal, renderiza a página de login com a mensagem de erro
+                return render_template('login.html', error='E-mail ou senha incorretos.')
+
+    # Se a requisição for GET, apenas mostra a página de login
+    message = request.args.get('message')
     return render_template('login.html', message=message)
 
-# <<< CORRIGIDO >>> Adicionado methods=
-@app.route('/registrar', methods=)
+
+@app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
         email = request.form.get('email').lower()
         password = request.form.get('password')
         cnpj = request.form.get('cnpj')
         nome_empresa = request.form.get('nome_empresa', '')
-        usuarios = carregar_json('users.json', {}) 
+
+        usuarios = carregar_json('users.json', {})
+        
+        # Validações
         if email in usuarios:
-            return jsonify({'success': False, 'message': 'Este e-mail já está cadastrado.'}), 409
+            message = 'Este e-mail já está cadastrado.'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': message}), 409
+            return render_template('registrar.html', error=message)
+
         for user_data in usuarios.values():
             if user_data.get('cnpj') == cnpj:
-                return jsonify({'success': False, 'message': 'Este CNPJ já possui um cadastro.'}), 409
+                message = 'Este CNPJ já possui um cadastro.'
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'success': False, 'message': message}), 409
+                return render_template('registrar.html', error=message)
+
+        # Se passou nas validações, cria o usuário
         hashed_password = generate_password_hash(password)
         data_inicio_assinatura = datetime.now()
         data_fim_assinatura = data_inicio_assinatura + timedelta(days=30)
@@ -89,20 +123,30 @@ def registrar():
             'data_fim_assinatura': data_fim_assinatura.strftime('%Y-%m-%d')
         }
         salvar_json('users.json', usuarios)
-        return jsonify({'success': True, 'redirect_url': url_for('login', message='Cadastro realizado com sucesso!')})
+
+        # Resposta de sucesso
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True, 'redirect_url': url_for('login', message='Cadastro realizado com sucesso!')})
+        return redirect(url_for('login', message='Cadastro realizado com sucesso!'))
+
+    # Se a requisição for GET, apenas mostra a página de registro
     return render_template('registrar.html')
+
 
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
+
     email_usuario = session.get('email')
     usuarios = carregar_json('users.json', {})
     dados_usuario = usuarios.get(email_usuario)
+
     if not dados_usuario:
         session.clear()
         return redirect(url_for('login', error='Sua sessão expirou.'))
-    
+
+    # Lógica de status da assinatura
     status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
     data_fim_str = dados_usuario.get('data_fim_assinatura')
     mensagem_status_assinatura = ""
@@ -120,8 +164,9 @@ def dashboard():
             dias_restantes = (data_fim - hoje).days
             mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
     elif status_assinatura == 'pendente':
-        mensagem_status_assinatura = "Sua assinatura está pendente."
-
+        mensagem_status_assinatura = "Sua assinatura está pendente. Regularize para continuar."
+    
+    # Renderiza a página correta baseada no status
     if status_assinatura == 'ativo':
         analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
@@ -131,35 +176,17 @@ def dashboard():
                                config=config,
                                mensagem_status_assinatura=mensagem_status_assinatura,
                                dias_restantes=dias_restantes)
-    else:
+    else: # Status 'pendente'
         return render_template('pagamento_pendente.html', 
-                               # <<< CORRIGIDO >>> Passando a chave publicável correta
-                               stripe_publishable_key=current_app.config,
+                               stripe_publishable_key=app.config['STRIPE_PUBLISHABLE_KEY_TEST'],
                                usuario=dados_usuario,
                                mensagem_status_assinatura=mensagem_status_assinatura)
 
-# <<< CORRIGIDO >>> Adicionado methods=
-@app.route('/create-payment-intent', methods=)
-def create_payment_intent():
-    if 'logged_in' not in session:
-        return jsonify({'error': 'Usuário não logado'}), 401
-    email_usuario = session.get('email')
-    amount_in_cents = 2990
-    try:
-        intent = stripe.PaymentIntent.create(
-            amount=amount_in_cents, currency='brl',
-            metadata={'user_email': email_usuario},
-            payment_method_types=['card'],
-        )
-        return jsonify(clientSecret=intent.client_secret)
-    except Exception as e:
-        return jsonify(error={'message': str(e)}), 400
-
-# <<< CORRIGIDO >>> Adicionado methods=
-@app.route('/salvar-configuracoes', methods=) 
+@app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
+    
     novo_titulo = request.form.get('popup_titulo')
     nova_mensagem = request.form.get('popup_mensagem')
     config_atual = carregar_json('config_popup.json', {})
@@ -173,13 +200,35 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# --- ROTAS DE API (para o frontend consumir) ---
+
+@app.route('/create-payment-intent', methods=['POST'])
+def create_payment_intent():
+    if 'logged_in' not in session:
+        return jsonify({'error': 'Usuário não logado'}), 401
+        
+    # Inicializa o Stripe aqui dentro para garantir que a chave da API está configurada
+    stripe.api_key = app.config['STRIPE_SECRET_KEY_TEST']
+    
+    email_usuario = session.get('email')
+    amount_in_cents = 2990  # R$ 29,90
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=amount_in_cents, 
+            currency='brl',
+            metadata={'user_email': email_usuario},
+            payment_method_types=['card'],
+        )
+        return jsonify(clientSecret=intent.client_secret)
+    except Exception as e:
+        return jsonify(error={'message': str(e)}), 400
+
 @app.route('/api/get-config')
 def get_config():
     config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
     return jsonify(config)
 
-# <<< CORRIGIDO >>> Adicionado methods=
-@app.route('/api/track-view', methods=) 
+@app.route('/api/track-view', methods=['POST']) 
 def track_view():
     try:
         analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -187,10 +236,9 @@ def track_view():
         salvar_json('analytics.json', analytics)
         return jsonify({'status': 'success'}), 200
     except Exception as e:
-        return jsonify({'status': 'error'}), 500
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
-# <<< CORRIGIDO >>> Adicionado methods=
-@app.route('/api/track-click', methods=) 
+@app.route('/api/track-click', methods=['POST']) 
 def track_click():
     try:
         analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
@@ -198,8 +246,8 @@ def track_click():
         salvar_json('analytics.json', analytics)
         return jsonify({'status': 'success'}), 200
     except Exception as e:
-        return jsonify({'status': 'error'}), 500
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
-# --- PARA EXECUÇÃO LOCAL ---
+# --- Bloco de Execução para Ambiente Local ---
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

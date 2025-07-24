@@ -13,6 +13,10 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
+            /* Ajustes para telas grandes */
+            max-width: 900px; 
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
@@ -51,7 +55,6 @@
     </div>
 
     <script>
-        // Pega os dados que o main.py enviou para a página
         const labelsDoGrafico = {{ labels_do_grafico | tojson }};
         const visualizacoesDoGrafico = {{ visualizacoes_do_grafico | tojson }};
         const cliquesDoGrafico = {{ cliques_do_grafico | tojson }};
@@ -59,22 +62,24 @@
         const ctx = document.getElementById('graficoReal');
 
         new Chart(ctx, {
-            type: 'bar', // Gráfico de barras
+            type: 'bar',
             data: {
                 labels: labelsDoGrafico,
                 datasets: [
                     {
                         label: 'Visualizações',
                         data: visualizacoesDoGrafico,
-                        backgroundColor: 'rgba(0, 204, 255, 0.5)', // Ciano com transparência
-                        borderColor: 'rgba(0, 204, 255, 1)',
+                        // NOVA COR: Verde Positivo
+                        backgroundColor: 'rgba(40, 200, 130, 0.6)', 
+                        borderColor: 'rgba(40, 200, 130, 1)',
                         borderWidth: 1
                     },
                     {
                         label: 'Cliques',
                         data: cliquesDoGrafico,
-                        backgroundColor: 'rgba(170, 105, 255, 0.7)', // Roxo com transparência
-                        borderColor: 'rgba(170, 105, 255, 1)',
+                        // NOVA COR: Ciano Principal
+                        backgroundColor: 'rgba(0, 204, 255, 0.6)', 
+                        borderColor: 'rgba(0, 204, 255, 1)',
                         borderWidth: 1
                     }
                 ]
@@ -83,18 +88,18 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#bbbbbb' },
+                        ticks: { color: '#FFFFFF' }, // COR CORRIGIDA: Branca
                         grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     },
                     x: {
-                        ticks: { color: '#bbbbbb' },
+                        ticks: { color: '#FFFFFF' }, // COR CORRIGIDA: Branca
                         grid: { display: false }
                     }
                 },
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#bbbbbb' // Cor da legenda
+                            color: '#FFFFFF' // COR CORRIGIDA: Branca
                         }
                     }
                 }

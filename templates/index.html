@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sua Página Principal - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='static.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
@@ -29,7 +29,15 @@
                 <h2 id="popup-titulo-display"></h2>
                 <p id="popup-mensagem-display"></p>
             </div>
+        </div> <div id="popup-bemvindo" class="popup-container" style="display: none;">
+            <div class="popup-conteudo">
+                <button id="fechar-bemvindo" class="fechar-btn">&times;</button>
+                <h2>Que bom te ver de novo! 🎉</h2>
+                <p>Para comemorar sua volta, seu frete hoje é por nossa conta!</p>
+                <p style="font-size: 1.2em; font-weight: bold; color: var(--accent-blue);">Use o cupom: BEMVINDO10</p>
+            </div>
         </div>
+
     </div>
 
     <div id="loginRegisterModal" class="modal" style="display:none;">

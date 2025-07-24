@@ -135,9 +135,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Lógica de Gerenciamento de Visitante (Cookies) ---
     const cookieName = 'synapcortex_visitou';
     if (getCookie(cookieName)) {
-        console.log("Bem-vindo de volta! (Visitante Recorrente)");
+        // É um visitante recorrente! Mostra o pop-up.
+        document.getElementById('popup-bemvindo').style.display = 'flex';
     } else {
         console.log("Olá! (Primeira Visita)");
         setCookie(cookieName, 'true', 365);
     }
-});
+});       
+    // "Escuta" o clique no botão de fechar do pop-up de Bem-vindo
+const fecharBemvindoBtn = document.getElementById('fechar-bemvindo');
+if (fecharBemvindoBtn) {
+    fecharBemvindoBtn.addEventListener('click', function() {
+        document.getElementById('popup-bemvindo').style.display = 'none';
+    });
+}   

@@ -149,3 +149,69 @@ if (fecharBemvindoBtn) {
         document.getElementById('popup-bemvindo').style.display = 'none';
     });
 } 
+// --- Lógica do Gráfico de Demonstração ---
+
+// Função para iniciar o gráfico
+function iniciarGraficoDemo() {
+    const ctx = document.getElementById('graficoDemonstracao');
+    // Se o elemento do gráfico não existir nesta página, não faz nada.
+    if (!ctx) {
+        return;
+    }
+
+    const labels = ['-50s', '-40s', '-30s', '-20s', '-10s', 'Agora'];
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Clientes Recuperados',
+            backgroundColor: 'rgba(0, 204, 255, 0.2)', // Cor do preenchimento (ciano com transparência)
+            borderColor: 'rgba(0, 204, 255, 1)', // Cor da linha (ciano sólido)
+            data: [65, 59, 80, 81, 56, 55], // Dados iniciais "fake"
+            fill: true,
+            tension: 0.4 // Deixa a linha com curvas suaves
+        }]
+    };
+
+    const config = {
+        type: 'line', // Tipo do gráfico: linha
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false // Esconde a legenda "Clientes Recuperados"
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#bbbbbb' }, // Cor dos números no eixo Y
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' } // Cor das linhas de grade
+                },
+                x: {
+                    ticks: { color: '#bbbbbb' }, // Cor dos textos no eixo X
+                    grid: { display: false } // Esconde a grade do eixo X
+                }
+            }
+        }
+    };
+
+    const meuGrafico = new Chart(ctx, config);
+
+    // Animação para fazer o gráfico parecer "vivo"
+    setInterval(function() {
+        // Gera um novo número aleatório
+        const novoDado = Math.floor(Math.random() * (95 - 40 + 1) + 40);
+        
+        // Remove o dado mais antigo do gráfico
+        meuGrafico.data.datasets[0].data.shift();
+        // Adiciona o novo dado no final
+        meuGrafico.data.datasets[0].data.push(novoDado);
+        
+        // Atualiza o gráfico na tela com a animação
+        meuGrafico.update();
+    }, 2000); // Atualiza a cada 2 segundos (2000 ms)
+}
+
+// Garante que o código do gráfico só rode depois que a página carregou
+document.addEventListener('DOMContentLoaded', iniciarGraficoDemo);

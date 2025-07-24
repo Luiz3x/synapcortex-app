@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sua Página Principal - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -21,6 +22,9 @@
             </video>
             <h1>Bem-vindo à SynapCortex!</h1>
             <p>Descubra como a inteligência dinâmica pode transformar suas vendas.</p>
+            
+            <p style="margin-top: 20px; color: var(--text-fade);">Clientes recuperados em tempo real:</p>
+            <canvas id="graficoDemonstracao" width="400" height="150"></canvas>
         </div>
 
         <div id="popup-espiao" class="popup-container" style="display: none;">

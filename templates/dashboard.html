@@ -7,14 +7,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .dashboard-container { max-width: 900px; } /* << Aumenta a largura máxima do painel no PC */
+        /* Aumenta a largura máxima do painel no PC para dar mais espaço */
+        .dashboard-container { 
+            max-width: 1000px; 
+            padding-top: 20px;
+        }
         .chart-container {
             background-color: var(--primary-blue-dark);
             border: 1px solid var(--border-light);
             border-radius: 8px;
             padding: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 20px; /* Reduzido para economizar espaço */
         }
+        .header-logout { margin-bottom: 20px; } /* Reduzido */
+        h4 { margin-top: 15px; margin-bottom: 15px; } /* Reduzido */
     </style>
 </head>
 <body>
@@ -25,7 +31,7 @@
         </div>
 
         {% if mensagem_status_assinatura %}
-            <div class="status-message">
+            <div class="status-message" style="margin-bottom: 15px;">
                 <p>{{ mensagem_status_assinatura }}</p>
             </div>
         {% endif %}
@@ -59,7 +65,7 @@
         const ctx = document.getElementById('graficoReal');
 
         new Chart(ctx, {
-            type: 'bar', 
+            type: 'bar',
             data: {
                 labels: labelsDoGrafico,
                 datasets: [
@@ -80,8 +86,8 @@
                 ]
             },
             options: {
-                responsive: true, // << Garante que o gráfico se ajuste ao container
-                maintainAspectRatio: true, // << Garante a proporção correta
+                responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -96,7 +102,11 @@
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#FFFFFF'
+                            color: '#FFFFFF',
+                            // Aumenta o tamanho da fonte da legenda
+                            font: {
+                                size: 14 
+                            }
                         }
                     }
                 }

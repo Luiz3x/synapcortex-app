@@ -6,6 +6,17 @@
     <title>Painel de Controle - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos específicos para o painel ficar mais bonito no PC */
+        .dashboard-container { max-width: 900px; }
+        .chart-container {
+            background-color: var(--primary-blue-dark);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -21,7 +32,7 @@
         {% endif %}
         
         <h4>Resultados dos Últimos 7 Dias</h4>
-        <div class="chart-container" style="background-color: var(--primary-blue-dark); padding: 15px; border-radius: 8px;">
+        <div class="chart-container">
             <canvas id="graficoReal"></canvas>
         </div>
 
@@ -31,22 +42,22 @@
                 <label for="popup-titulo">Título do Pop-up:</label>
                 <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.titulo }}">
             </div>
-            
             <div class="input-group">
                 <label for="popup-mensagem">Mensagem do Pop-up (aceita HTML):</label>
                 <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.mensagem }}</textarea>
             </div>
-            
             <button type="submit">Salvar Configurações</button>
         </form>
     </div>
 
     <script>
+        // Pega os dados que o main.py enviou
         const labels = {{ labels_do_grafico | tojson }};
         const visData = {{ visualizacoes_do_grafico | tojson }};
         const cliData = {{ cliques_do_grafico | tojson }};
         const ctx = document.getElementById('graficoReal');
 
+        // Desenha o gráfico com o design final
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -55,18 +66,39 @@
                     {
                         label: 'Visualizações',
                         data: visData,
-                        backgroundColor: 'rgba(0, 204, 255, 0.6)'
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
                     },
                     {
                         label: 'Cliques',
                         data: cliData,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                        backgroundColor: 'rgba(0, 204, 255, 0.6)',
+                        borderColor: 'rgba(0, 204, 255, 1)',
+                        borderWidth: 1
                     }
                 ]
             },
             options: {
+                responsive: true,
                 scales: {
-                    y: { beginAtZero: true }
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#FFFFFF', font: { size: 12 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#FFFFFF', font: { size: 12 } },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#FFFFFF',
+                            font: { size: 14 }
+                        }
+                    }
                 }
             }
         });

@@ -29,7 +29,9 @@
                 <h2 id="popup-titulo-display"></h2>
                 <p id="popup-mensagem-display"></p>
             </div>
-        </div> <div id="popup-bemvindo" class="popup-container" style="display: none;">
+        </div>
+
+        <div id="popup-bemvindo" class="popup-container" style="display: none;">
             <div class="popup-conteudo">
                 <button id="fechar-bemvindo" class="fechar-btn">&times;</button>
                 <h2>Que bom te ver de novo! 🎉</h2>
@@ -37,7 +39,6 @@
                 <p style="font-size: 1.2em; font-weight: bold; color: var(--accent-blue);">Use o cupom: BEMVINDO10</p>
             </div>
         </div>
-
     </div>
 
     <div id="loginRegisterModal" class="modal" style="display:none;">
@@ -47,7 +48,6 @@
                 <button class="tab-button active" data-tab="login">Login</button>
                 <button class="tab-button" data-tab="register">Cadastre-se</button>
             </div>
-
             <div id="loginTab" class="tab-content active">
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
                 <h2>Acesse seu Painel</h2>
@@ -64,7 +64,6 @@
                     <button type="submit">Entrar</button>
                 </form>
             </div>
-
             <div id="registerTab" class="tab-content">
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
                 <h2>Crie sua Conta</h2>

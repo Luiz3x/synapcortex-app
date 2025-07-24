@@ -113,13 +113,18 @@ def registrar():
 def dashboard():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
+
     email_usuario = session.get('email')
     usuarios = carregar_json('users.json', {})
     dados_usuario = usuarios.get(email_usuario)
+
     if not dados_usuario:
         session.clear()
         return redirect(url_for('login', error='Sua sessão expirou.'))
+
+    # Lógica de status da assinatura (continua a mesma)
     status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
+    # ... (o resto da lógica de assinatura continua aqui, sem alterações) ...
     data_fim_str = dados_usuario.get('data_fim_assinatura')
     mensagem_status_assinatura = ""
     dias_restantes = None
@@ -136,21 +141,40 @@ def dashboard():
             mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
     elif status_assinatura == 'pendente':
         mensagem_status_assinatura = "Sua assinatura está pendente. Regularize para continuar."
+    
+    # Renderiza a página correta baseada no status
     if status_assinatura == 'ativo':
-        analytics = carregar_json('analytics.json', {})
+        # --- NOVA LÓGICA DE ANÁLISE ---
+        analytics_por_dia = carregar_json('analytics.json', {})
+        
+        # Calcula os totais a partir dos dados diários
+        total_visualizacoes = 0
+        total_cliques = 0
+        for dia in analytics_por_dia.values():
+            total_visualizacoes += dia.get('visualizacoes', 0)
+            total_cliques += dia.get('cliques', 0)
+            
+        # Cria um dicionário simples com os totais para a página
+        analytics_totais = {
+            "visualizacoes": total_visualizacoes,
+            "cliques": total_cliques
+        }
+        
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+        
+        # Passa os totais para o template
         return render_template('dashboard.html', 
                                usuario=dados_usuario, 
-                               analytics=analytics, 
+                               analytics=analytics_totais,  # << Usando os totais calculados
                                config=config,
                                mensagem_status_assinatura=mensagem_status_assinatura,
                                dias_restantes=dias_restantes)
-    else:
+    else: # Status 'pendente'
         return render_template('pagamento_pendente.html', 
                                stripe_publishable_key=app.config.get('STRIPE_PUBLISHABLE_KEY_TEST'),
                                usuario=dados_usuario,
                                mensagem_status_assinatura=mensagem_status_assinatura)
-
+                               
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
     if 'logged_in' not in session:

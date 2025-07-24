@@ -8,7 +8,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Estilos específicos para o painel ficar mais bonito no PC */
-        .dashboard-container { max-width: 900px; }
+        .dashboard-container { 
+            max-width: 950px; /* Aumenta a largura do painel */
+            padding-top: 25px;
+            padding-bottom: 40px;
+        }
         .chart-container {
             background-color: var(--primary-blue-dark);
             border: 1px solid var(--border-light);
@@ -51,29 +55,27 @@
     </div>
 
     <script>
-        // Pega os dados que o main.py enviou
-        const labels = {{ labels_do_grafico | tojson }};
-        const visData = {{ visualizacoes_do_grafico | tojson }};
-        const cliData = {{ cliques_do_grafico | tojson }};
+        const labelsDoGrafico = {{ labels_do_grafico | tojson }};
+        const visualizacoesDoGrafico = {{ visualizacoes_do_grafico | tojson }};
+        const cliquesDoGrafico = {{ cliques_do_grafico | tojson }};
         const ctx = document.getElementById('graficoReal');
 
-        // Desenha o gráfico com o design final
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: labelsDoGrafico,
                 datasets: [
                     {
                         label: 'Visualizações',
-                        data: visData,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        data: visualizacoesDoGrafico,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)', 
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
                     },
                     {
                         label: 'Cliques',
-                        data: cliData,
-                        backgroundColor: 'rgba(0, 204, 255, 0.6)',
+                        data: cliquesDoGrafico,
+                        backgroundColor: 'rgba(0, 204, 255, 0.7)', 
                         borderColor: 'rgba(0, 204, 255, 1)',
                         borderWidth: 1
                     }

@@ -6,6 +6,15 @@
     <title>Painel de Controle - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            background-color: var(--primary-blue-dark);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -20,25 +29,9 @@
             </div>
         {% endif %}
         
-        <div class="stats-grid">
-            <div class="stats-section">
-                <h4>Visualizações</h4>
-                <p class="stats-data">{{ analytics.visualizacoes }}</p>
-            </div>
-            <div class="stats-section">
-                <h4>Cliques</h4>
-                <p class="stats-data">{{ analytics.cliques }}</p>
-            </div>
-            <div class="stats-section">
-                <h4>Conversão</h4>
-                <p class="stats-data">
-                    {% if analytics.visualizacoes > 0 %}
-                        {{ "%.2f"|format((analytics.cliques / analytics.visualizacoes) * 100) }}%
-                    {% else %}
-                        0.00%
-                    {% endif %}
-                </p>
-            </div>
+        <h4>Resultados dos Últimos 7 Dias</h4>
+        <div class="chart-container">
+            <canvas id="graficoReal"></canvas>
         </div>
 
         <h4>Configurações do Pop-up de Saída</h4>
@@ -57,5 +50,56 @@
         </form>
     </div>
 
-    </body>
+    <script>
+        // Pega os dados que o main.py enviou para a página
+        const labelsDoGrafico = {{ labels_do_grafico | tojson }};
+        const visualizacoesDoGrafico = {{ visualizacoes_do_grafico | tojson }};
+        const cliquesDoGrafico = {{ cliques_do_grafico | tojson }};
+
+        const ctx = document.getElementById('graficoReal');
+
+        new Chart(ctx, {
+            type: 'bar', // Gráfico de barras
+            data: {
+                labels: labelsDoGrafico,
+                datasets: [
+                    {
+                        label: 'Visualizações',
+                        data: visualizacoesDoGrafico,
+                        backgroundColor: 'rgba(0, 204, 255, 0.5)', // Ciano com transparência
+                        borderColor: 'rgba(0, 204, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Cliques',
+                        data: cliquesDoGrafico,
+                        backgroundColor: 'rgba(170, 105, 255, 0.7)', // Roxo com transparência
+                        borderColor: 'rgba(170, 105, 255, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#bbbbbb' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#bbbbbb' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#bbbbbb' // Cor da legenda
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
 </html>

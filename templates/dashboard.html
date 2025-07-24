@@ -6,22 +6,6 @@
     <title>Painel de Controle - SynapCortex</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Aumenta a largura máxima do painel no PC para dar mais espaço */
-        .dashboard-container { 
-            max-width: 1000px; 
-            padding-top: 20px;
-        }
-        .chart-container {
-            background-color: var(--primary-blue-dark);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px; /* Reduzido para economizar espaço */
-        }
-        .header-logout { margin-bottom: 20px; } /* Reduzido */
-        h4 { margin-top: 15px; margin-bottom: 15px; } /* Reduzido */
-    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -31,13 +15,13 @@
         </div>
 
         {% if mensagem_status_assinatura %}
-            <div class="status-message" style="margin-bottom: 15px;">
+            <div class="status-message">
                 <p>{{ mensagem_status_assinatura }}</p>
             </div>
         {% endif %}
         
         <h4>Resultados dos Últimos 7 Dias</h4>
-        <div class="chart-container">
+        <div class="chart-container" style="background-color: var(--primary-blue-dark); padding: 15px; border-radius: 8px;">
             <canvas id="graficoReal"></canvas>
         </div>
 
@@ -58,57 +42,31 @@
     </div>
 
     <script>
-        const labelsDoGrafico = {{ labels_do_grafico | tojson }};
-        const visualizacoesDoGrafico = {{ visualizacoes_do_grafico | tojson }};
-        const cliquesDoGrafico = {{ cliques_do_grafico | tojson }};
-
+        const labels = {{ labels_do_grafico | tojson }};
+        const visData = {{ visualizacoes_do_grafico | tojson }};
+        const cliData = {{ cliques_do_grafico | tojson }};
         const ctx = document.getElementById('graficoReal');
 
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labelsDoGrafico,
+                labels: labels,
                 datasets: [
                     {
                         label: 'Visualizações',
-                        data: visualizacoesDoGrafico,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)', 
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
+                        data: visData,
+                        backgroundColor: 'rgba(0, 204, 255, 0.6)'
                     },
                     {
                         label: 'Cliques',
-                        data: cliquesDoGrafico,
-                        backgroundColor: 'rgba(0, 204, 255, 0.6)', 
-                        borderColor: 'rgba(0, 204, 255, 1)',
-                        borderWidth: 1
+                        data: cliData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: true,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#FFFFFF' }, 
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                    },
-                    x: {
-                        ticks: { color: '#FFFFFF' }, 
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#FFFFFF',
-                            // Aumenta o tamanho da fonte da legenda
-                            font: {
-                                size: 14 
-                            }
-                        }
-                    }
+                    y: { beginAtZero: true }
                 }
             }
         });

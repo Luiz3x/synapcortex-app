@@ -148,4 +148,4 @@ if (fecharBemvindoBtn) {
     fecharBemvindoBtn.addEventListener('click', function() {
         document.getElementById('popup-bemvindo').style.display = 'none';
     });
-}   
+} 

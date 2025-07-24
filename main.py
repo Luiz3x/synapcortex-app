@@ -109,6 +109,10 @@ def registrar():
         return redirect(url_for('login', message='Cadastro realizado com sucesso!'))
     return render_template('registrar.html')
 
+@app.route('/test_css')
+def test_css_route():
+    return render_template('test_css.html')
+    
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session:

@@ -235,9 +235,45 @@ def get_config():
 @app.route('/api/track-view', methods=['POST']) 
 def track_view():
     try:
-        analytics = carregar_json('analytics.json', {"visualizacoes_popup": 0, "cliques_popup": 0})
-        analytics['visualizacoes_popup'] += 1
+        # Pega a data de hoje no formato ANO-MÊS-DIA
+        hoje_str = datetime.now().strftime('%Y-%m-%d')
+        
+        # Carrega todos os dados
+        analytics = carregar_json('analytics.json', {})
+        
+        # Se a data de hoje ainda não existe no JSON, cria a entrada
+        if hoje_str not in analytics:
+            analytics[hoje_str] = {"visualizacoes": 0, "cliques": 0}
+            
+        # Incrementa a visualização para o dia de hoje
+        analytics[hoje_str]['visualizacoes'] += 1
+        
+        # Salva o arquivo JSON atualizado
         salvar_json('analytics.json', analytics)
+        
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/track-click', methods=['POST']) 
+def track_click():
+    try:
+        # Pega a data de hoje no formato ANO-MÊS-DIA
+        hoje_str = datetime.now().strftime('%Y-%m-%d')
+
+        # Carrega todos os dados
+        analytics = carregar_json('analytics.json', {})
+        
+        # Se a data de hoje ainda não existe no JSON, cria a entrada
+        if hoje_str not in analytics:
+            analytics[hoje_str] = {"visualizacoes": 0, "cliques": 0}
+
+        # Incrementa o clique para o dia de hoje
+        analytics[hoje_str]['cliques'] += 1
+
+        # Salva o arquivo JSON atualizado
+        salvar_json('analytics.json', analytics)
+        
         return jsonify({'status': 'success'}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500

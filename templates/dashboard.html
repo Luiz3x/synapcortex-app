@@ -7,16 +7,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        .dashboard-container { max-width: 900px; } /* << Aumenta a largura máxima do painel no PC */
         .chart-container {
             background-color: var(--primary-blue-dark);
             border: 1px solid var(--border-light);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
-            /* Ajustes para telas grandes */
-            max-width: 900px; 
-            margin-left: auto;
-            margin-right: auto;
         }
     </style>
 </head>
@@ -62,22 +59,20 @@
         const ctx = document.getElementById('graficoReal');
 
         new Chart(ctx, {
-            type: 'bar',
+            type: 'bar', 
             data: {
                 labels: labelsDoGrafico,
                 datasets: [
                     {
                         label: 'Visualizações',
                         data: visualizacoesDoGrafico,
-                        // NOVA COR: Verde Positivo
-                        backgroundColor: 'rgba(40, 200, 130, 0.6)', 
-                        borderColor: 'rgba(40, 200, 130, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)', 
+                        borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
                     },
                     {
                         label: 'Cliques',
                         data: cliquesDoGrafico,
-                        // NOVA COR: Ciano Principal
                         backgroundColor: 'rgba(0, 204, 255, 0.6)', 
                         borderColor: 'rgba(0, 204, 255, 1)',
                         borderWidth: 1
@@ -85,21 +80,23 @@
                 ]
             },
             options: {
+                responsive: true, // << Garante que o gráfico se ajuste ao container
+                maintainAspectRatio: true, // << Garante a proporção correta
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#FFFFFF' }, // COR CORRIGIDA: Branca
+                        ticks: { color: '#FFFFFF' }, 
                         grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     },
                     x: {
-                        ticks: { color: '#FFFFFF' }, // COR CORRIGIDA: Branca
+                        ticks: { color: '#FFFFFF' }, 
                         grid: { display: false }
                     }
                 },
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#FFFFFF' // COR CORRIGIDA: Branca
+                            color: '#FFFFFF'
                         }
                     }
                 }

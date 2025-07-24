@@ -124,7 +124,6 @@ def dashboard():
 
     # Lógica de status da assinatura (continua a mesma)
     status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
-    # ... (o resto da lógica de assinatura continua aqui, sem alterações) ...
     data_fim_str = dados_usuario.get('data_fim_assinatura')
     mensagem_status_assinatura = ""
     dias_restantes = None
@@ -144,31 +143,44 @@ def dashboard():
     
     # Renderiza a página correta baseada no status
     if status_assinatura == 'ativo':
-        # --- NOVA LÓGICA DE ANÁLISE ---
+        # --- LÓGICA DO GRÁFICO REAL ---
         analytics_por_dia = carregar_json('analytics.json', {})
         
-        # Calcula os totais a partir dos dados diários
-        total_visualizacoes = 0
-        total_cliques = 0
-        for dia in analytics_por_dia.values():
-            total_visualizacoes += dia.get('visualizacoes', 0)
-            total_cliques += dia.get('cliques', 0)
-            
-        # Cria um dicionário simples com os totais para a página
-        analytics_totais = {
-            "visualizacoes": total_visualizacoes,
-            "cliques": total_cliques
-        }
+        # Prepara as listas para os últimos 7 dias
+        labels_grafico = []
+        dados_visualizacoes = []
+        dados_cliques = []
         
+        hoje = datetime.now()
+        for i in range(7):
+            # Pega a data dos últimos 7 dias, começando por hoje e voltando para trás
+            data_corrente = hoje - timedelta(days=i)
+            # Formata a data como "dd/mm" para os rótulos do gráfico
+            labels_grafico.append(data_corrente.strftime('%d/%m'))
+            # Formata a data como "YYYY-MM-DD" para buscar no JSON
+            data_chave = data_corrente.strftime('%Y-%m-%d')
+            
+            # Pega os dados do dia, ou 0 se o dia não tiver registro
+            dados_do_dia = analytics_por_dia.get(data_chave, {"visualizacoes": 0, "cliques": 0})
+            dados_visualizacoes.append(dados_do_dia.get('visualizacoes', 0))
+            dados_cliques.append(dados_do_dia.get('cliques', 0))
+            
+        # Inverte as listas para o gráfico mostrar do dia mais antigo para o mais novo
+        labels_grafico.reverse()
+        dados_visualizacoes.reverse()
+        dados_cliques.reverse()
+
         config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
         
-        # Passa os totais para o template
         return render_template('dashboard.html', 
                                usuario=dados_usuario, 
-                               analytics=analytics_totais,  # << Usando os totais calculados
                                config=config,
                                mensagem_status_assinatura=mensagem_status_assinatura,
-                               dias_restantes=dias_restantes)
+                               dias_restantes=dias_restantes,
+                               # Enviando os dados do gráfico para a página
+                               labels_do_grafico=labels_grafico,
+                               visualizacoes_do_grafico=dados_visualizacoes,
+                               cliques_do_grafico=dados_cliques)
     else: # Status 'pendente'
         return render_template('pagamento_pendente.html', 
                                stripe_publishable_key=app.config.get('STRIPE_PUBLISHABLE_KEY_TEST'),

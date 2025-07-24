@@ -9,7 +9,6 @@ from whitenoise import WhiteNoise
 from flask_cors import CORS
 
 # --- INICIALIZAÇÃO DO APP FLASK ---
-# Sendo explícito sobre a pasta static, ajudamos o Flask em ambientes de deploy
 app = Flask(__name__, static_folder='static')
 
 # --- CONFIGURAÇÕES DO APLICATIVO ---
@@ -17,16 +16,11 @@ app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcor
 app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
 app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 
-# Adicione esta linha de volta para configurar o Stripe globalmente
+# Configura o Stripe globalmente para a aplicação iniciar corretamente
 stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
-# --- MIDDLEWARE (APENAS UM BLOCO) ---
+# --- MIDDLEWARE (Bloco Único e Correto) ---
 CORS(app)
-# ... resto do código ...
-
-# --- MIDDLEWARE (APENAS UM BLOCO) ---
-CORS(app)
-# Configuração SIMPLIFICADA do WhiteNoise. Ele apenas 'melhora' o sistema do Flask.
 app.wsgi_app = WhiteNoise(app.wsgi_app)
 
 
@@ -111,4 +105,121 @@ def registrar():
         salvar_json('users.json', usuarios)
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': True, 'redirect_url': url_for('login', message='Cadastro realizado com sucesso!')})
-        return redirect(url_
+        # Linha que estava cortada, agora completa
+        return redirect(url_for('login', message='Cadastro realizado com sucesso!'))
+    return render_template('registrar.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    email_usuario = session.get('email')
+    usuarios = carregar_json('users.json', {})
+    dados_usuario = usuarios.get(email_usuario)
+    if not dados_usuario:
+        session.clear()
+        return redirect(url_for('login', error='Sua sessão expirou.'))
+    status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
+    data_fim_str = dados_usuario.get('data_fim_assinatura')
+    mensagem_status_assinatura = ""
+    dias_restantes = None
+    if status_assinatura == 'ativo' and data_fim_str:
+        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+        hoje = datetime.now().date()
+        if hoje > data_fim:
+            dados_usuario['status_assinatura'] = 'pendente'
+            salvar_json('users.json', usuarios)
+            status_assinatura = 'pendente'
+            mensagem_status_assinatura = "Sua avaliação gratuita expirou."
+        else:
+            dias_restantes = (data_fim - hoje).days
+            mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
+    elif status_assinatura == 'pendente':
+        mensagem_status_assinatura = "Sua assinatura está pendente. Regularize para continuar."
+    if status_assinatura == 'ativo':
+        analytics = carregar_json('analytics.json', {})
+        config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+        return render_template('dashboard.html', 
+                               usuario=dados_usuario, 
+                               analytics=analytics, 
+                               config=config,
+                               mensagem_status_assinatura=mensagem_status_assinatura,
+                               dias_restantes=dias_restantes)
+    else:
+        return render_template('pagamento_pendente.html', 
+                               stripe_publishable_key=app.config.get('STRIPE_PUBLISHABLE_KEY_TEST'),
+                               usuario=dados_usuario,
+                               mensagem_status_assinatura=mensagem_status_assinatura)
+
+@app.route('/salvar-configuracoes', methods=['POST'])
+def salvar_configuracoes():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    novo_titulo = request.form.get('popup_titulo')
+    nova_mensagem = request.form.get('popup_mensagem')
+    config_atual = carregar_json('config_popup.json', {})
+    config_atual['titulo'] = novo_titulo
+    config_atual['mensagem'] = nova_mensagem
+    salvar_json('config_popup.json', config_atual)
+    return redirect(url_for('dashboard'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+# --- ROTAS DE API ---
+
+@app.route('/create-payment-intent', methods=['POST'])
+def create_payment_intent():
+    if 'logged_in' not in session:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    if not stripe.api_key:
+        return jsonify(error={'message': 'Chave do Stripe não configurada no servidor.'}), 500
+    email_usuario = session.get('email')
+    amount_in_cents = 2990
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=amount_in_cents, 
+            currency='brl',
+            metadata={'user_email': email_usuario},
+            payment_method_types=['card'],
+        )
+        return jsonify(clientSecret=intent.client_secret)
+    except Exception as e:
+        return jsonify(error={'message': str(e)}), 400
+
+@app.route('/api/get-config')
+def get_config():
+    config = carregar_json('config_popup.json', {"titulo": "", "mensagem": ""})
+    return jsonify(config)
+
+@app.route('/api/track-view', methods=['POST']) 
+def track_view():
+    try:
+        hoje_str = datetime.now().strftime('%Y-%m-%d')
+        analytics = carregar_json('analytics.json', {})
+        if hoje_str not in analytics:
+            analytics[hoje_str] = {"visualizacoes": 0, "cliques": 0}
+        analytics[hoje_str]['visualizacoes'] += 1
+        salvar_json('analytics.json', analytics)
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/track-click', methods=['POST']) 
+def track_click():
+    try:
+        hoje_str = datetime.now().strftime('%Y-%m-%d')
+        analytics = carregar_json('analytics.json', {})
+        if hoje_str not in analytics:
+            analytics[hoje_str] = {"visualizacoes": 0, "cliques": 0}
+        analytics[hoje_str]['cliques'] += 1
+        salvar_json('analytics.json', analytics)
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# --- Bloco de Execução para Ambiente Local ---
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

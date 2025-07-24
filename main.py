@@ -17,6 +17,13 @@ app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcor
 app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
 app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 
+# Adicione esta linha de volta para configurar o Stripe globalmente
+stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
+
+# --- MIDDLEWARE (APENAS UM BLOCO) ---
+CORS(app)
+# ... resto do código ...
+
 # --- MIDDLEWARE (APENAS UM BLOCO) ---
 CORS(app)
 # Configuração SIMPLIFICADA do WhiteNoise. Ele apenas 'melhora' o sistema do Flask.

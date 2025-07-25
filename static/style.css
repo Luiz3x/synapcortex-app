@@ -91,4 +91,3 @@ button[type="submit"] {
     max-height: 90vh; /* A altura máxima será 90% da altura da tela */
     overflow-y: auto; /* Se o conteúdo for maior, cria uma barra de rolagem */
 }
-{}

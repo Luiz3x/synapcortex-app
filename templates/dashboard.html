@@ -7,14 +7,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .dashboard-container { max-width: 950px; padding-top: 25px; padding-bottom: 40px; }
-        .chart-container {
-            background-color: var(--primary-blue-dark);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
+        .dashboard-container { max-width: 950px; margin: 0 auto; padding: 20px; }
+        .header-logout { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logout-link { background-color: transparent; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .logout-link:hover { background-color: var(--accent-blue); color: var(--primary-blue-dark); }
+        .status-message { background-color: var(--secondary-blue-dark); padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; border-left: 4px solid var(--accent-blue); }
+        .chart-container { background-color: var(--secondary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        textarea { width: 100%; padding: 14px; border: 1px solid var(--border-light); border-radius: 8px; background-color: var(--primary-blue-dark); color: var(--text-light); font-size: 1em; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -92,8 +91,8 @@
                 plugins: {
                     legend: {
                         labels: {
-                            // Salva-vidas de depuração: cor preta para a legenda
-                            color: 'black', 
+                            // Corrigido para ser visível no tema escuro
+                            color: 'white',
                             font: { size: 14 }
                         }
                     }

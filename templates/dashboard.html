@@ -7,12 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Estilos específicos para o painel ficar mais bonito no PC */
-        .dashboard-container { 
-            max-width: 950px; /* Aumenta a largura do painel */
-            padding-top: 25px;
-            padding-bottom: 40px;
-        }
+        .dashboard-container { max-width: 950px; padding-top: 25px; padding-bottom: 40px; }
         .chart-container {
             background-color: var(--primary-blue-dark);
             border: 1px solid var(--border-light);
@@ -86,18 +81,19 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#FFFFFF', font: { size: 12 } },
+                        ticks: { color: 'white' }, 
                         grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     },
                     x: {
-                        ticks: { color: '#FFFFFF', font: { size: 12 } },
+                        ticks: { color: 'white' }, 
                         grid: { display: false }
                     }
                 },
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#FFFFFF',
+                            // Salva-vidas de depuração: cor preta para a legenda
+                            color: 'black', 
                             font: { size: 14 }
                         }
                     }

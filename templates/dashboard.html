@@ -4,7 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style type="text/css">
+        /* style.css - VERSÃO FINALÍSSIMA - 25/07/2025 */
+
+        :root {
+            --primary-blue-dark: #0a0a2a;
+            --secondary-blue-dark: #1a1a4a;
+            --accent-blue: #00ccff;
+            --text-light: #ffffff;
+            --text-fade: #bbbbbb;
+            --border-light: #444466;
+            --error-red: #ff4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', 'Arial', sans-serif;
+            background-color: #0a0a2a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        a { color: var(--accent-blue); text-decoration: none; }
+        h1, h2, h3 { color: var(--accent-blue); margin-bottom: 20px; font-weight: 500; }
+        h1 { font-size: 2.2em; color: var(--text-light); }
+
+        header { padding: 20px 40px; }
+        nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        .logo { font-weight: bold; font-size: 24px; }
+
+        .login-register-button {
+            background-color: transparent; border: 1px solid var(--accent-blue);
+            color: var(--accent-blue); padding: 8px 16px; border-radius: 5px; cursor: pointer;
+        }
+        .login-register-button:hover { background-color: var(--accent-blue); color: var(--primary-blue-dark); }
+
+        .login-container { text-align: center; padding: 20px; }
+
+        .cerebro-animado {
+            width: 100%; max-width: 250px; height: auto; display: block;
+            margin: 0 auto 25px auto; border-radius: 50%;
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background-color: var(--secondary-blue-dark); padding: 20px 30px;
+            border: 1px solid var(--border-light); width: 90%; max-width: 450px;
+            border-radius: 10px; position: relative; text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .close-button {
+            color: var(--text-fade); position: absolute; top: 10px; right: 20px;
+            font-size: 28px; font-weight: bold; cursor: pointer;
+        }
+        .modal-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); }
+        .tab-button { flex: 1; padding: 10px; background: none; border: none; color: var(--text-fade); cursor: pointer; font-size: 16px; }
+        .tab-button.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .login-logo { max-width: 80px; height: auto; margin-bottom: 15px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9em; }
+        .input-group input {
+            width: 100%; padding: 14px; border: 1px solid var(--border-light);
+            border-radius: 8px; background-color: var(--primary-blue-dark); color: var(--text-light); font-size: 1em;
+        }
+        button[type="submit"] {
+            width: 100%; padding: 15px; background-color: var(--accent-blue);
+            color: var(--primary-blue-dark); border: none; border-radius: 8px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+        .error-message { color: var(--error-red); margin-top: 10px; font-weight: bold; font-size: 0.9em; }
+
+        .popup-container {
+            position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center;
+        }
+        .popup-conteudo {
+            background: var(--secondary-blue-dark); padding: 40px; border-radius: 10px;
+            text-align: center; position: relative; width: 90%; max-width: 500px;
+        }
+        .fechar-btn {
+            position: absolute; top: 10px; right: 20px; font-size: 30px;
+            color: var(--text-light); background: none; border: none; cursor: pointer;
+        }
+
+        /* Estilos específicos do Dashboard, agora movidos para cá */
+        .dashboard-container { max-width: 950px; margin: 0 auto; padding: 20px; }
+        .header-logout { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logout-link { background-color: transparent; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .logout-link:hover { background-color: var(--accent-blue); color: var(--primary-blue-dark); }
+        .status-message { background-color: var(--secondary-blue-dark); padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; border-left: 4px solid var(--accent-blue); }
+        .chart-container { background-color: var(--secondary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        textarea { width: 100%; padding: 14px; border: 1px solid var(--border-light); border-radius: 8px; background-color: var(--primary-blue-dark); color: var(--text-light); font-size: 1em; font-family: inherit; }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>

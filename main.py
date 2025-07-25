@@ -21,7 +21,7 @@ stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
 # --- MIDDLEWARE (Bloco Único e Correto) ---
 CORS(app)
-app.wsgi_app = WhiteNoise(app.wsgi_app)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 
 # --- GERENCIAMENTO DE DIRETÓRIO DE DADOS ---

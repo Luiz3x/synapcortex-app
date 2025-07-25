@@ -1,4 +1,4 @@
-/* style.css - VERSÃO COMPLETA E CORRIGIDA - 25/07/2025 */
+/* style.css - VERSÃO FINALÍSSIMA - 25/07/2025 */
 
 :root {
     --primary-blue-dark: #0a0a2a;
@@ -14,8 +14,9 @@
 
 body {
     font-family: 'Roboto', 'Arial', sans-serif;
-    background-color: var(--primary-blue-dark);
-    color: var(--text-light);
+    /* MUDANÇA CRÍTICA: Aplicando a cor diretamente sem usar a variável */
+    background-color: #0a0a2a;
+    color: #ffffff;
     line-height: 1.6;
 }
 

@@ -259,8 +259,6 @@ def track_click():
         return jsonify({'status': 'success'}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-        
-# --- 
 
 # --- Bloco de Execução para Ambiente Local ---
 if __name__ == '__main__':

@@ -37,11 +37,20 @@ nav { display: flex; justify-content: space-between; align-items: center; max-wi
 .login-container { text-align: center; padding: 20px; }
 
 .cerebro-animado {
-    width: 100%; max-width: 250px; height: auto; display: block;
-    margin: 0 auto 25px auto; border-radius: 50%;
-    /* LINHAS NOVAS ABAIXO */
-    margin-left: -20px;
-    margin-right: -20px;
+    /* Define um tamanho quadrado para a "moldura" */
+    width: 250px;
+    height: 250px; 
+
+    /* Centraliza na horizontal e adiciona uma margem no topo/baixo */
+    margin: 25px auto; 
+
+    /* Cria a moldura circular e esconde o que vazar */
+    border-radius: 50%;
+    overflow: hidden;
+
+    /* ESSA É A LINHA MAIS IMPORTANTE: */
+    /* Faz o vídeo preencher a moldura, cortando as sobras (as faixas pretas) */
+    object-fit: cover; 
 }
 
 .modal {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Site de Teste para SynapCortex</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        button { font-size: 20px; padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Este é um site de teste de um cliente</h1>
+    <p>O script da SynapCortex está instalado nesta página.</p>
+    <button id="botao-clique">Simular Clique em um Produto</button>
+
+    <script src="https://synapcortex-app.onrender.com/static/spy.js"></script>
+
+    <script>
+        // Esta parte simula a API de analytics sendo chamada
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Registra uma VISUALIZAÇÃO assim que a página carrega
+            fetch('https://synapcortex-app.onrender.com/api/track-view', { method: 'POST' });
+            console.log('Visualização registrada!');
+
+            // 2. Registra um CLIQUE quando o botão é pressionado
+            const botao = document.getElementById('botao-clique');
+            if (botao) {
+                botao.addEventListener('click', () => {
+                    fetch('https://synapcortex-app.onrender.com/api/track-click', { method: 'POST' });
+                    alert('Clique registrado para o gráfico!');
+                    console.log('Clique registrado!');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

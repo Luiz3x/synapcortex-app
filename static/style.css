@@ -39,6 +39,9 @@ nav { display: flex; justify-content: space-between; align-items: center; max-wi
 .cerebro-animado {
     width: 100%; max-width: 250px; height: auto; display: block;
     margin: 0 auto 25px auto; border-radius: 50%;
+    /* LINHAS NOVAS ABAIXO */
+    margin-left: -20px;
+    margin-right: -20px;
 }
 
 .modal {

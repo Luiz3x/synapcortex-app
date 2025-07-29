@@ -1,6 +1,6 @@
 // Arquivo: spy.js
-// Versão: 5.0 - "Voz Personalizada"
-// Descrição: O espião usa as mensagens personalizadas para cada gatilho.
+// Versão: 5.1 - "Voz Personalizada" (Completo e Corrigido)
+// Descrição: O espião usa as mensagens personalizadas para cada gatilho e mantém todas as funcionalidades da página.
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =================================================================================
-    // MÓDULO 3: O MOTOR DE GATILHOS (AGORA COM VOZ PERSONALIZADA)
+    // MÓDULO 3: O MOTOR DE GATILHOS (COM VOZ PERSONALIZADA)
     // =================================================================================
     
     function inicializarMotorDeGatilhos(config) {
@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const tituloPadrao = config.popup_titulo || "Temos uma oferta!";
         const mensagemPadrao = config.popup_mensagem || "Não perca esta chance.";
 
-        // --- GATILHO 1: INTENÇÃO DE SAÍDA ---
         if (isMobileDevice()) {
             if (config.tatica_mobile === 'foco') {
                 document.addEventListener('visibilitychange', () => {
@@ -61,11 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // --- GATILHO 2: "BEM-VINDO DE VOLTA" ---
         if (config.ativar_quarto_bem_vindo) {
             const cookieVisita = 'synapcortex_visitou';
             if (document.cookie.includes(cookieVisita)) {
-                // >>> MUDANÇA: Usa a mensagem personalizada se ela existir, senão usa a padrão.
                 const mensagemBemVindo = config.msg_bem_vindo || mensagemPadrao;
                 const tituloBemVindo = (config.msg_bem_vindo && config.popup_titulo) ? config.popup_titulo : tituloPadrao;
                 mostrarPopup("Visitante Recorrente", tituloBemVindo, mensagemBemVindo);
@@ -74,14 +71,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // --- GATILHO 3: INATIVIDADE ---
         if (config.ativar_quarto_interessado) {
             let tempoInativo;
-            const tempoLimite = 30000; // 30 segundos
+            const tempoLimite = 30000;
             const reiniciarContador = () => {
                 clearTimeout(tempoInativo);
                 tempoInativo = setTimeout(() => {
-                    // >>> MUDANÇA: Usa a mensagem personalizada se ela existir, senão usa a padrão.
                     const mensagemInteressado = config.msg_interessado || mensagemPadrao;
                     const tituloInteressado = (config.msg_interessado && config.popup_titulo) ? config.popup_titulo : tituloPadrao;
                     mostrarPopup(`Inatividade`, tituloInteressado, mensagemInteressado);
@@ -92,19 +87,86 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =================================================================================
-    // MÓDULO 4: LÓGICA DA PÁGINA (GRÁFICO, MODAL, FORMULÁRIOS)
+    // MÓDULO 4: LÓGICA DA PÁGINA (GRÁFICO, MODAL, FORMULÁRIOS) - COMPLETO
     // =================================================================================
 
     function inicializarLogicaDaPagina() {
+        // --- GRÁFICO DE DEMONSTRAÇÃO ---
         const ctx = document.getElementById('graficoDemonstracao');
         if (ctx) {
-            // ... (código do gráfico continua o mesmo)
+            const labels = ['-50s', '-40s', '-30s', '-20s', '-10s', 'Agora'];
+            const data = { labels: labels, datasets: [{ label: 'Clientes Recuperados', backgroundColor: 'rgba(0, 204, 255, 0.2)', borderColor: 'rgba(0, 204, 255, 1)', data: [65, 59, 80, 81, 56, 55], fill: true, tension: 0.4 }] };
+            const config = { type: 'line', data: data, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#bbbbbb' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: '#bbbbbb' }, grid: { display: false } } } } };
+            const meuGrafico = new Chart(ctx, config);
+            setInterval(() => {
+                const novoDado = Math.floor(Math.random() * 55) + 40;
+                meuGrafico.data.datasets[0].data.shift();
+                meuGrafico.data.datasets[0].data.push(novoDado);
+                meuGrafico.update();
+            }, 2000);
         }
-        // ... (código do modal de login e formulários continua o mesmo)
+
+        // --- MODAL DE LOGIN/CADASTRO ---
+        const modal = document.getElementById('loginRegisterModal');
+        const openModalBtn = document.getElementById('openLoginRegisterModal');
+        const closeButton = document.querySelector('.modal .close-button');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginErrorMessage = document.getElementById('loginErrorMessage');
+        const registerErrorMessage = document.getElementById('registerErrorMessage');
+
+        if (openModalBtn) { openModalBtn.onclick = () => { modal.style.display = 'flex'; }; }
+        if (closeButton) { closeButton.onclick = () => { modal.style.display = 'none'; }; }
+        window.onclick = event => { if (event.target == modal) modal.style.display = 'none'; };
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + 'Tab').classList.add('active');
+            });
+        });
+
+        // --- FORMULÁRIOS COM FETCH ---
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(loginForm);
+                fetch("/login", { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: new URLSearchParams(formData) })
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (ok) window.location.href = data.redirect_url;
+                    else throw data;
+                })
+                .catch(error => {
+                    loginErrorMessage.textContent = error.message || 'Erro.';
+                    loginErrorMessage.style.display = 'block';
+                });
+            });
+        }
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(registerForm);
+                fetch("/registrar", { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: new URLSearchParams(formData) })
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (ok) window.location.href = data.redirect_url;
+                    else throw data;
+                })
+                .catch(error => {
+                    registerErrorMessage.textContent = error.message || 'Erro.';
+                    registerErrorMessage.style.display = 'block';
+                });
+            });
+        }
     }
 
     // =================================================================================
-    // MÓDULO CENTRAL E INICIALIZAÇÃO GERAL
+    // MÓDULO CENTRAL: INICIALIZAÇÃO GERAL
     // =================================================================================
     
     inicializarLogicaDaPagina();

@@ -52,84 +52,93 @@
             <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
         </div>
 
-        <div class="secao-painel">
-            <h3>Visão Geral (O Cérebro da Operação)</h3>
-            <div class="status-message">
-                <p>{{ mensagem_status_assinatura }}</p>
-            </div>
-            <div class="insights-grid">
-                <div class="insight-item">
-                    <h4>Visitantes Únicos (Mês)</h4>
-                    <p>1,234</p> </div>
-                <div class="insight-item">
-                    <h4>Taxa de Recuperação</h4>
-                    <p>12%</p> </div>
-                <div class="insight-item">
-                    <h4>Top Categoria de Interesse</h4>
-                    <p>Camisetas</p> </div>
-            </div>
-        </div>
-
-        <div class="secao-painel">
-            <h3>Performance dos Gatilhos (Últimos 7 Dias)</h3>
-            <div class="chart-container" style="background: none; border: none; padding: 0;">
-                <canvas id="graficoReal"></canvas>
-            </div>
-        </div>
-
-        <div class="secao-painel">
-            <h3>Arsenal de Gatilhos (Seus "Quartos")</h3>
+        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
             
-            <div class="gatilho-item">
-                <label class="switch">
-                    <input type="checkbox" checked disabled> <span class="slider"></span>
-                </label>
-                <label>Gatilho Principal: Abandono de Site</label>
-                <p class="descricao">A tática principal para recuperar vendas. Ativo por padrão.</p>
-                
-                <div style="margin-left: 20px; margin-top: 15px;">
-                    <p class="descricao">Tática para Dispositivos Móveis:</p>
-                    <input type="radio" id="foco" name="tatica_mobile" value="foco" checked>
-                    <label for="foco">Mudança de Foco (Recomendado)</label><br>
-                    <input type="radio" id="voltar" name="tatica_mobile" value="voltar">
-                    <label for="voltar">Botão "Voltar"</label>
+            <div class="secao-painel">
+                <h3>Visão Geral (O Cérebro da Operação)</h3>
+                <div class="status-message">
+                    <p>{{ mensagem_status_assinatura }}</p>
+                </div>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <h4>Visitantes Únicos (Mês)</h4>
+                        <p>{{ insights.visitantes_unicos }}</p>
+                    </div>
+                    <div class="insight-item">
+                        <h4>Taxa de Recuperação</h4>
+                        <p>{{ insights.taxa_recuperacao }}</p>
+                    </div>
+                    <div class="insight-item">
+                        <h4>Top Categoria de Interesse</h4>
+                        <p>{{ insights.top_categoria }}</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="gatilho-item">
-                <label class="switch">
-                    <input type="checkbox">
-                    <span class="slider"></span>
-                </label>
-                <label>Ativar o Quarto "Bem-vindo de Volta"</label>
-                <p class="descricao">Mostra uma mensagem especial para visitantes que retornam ao site.</p>
+            <div class="secao-painel">
+                <h3>Performance dos Gatilhos (Últimos 7 Dias)</h3>
+                <div class="chart-container" style="background: none; border: none; padding: 0;">
+                    <canvas id="graficoReal"></canvas>
+                </div>
             </div>
 
-            <div class="gatilho-item">
-                <label class="switch">
-                    <input type="checkbox">
-                    <span class="slider"></span>
-                </label>
-                <label>Ativar o Quarto "Interessado"</label>
-                <p class="descricao">Mostra uma mensagem se o cliente visitar a mesma categoria um número de vezes.</p>
-            </div>
-        </div>
+            <div class="secao-painel">
+                <h3>Arsenal de Gatilhos (Seus "Quartos")</h3>
+                
+                <div class="gatilho-item">
+                    <label class="switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="slider"></span>
+                    </label>
+                    <label>Gatilho Principal: Abandono de Site</label>
+                    <p class="descricao">A tática principal para recuperar vendas. Ativo por padrão.</p>
+                    
+                    <div style="margin-left: 20px; margin-top: 15px;">
+                        <p class="descricao">Tática para Dispositivos Móveis:</p>
+                        <input type="radio" id="foco" name="tatica_mobile" value="foco" {% if config.tatica_mobile == 'foco' %}checked{% endif %}>
+                        <label for="foco">Mudança de Foco (Recomendado)</label><br>
+                        <input type="radio" id="voltar" name="tatica_mobile" value="voltar" {% if config.tatica_mobile == 'voltar' %}checked{% endif %}>
+                        <label for="voltar">Botão "Voltar"</label>
+                    </div>
+                </div>
 
-        <div class="secao-painel">
-            <h3>Configurações Gerais do Pop-up</h3>
-            <p class="descricao">Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
-            <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
+                <div class="gatilho-item">
+                    <label class="switch">
+                        <input type="checkbox" name="ativar_quarto_bem_vindo" {% if config.ativar_quarto_bem_vindo %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                    <label>Ativar o Quarto "Bem-vindo de Volta"</label>
+                    <p class="descricao">Mostra uma mensagem especial para visitantes que retornam ao site.</p>
+                </div>
+
+                <div class="gatilho-item">
+                    <label class="switch">
+                        <input type="checkbox" name="ativar_quarto_interessado" {% if config.ativar_quarto_interessado %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                    <label>Ativar o Quarto "Interessado"</label>
+                    <p class="descricao">Mostra uma mensagem se o cliente visitar a mesma categoria um número de vezes.</p>
+                </div>
+            </div>
+
+            <div class="secao-painel">
+                <h3>Configurações Gerais do Pop-up</h3>
+                <p class="descricao">Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
+                
                 <div class="input-group">
                     <label for="popup-titulo">Título Padrão do Pop-up:</label>
-                    <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.titulo }}">
+                    <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.popup_titulo }}">
                 </div>
                 <div class="input-group">
                     <label for="popup-mensagem">Mensagem Padrão do Pop-up (aceita HTML):</label>
-                    <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.mensagem }}</textarea>
+                    <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.popup_mensagem }}</textarea>
                 </div>
-                <button type="submit">Salvar Configurações</button>
-            </form>
-        </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button type="submit" style="width: auto; padding: 15px 40px; font-size: 1.2em;">Salvar Todas as Configurações</button>
+            </div>
+        </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

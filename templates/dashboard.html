@@ -37,6 +37,7 @@
         }
         .gatilho-item label { font-weight: bold; font-size: 1.1em; }
         .gatilho-item .descricao { font-size: 0.9em; color: var(--text-fade); margin-top: 5px; }
+        .config-quarto { border-top: 1px solid var(--border-light); margin-top: 15px; padding-top: 15px; }
         .switch { position: relative; display: inline-block; width: 60px; height: 34px; float: right; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;}
@@ -58,15 +59,9 @@
                 <h3>Visão Geral (O Cérebro da Operação)</h3>
                 <div class="status-message"><p>{{ mensagem_status_assinatura }}</p></div>
                 <div class="insights-grid">
-                    <div class="insight-item">
-                        <h4>Visitantes Únicos (Mês)</h4><p>{{ insights.visitantes_unicos }}</p>
-                    </div>
-                    <div class="insight-item">
-                        <h4>Taxa de Recuperação</h4><p>{{ insights.taxa_recuperacao }}</p>
-                    </div>
-                    <div class="insight-item">
-                        <h4>Top Categoria de Interesse</h4><p>{{ insights.top_categoria }}</p>
-                    </div>
+                    <div class="insight-item"><h4>Visitantes Únicos (Mês)</h4><p>{{ insights.visitantes_unicos }}</p></div>
+                    <div class="insight-item"><h4>Taxa de Recuperação</h4><p>{{ insights.taxa_recuperacao }}</p></div>
+                    <div class="insight-item"><h4>Top Categoria de Interesse</h4><p>{{ insights.top_categoria }}</p></div>
                 </div>
             </div>
 
@@ -86,24 +81,31 @@
                     <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
                     <label>Gatilho Principal: Abandono de Site</label>
                     <p class="descricao">A tática principal para recuperar vendas. Ativo por padrão.</p>
-                    <div style="margin-left: 20px; margin-top: 15px;">
-                        <p class="descricao">Tática para Dispositivos Móveis:</p>
-                        <input type="radio" id="foco" name="tatica_mobile" value="foco" {% if config.tatica_mobile == 'foco' %}checked{% endif %}>
-                        <label for="foco">Mudança de Foco (Recomendado)</label><br>
-                        <input type="radio" id="voltar" name="tatica_mobile" value="voltar" {% if config.tatica_mobile == 'voltar' %}checked{% endif %}>
-                        <label for="voltar">Botão "Voltar"</label>
-                    </div>
                 </div>
+
                 <div class="gatilho-item">
                     <label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {% if config.ativar_quarto_bem_vindo %}checked{% endif %}><span class="slider"></span></label>
                     <label>Ativar o Quarto "Bem-vindo de Volta"</label>
                     <p class="descricao">Mostra uma mensagem especial para visitantes que retornam ao site.</p>
-                </div>
+                    <div class="config-quarto">
+                        <div class="input-group">
+                            <label for="msg_bem_vindo">Mensagem para o visitante que retorna:</label>
+                            <textarea id="msg_bem_vindo" name="msg_bem_vindo" rows="3">{{ config.msg_bem_vindo }}</textarea>
+                        </div>
+                    </div>
+                    </div>
+
                 <div class="gatilho-item">
                     <label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {% if config.ativar_quarto_interessado %}checked{% endif %}><span class="slider"></span></label>
                     <label>Ativar o Quarto "Interessado"</label>
-                    <p class="descricao">Mostra uma mensagem se o cliente visitar a mesma categoria um número de vezes.</p>
-                </div>
+                    <p class="descricao">Mostra uma mensagem se o cliente ficar inativo na página.</p>
+                    <div class="config-quarto">
+                        <div class="input-group">
+                            <label for="msg_interessado">Mensagem para o visitante inativo:</label>
+                            <textarea id="msg_interessado" name="msg_interessado" rows="3">{{ config.msg_interessado }}</textarea>
+                        </div>
+                    </div>
+                    </div>
             </div>
 
             <div class="secao-painel">

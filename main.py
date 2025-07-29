@@ -1,4 +1,4 @@
-# main.py - Versão 3.3 (Completa e Consolidada Definitiva)
+# main.py - Versão 3.4 (Completa, com cálculo de insights reais)
 
 import os
 import json
@@ -41,6 +41,30 @@ def salvar_json(caminho_arquivo, dados):
     with open(caminho_arquivo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4, ensure_ascii=False)
 
+# --- FUNÇÃO DE CÁLCULO DE INSIGHTS ---
+def calcular_insights(dados_analytics):
+    total_visualizacoes = 0
+    total_cliques = 0
+    hoje = datetime.now()
+
+    for i in range(30):
+        data_corrente = hoje - timedelta(days=i)
+        data_chave = data_corrente.strftime('%Y-%m-%d')
+        dados_do_dia = dados_analytics.get(data_chave, {})
+        total_visualizacoes += dados_do_dia.get('visualizacoes', 0)
+        total_cliques += dados_do_dia.get('cliques', 0)
+
+    if total_visualizacoes == 0:
+        taxa_conversao = "0.00%"
+    else:
+        taxa_conversao = f"{(total_cliques / total_visualizacoes) * 100:.2f}%"
+
+    return {
+        'popups_exibidos': total_visualizacoes,
+        'clientes_recuperados': total_cliques,
+        'taxa_conversao': taxa_conversao
+    }
+
 # --- ROTAS PRINCIPAIS ---
 
 @app.route('/')
@@ -55,7 +79,6 @@ def login():
         usuarios = carregar_json(CAMINHO_USUARIOS)
         user_data = usuarios.get(email)
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-
         if user_data and check_password_hash(user_data.get('senha', ''), password):
             session['logged_in'] = True
             session['email'] = email
@@ -75,29 +98,24 @@ def registrar():
         cnpj = request.form.get('cnpj')
         nome_empresa = request.form.get('nome_empresa', '')
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        
         if not cnpj or not cnpj.isdigit() or len(cnpj) != 14:
             message = 'CNPJ inválido. Por favor, insira 14 números.'
             if is_ajax: return jsonify({'success': False, 'message': message}), 400
             return render_template('registrar.html', error=message)
-
         usuarios = carregar_json(CAMINHO_USUARIOS)
         if email in usuarios:
             message = 'Este e-mail já está cadastrado.'
             if is_ajax: return jsonify({'success': False, 'message': message}), 409
             return render_template('registrar.html', error=message)
-        
         for user_data in usuarios.values():
             if user_data.get('cnpj') == cnpj:
                 message = 'Este CNPJ já possui um cadastro.'
                 if is_ajax: return jsonify({'success': False, 'message': message}), 409
                 return render_template('registrar.html', error=message)
-
         hashed_password = generate_password_hash(password)
         data_inicio = datetime.now()
         data_fim = data_inicio + timedelta(days=30)
         api_key = secrets.token_urlsafe(24)
-        
         usuarios[email] = {
             'senha': hashed_password, 'cnpj': cnpj, 'nome_empresa': nome_empresa,
             'status_assinatura': 'ativo', 'data_inicio_assinatura': data_inicio.strftime('%Y-%m-%d'),
@@ -109,7 +127,6 @@ def registrar():
             }
         }
         salvar_json(CAMINHO_USUARIOS, usuarios)
-
         if is_ajax: return jsonify({'success': True, 'redirect_url': url_for('login', message='Cadastro realizado com sucesso!')})
         return redirect(url_for('login', message='Cadastro realizado com sucesso!'))
     return render_template('registrar.html')
@@ -122,7 +139,6 @@ def dashboard():
     dados_usuario = usuarios.get(email_usuario)
     if not dados_usuario:
         session.clear(); return redirect(url_for('login'))
-
     status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
     mensagem_status_assinatura = "Sua assinatura está pendente."
     if status_assinatura == 'ativo':
@@ -135,15 +151,16 @@ def dashboard():
             else:
                 dias_restantes = (data_fim - hoje).days
                 mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
-    
     if status_assinatura == 'pendente': return render_template('pagamento_pendente.html', usuario=dados_usuario)
-
-    insights = {'visitantes_unicos': '1,234', 'taxa_recuperacao': '12%', 'top_categoria': 'Camisetas'}
+    
+    analytics_data = carregar_json(CAMINHO_ANALYTICS)
+    insights_reais = calcular_insights(analytics_data)
+    
     labels_grafico, dados_visualizacoes, dados_cliques = [], [], []
-
+    
     return render_template(
         'dashboard.html', usuario=dados_usuario, config=dados_usuario.get('configuracoes', {}),
-        insights=insights, mensagem_status_assinatura=mensagem_status_assinatura,
+        insights=insights_reais, mensagem_status_assinatura=mensagem_status_assinatura,
         labels_do_grafico=labels_grafico, visualizacoes_do_grafico=dados_visualizacoes,
         cliques_do_grafico=dados_cliques
     )
@@ -154,10 +171,8 @@ def salvar_configuracoes():
     email_usuario = session['email']
     usuarios = carregar_json(CAMINHO_USUARIOS)
     if email_usuario not in usuarios: return redirect(url_for('login'))
-
     ativar_bem_vindo = request.form.get('ativar_quarto_bem_vindo') == 'on'
     ativar_interessado = request.form.get('ativar_quarto_interessado') == 'on'
-    
     configuracoes_atuais = usuarios[email_usuario].get('configuracoes', {})
     configuracoes_atuais.update({
         'popup_titulo': request.form.get('popup_titulo', ''), 'popup_mensagem': request.form.get('popup_mensagem', ''),
@@ -166,7 +181,6 @@ def salvar_configuracoes():
         'msg_bem_vindo': request.form.get('msg_bem_vindo', ''), 'msg_interessado': request.form.get('msg_interessado', '')
     })
     usuarios[email_usuario]['configuracoes'] = configuracoes_atuais
-    
     salvar_json(CAMINHO_USUARIOS, usuarios)
     return redirect(url_for('dashboard'))
 
@@ -182,12 +196,10 @@ def get_client_config():
     api_key_recebida = request.args.get('key')
     if not api_key_recebida:
         return jsonify({'error': 'Chave de API não fornecida.'}), 401
-
     usuarios = carregar_json(CAMINHO_USUARIOS)
     for usuario in usuarios.values():
         if usuario.get('api_key') == api_key_recebida:
             return jsonify(usuario.get('configuracoes', {}))
-
     return jsonify({'error': 'Chave de API inválida.'}), 403
 
 @app.route('/api/track-view', methods=['POST']) 

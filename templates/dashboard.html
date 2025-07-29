@@ -149,3 +149,35 @@
     </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    </head>
+<body>
+    <div class="dashboard-container">
+        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
+            
+            <div class="secao-painel">
+                <h3>Visão Geral (O Cérebro da Operação)</h3>
+                <div class="status-message"><p>{{ mensagem_status_assinatura }}</p></div>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <h4>Pop-ups Exibidos (Últimos 30 dias)</h4>
+                        <p>{{ insights.popups_exibidos }}</p>
+                    </div>
+                    <div class="insight-item">
+                        <h4>Clientes Recuperados (Últimos 30 dias)</h4>
+                        <p>{{ insights.clientes_recuperados }}</p>
+                    </div>
+                    <div class="insight-item">
+                        <h4>Taxa de Conversão do Pop-up</h4>
+                        <p>{{ insights.taxa_conversao }}</p>
+                    </div>
+                </div>
+            </div>
+            </form>
+    </div>
+
+    </body>
+</html>

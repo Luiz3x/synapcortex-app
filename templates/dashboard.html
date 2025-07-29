@@ -56,43 +56,36 @@
             
             <div class="secao-painel">
                 <h3>Visão Geral (O Cérebro da Operação)</h3>
-                <div class="status-message">
-                    <p>{{ mensagem_status_assinatura }}</p>
-                </div>
+                <div class="status-message"><p>{{ mensagem_status_assinatura }}</p></div>
                 <div class="insights-grid">
                     <div class="insight-item">
-                        <h4>Visitantes Únicos (Mês)</h4>
-                        <p>{{ insights.visitantes_unicos }}</p>
+                        <h4>Visitantes Únicos (Mês)</h4><p>{{ insights.visitantes_unicos }}</p>
                     </div>
                     <div class="insight-item">
-                        <h4>Taxa de Recuperação</h4>
-                        <p>{{ insights.taxa_recuperacao }}</p>
+                        <h4>Taxa de Recuperação</h4><p>{{ insights.taxa_recuperacao }}</p>
                     </div>
                     <div class="insight-item">
-                        <h4>Top Categoria de Interesse</h4>
-                        <p>{{ insights.top_categoria }}</p>
+                        <h4>Top Categoria de Interesse</h4><p>{{ insights.top_categoria }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="secao-painel">
-                <h3>Performance dos Gatilhos (Últimos 7 Dias)</h3>
-                <div class="chart-container" style="background: none; border: none; padding: 0;">
-                    <canvas id="graficoReal"></canvas>
+                <h3>Sua Chave de API e Código de Instalação</h3>
+                <p class="descricao">Use o código abaixo para instalar o espião SynapCortex no seu site. Copie e cole antes do fechamento da tag `&lt;/body&gt;`.</p>
+                <div class="input-group">
+                    <label>Seu código de instalação:</label>
+                    <textarea id="installCode" rows="2" readonly style="background-color: #0a0a2a; color: #bbbbbb; font-family: monospace; resize: none;">&lt;script src="https://synapcortex-app.onrender.com/static/spy.js?key={{ usuario.api_key }}"&gt;&lt;/script&gt;</textarea>
                 </div>
+                <button type="button" onclick="copiarCodigo()">Copiar Código</button>
             </div>
 
             <div class="secao-painel">
                 <h3>Arsenal de Gatilhos (Seus "Quartos")</h3>
-                
                 <div class="gatilho-item">
-                    <label class="switch">
-                        <input type="checkbox" checked disabled>
-                        <span class="slider"></span>
-                    </label>
+                    <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
                     <label>Gatilho Principal: Abandono de Site</label>
                     <p class="descricao">A tática principal para recuperar vendas. Ativo por padrão.</p>
-                    
                     <div style="margin-left: 20px; margin-top: 15px;">
                         <p class="descricao">Tática para Dispositivos Móveis:</p>
                         <input type="radio" id="foco" name="tatica_mobile" value="foco" {% if config.tatica_mobile == 'foco' %}checked{% endif %}>
@@ -101,21 +94,13 @@
                         <label for="voltar">Botão "Voltar"</label>
                     </div>
                 </div>
-
                 <div class="gatilho-item">
-                    <label class="switch">
-                        <input type="checkbox" name="ativar_quarto_bem_vindo" {% if config.ativar_quarto_bem_vindo %}checked{% endif %}>
-                        <span class="slider"></span>
-                    </label>
+                    <label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {% if config.ativar_quarto_bem_vindo %}checked{% endif %}><span class="slider"></span></label>
                     <label>Ativar o Quarto "Bem-vindo de Volta"</label>
                     <p class="descricao">Mostra uma mensagem especial para visitantes que retornam ao site.</p>
                 </div>
-
                 <div class="gatilho-item">
-                    <label class="switch">
-                        <input type="checkbox" name="ativar_quarto_interessado" {% if config.ativar_quarto_interessado %}checked{% endif %}>
-                        <span class="slider"></span>
-                    </label>
+                    <label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {% if config.ativar_quarto_interessado %}checked{% endif %}><span class="slider"></span></label>
                     <label>Ativar o Quarto "Interessado"</label>
                     <p class="descricao">Mostra uma mensagem se o cliente visitar a mesma categoria um número de vezes.</p>
                 </div>
@@ -124,7 +109,6 @@
             <div class="secao-painel">
                 <h3>Configurações Gerais do Pop-up</h3>
                 <p class="descricao">Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
-                
                 <div class="input-group">
                     <label for="popup-titulo">Título Padrão do Pop-up:</label>
                     <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.popup_titulo }}">
@@ -143,34 +127,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        function copiarCodigo() {
+            const textarea = document.getElementById('installCode');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Código copiado para a área de transferência!');
+        }
+
         const labelsDoGrafico = {{ labels_do_grafico | tojson }};
         const visualizacoesDoGrafico = {{ visualizacoes_do_grafico | tojson }};
         const cliquesDoGrafico = {{ cliques_do_grafico | tojson }};
         const ctx = document.getElementById('graficoReal');
-
-        if (ctx) {
+        if (ctx && labelsDoGrafico && visualizacoesDoGrafico && cliquesDoGrafico) {
             new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labelsDoGrafico,
-                    datasets: [{
-                        label: 'Visualizações',
-                        data: visualizacoesDoGrafico,
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                    }, {
-                        label: 'Cliques',
-                        data: cliquesDoGrafico,
-                        backgroundColor: 'rgba(0, 204, 255, 0.7)',
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
-                        x: { ticks: { color: 'white' }, grid: { display: false } }
-                    },
-                    plugins: { legend: { labels: { color: 'white' } } }
-                }
+                type: 'bar', data: { labels: labelsDoGrafico, datasets: [{ label: 'Visualizações', data: visualizacoesDoGrafico, backgroundColor: 'rgba(75, 192, 192, 0.7)', }, { label: 'Cliques', data: cliquesDoGrafico, backgroundColor: 'rgba(0, 204, 255, 0.7)', }] },
+                options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: 'white' }, grid: { display: false } } }, plugins: { legend: { labels: { color: 'white' } } } }
             });
         }
     </script>

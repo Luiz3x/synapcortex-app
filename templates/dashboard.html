@@ -4,110 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    
-    <style type="text/css">
-        /* style.css - VERSÃO FINALÍSSIMA - 25/07/2025 */
-
-        :root {
-            --primary-blue-dark: #0a0a2a;
-            --secondary-blue-dark: #1a1a4a;
-            --accent-blue: #00ccff;
-            --text-light: #ffffff;
-            --text-fade: #bbbbbb;
-            --border-light: #444466;
-            --error-red: #ff4444;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Roboto', 'Arial', sans-serif;
-            background-color: #0a0a2a;
-            color: #ffffff;
-            line-height: 1.6;
-        }
-
-        a { color: var(--accent-blue); text-decoration: none; }
-        h1, h2, h3 { color: var(--accent-blue); margin-bottom: 20px; font-weight: 500; }
-        h1 { font-size: 2.2em; color: var(--text-light); }
-
-        header { padding: 20px 40px; }
-        nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-        .logo { font-weight: bold; font-size: 24px; }
-
-        .login-register-button {
-            background-color: transparent; border: 1px solid var(--accent-blue);
-            color: var(--accent-blue); padding: 8px 16px; border-radius: 5px; cursor: pointer;
-        }
-        .login-register-button:hover { background-color: var(--accent-blue); color: var(--primary-blue-dark); }
-
-        .login-container { text-align: center; padding: 20px; }
-
-        .cerebro-animado {
-            width: 100%; max-width: 250px; height: auto; display: block;
-            margin: 0 auto 25px auto; border-radius: 50%;
-        }
-
-        .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
-            display: flex; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background-color: var(--secondary-blue-dark); padding: 20px 30px;
-            border: 1px solid var(--border-light); width: 90%; max-width: 450px;
-            border-radius: 10px; position: relative; text-align: center;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .close-button {
-            color: var(--text-fade); position: absolute; top: 10px; right: 20px;
-            font-size: 28px; font-weight: bold; cursor: pointer;
-        }
-        .modal-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); }
-        .tab-button { flex: 1; padding: 10px; background: none; border: none; color: var(--text-fade); cursor: pointer; font-size: 16px; }
-        .tab-button.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .login-logo { max-width: 80px; height: auto; margin-bottom: 15px; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9em; }
-        .input-group input {
-            width: 100%; padding: 14px; border: 1px solid var(--border-light);
-            border-radius: 8px; background-color: var(--primary-blue-dark); color: var(--text-light); font-size: 1em;
-        }
-        button[type="submit"] {
-            width: 100%; padding: 15px; background-color: var(--accent-blue);
-            color: var(--primary-blue-dark); border: none; border-radius: 8px;
-            font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px;
-        }
-        .error-message { color: var(--error-red); margin-top: 10px; font-weight: bold; font-size: 0.9em; }
-
-        .popup-container {
-            position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center;
-        }
-        .popup-conteudo {
-            background: var(--secondary-blue-dark); padding: 40px; border-radius: 10px;
-            text-align: center; position: relative; width: 90%; max-width: 500px;
-        }
-        .fechar-btn {
-            position: absolute; top: 10px; right: 20px; font-size: 30px;
-            color: var(--text-light); background: none; border: none; cursor: pointer;
-        }
-
-        /* Estilos específicos do Dashboard, agora movidos para cá */
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
         .dashboard-container { max-width: 950px; margin: 0 auto; padding: 20px; }
-        .header-logout { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logout-link { background-color: transparent; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 5px; cursor: pointer; text-decoration: none; }
-        .logout-link:hover { background-color: var(--accent-blue); color: var(--primary-blue-dark); }
-        .status-message { background-color: var(--secondary-blue-dark); padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; border-left: 4px solid var(--accent-blue); }
-        .chart-container { background-color: var(--secondary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 20px; margin-bottom: 25px; }
-        textarea { width: 100%; padding: 14px; border: 1px solid var(--border-light); border-radius: 8px; background-color: var(--primary-blue-dark); color: var(--text-light); font-size: 1em; font-family: inherit; }
+        .secao-painel {
+            background-color: var(--secondary-blue-dark);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .secao-painel h3 {
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 15px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+        .insight-item h4 { margin-bottom: 5px; color: var(--text-fade); font-weight: 500;}
+        .insight-item p { font-size: 1.8em; font-weight: bold; color: var(--text-light); margin: 0;}
+        .gatilho-item {
+            border: 1px solid var(--border-light);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .gatilho-item label { font-weight: bold; font-size: 1.1em; }
+        .gatilho-item .descricao { font-size: 0.9em; color: var(--text-fade); margin-top: 5px; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; float: right; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;}
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;}
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(26px); }
     </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -116,81 +52,118 @@
             <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
         </div>
 
-        {% if mensagem_status_assinatura %}
+        <div class="secao-painel">
+            <h3>Visão Geral (O Cérebro da Operação)</h3>
             <div class="status-message">
                 <p>{{ mensagem_status_assinatura }}</p>
             </div>
-        {% endif %}
-        
-        <h4>Resultados dos Últimos 7 Dias</h4>
-        <div class="chart-container">
-            <canvas id="graficoReal"></canvas>
+            <div class="insights-grid">
+                <div class="insight-item">
+                    <h4>Visitantes Únicos (Mês)</h4>
+                    <p>1,234</p> </div>
+                <div class="insight-item">
+                    <h4>Taxa de Recuperação</h4>
+                    <p>12%</p> </div>
+                <div class="insight-item">
+                    <h4>Top Categoria de Interesse</h4>
+                    <p>Camisetas</p> </div>
+            </div>
         </div>
 
-        <h4>Configurações do Pop-up de Saída</h4>
-        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
-            <div class="input-group">
-                <label for="popup-titulo">Título do Pop-up:</label>
-                <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.titulo }}">
+        <div class="secao-painel">
+            <h3>Performance dos Gatilhos (Últimos 7 Dias)</h3>
+            <div class="chart-container" style="background: none; border: none; padding: 0;">
+                <canvas id="graficoReal"></canvas>
             </div>
-            <div class="input-group">
-                <label for="popup-mensagem">Mensagem do Pop-up (aceita HTML):</label>
-                <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.mensagem }}</textarea>
+        </div>
+
+        <div class="secao-painel">
+            <h3>Arsenal de Gatilhos (Seus "Quartos")</h3>
+            
+            <div class="gatilho-item">
+                <label class="switch">
+                    <input type="checkbox" checked disabled> <span class="slider"></span>
+                </label>
+                <label>Gatilho Principal: Abandono de Site</label>
+                <p class="descricao">A tática principal para recuperar vendas. Ativo por padrão.</p>
+                
+                <div style="margin-left: 20px; margin-top: 15px;">
+                    <p class="descricao">Tática para Dispositivos Móveis:</p>
+                    <input type="radio" id="foco" name="tatica_mobile" value="foco" checked>
+                    <label for="foco">Mudança de Foco (Recomendado)</label><br>
+                    <input type="radio" id="voltar" name="tatica_mobile" value="voltar">
+                    <label for="voltar">Botão "Voltar"</label>
+                </div>
             </div>
-            <button type="submit">Salvar Configurações</button>
-        </form>
+
+            <div class="gatilho-item">
+                <label class="switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                </label>
+                <label>Ativar o Quarto "Bem-vindo de Volta"</label>
+                <p class="descricao">Mostra uma mensagem especial para visitantes que retornam ao site.</p>
+            </div>
+
+            <div class="gatilho-item">
+                <label class="switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                </label>
+                <label>Ativar o Quarto "Interessado"</label>
+                <p class="descricao">Mostra uma mensagem se o cliente visitar a mesma categoria um número de vezes.</p>
+            </div>
+        </div>
+
+        <div class="secao-painel">
+            <h3>Configurações Gerais do Pop-up</h3>
+            <p class="descricao">Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
+            <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
+                <div class="input-group">
+                    <label for="popup-titulo">Título Padrão do Pop-up:</label>
+                    <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.titulo }}">
+                </div>
+                <div class="input-group">
+                    <label for="popup-mensagem">Mensagem Padrão do Pop-up (aceita HTML):</label>
+                    <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.mensagem }}</textarea>
+                </div>
+                <button type="submit">Salvar Configurações</button>
+            </form>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const labelsDoGrafico = {{ labels_do_grafico | tojson }};
         const visualizacoesDoGrafico = {{ visualizacoes_do_grafico | tojson }};
         const cliquesDoGrafico = {{ cliques_do_grafico | tojson }};
         const ctx = document.getElementById('graficoReal');
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labelsDoGrafico,
-                datasets: [
-                    {
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labelsDoGrafico,
+                    datasets: [{
                         label: 'Visualizações',
                         data: visualizacoesDoGrafico,
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)', 
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    },
-                    {
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    }, {
                         label: 'Cliques',
                         data: cliquesDoGrafico,
-                        backgroundColor: 'rgba(0, 204, 255, 0.7)', 
-                        borderColor: 'rgba(0, 204, 255, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: 'white' }, 
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                    },
-                    x: {
-                        ticks: { color: 'white' }, 
-                        grid: { display: false }
-                    }
+                        backgroundColor: 'rgba(0, 204, 255, 0.7)',
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: 'white',
-                            font: { size: 14 }
-                        }
-                    }
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                        x: { ticks: { color: 'white' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { labels: { color: 'white' } } }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

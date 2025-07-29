@@ -1,5 +1,5 @@
 // Arquivo: spy.js
-// Versão: 3.0 - "Cérebro"
+// Versão: 3.1 - "Cérebro" (com correção de bug do modal)
 // Descrição: Script espião da SynapCortex com inteligência avançada, múltiplos gatilhos,
 // gerenciamento de cookies e preparação para o motor de regras.
 
@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // MÓDULO 1: FERRAMENTAS DO ESPIÃO (Funções Auxiliares)
     // =================================================================================
 
-    // --- Funções para Manipulação de Cookies ---
-    // O espião agora tem memória de longo prazo.
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -32,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
-    // --- Detecção de Dispositivo ---
     function isMobileDevice() {
         return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
     }
@@ -44,13 +41,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let popupMostradoNestaSessao = false;
 
     function mostrarPopup(motivo) {
-        // O espião só age uma vez por visita para não ser chato.
         if (popupMostradoNestaSessao) return;
         popupMostradoNestaSessao = true;
         
         console.log(`SynapCortex: Pop-up acionado! Motivo: ${motivo}`);
 
-        // A lógica de buscar a configuração do pop-up continua a mesma
         fetch('/api/get-config')
             .then(response => response.json())
             .then(config => {
@@ -70,16 +65,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function inicializarMotorDeGatilhos() {
         console.log("SynapCortex: Motor de inteligência inicializado.");
 
-        // --- GATILHO 1: INTENÇÃO DE SAÍDA (Desktop & Mobile) ---
         if (isMobileDevice()) {
-            // Tática Mobile: Mudança de Foco
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'hidden') {
                     mostrarPopup("Abandono Mobile (Mudança de Aba/App)");
                 }
             });
         } else {
-            // Tática Desktop: Saída com o Mouse
             document.addEventListener('mouseleave', function(event) {
                 if (event.clientY <= 0) {
                     mostrarPopup("Abandono Desktop (Mouse no Topo)");
@@ -87,50 +79,33 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // --- GATILHO 2: VISITANTE RECORRENTE (O Quarto "Bem-vindo de Volta") ---
-        // Aqui usamos a memória (cookies) do espião.
         const cookieVisita = 'synapcortex_visitou';
-        if (getCookie(cookieVisita)) {
-            // Se o cookie existe, o cliente já esteve aqui.
-            // No futuro, podemos mostrar um pop-up específico aqui.
-            console.log("SynapCortex: Visitante recorrente detectado.");
-            // Exemplo de como poderíamos agir:
-            // mostrarPopup("Visitante Recorrente"); 
-            // Por enquanto, apenas registramos.
-        } else {
-            // Se o cookie não existe, é a primeira visita.
-            // Criamos o cookie para lembrar dele no futuro.
-            console.log("SynapCortex: Primeira visita registrada. Marcando o visitante.");
-            setCookie(cookieVisita, 'true', 365); // Lembra do visitante por 1 ano.
+        if (!getCookie(cookieVisita)) {
+            setCookie(cookieVisita, 'true', 365);
         }
 
-        // --- GATILHO 3: TEMPO DE INATIVIDADE (O Quarto "Interessado") ---
         let tempoInativo;
-        const tempoLimite = 30000; // 30 segundos
+        const tempoLimite = 30000;
 
         function reiniciarContadorDeInatividade() {
             clearTimeout(tempoInativo);
             tempoInativo = setTimeout(() => {
-                // O usuário ficou inativo pelo tempo limite.
                 mostrarPopup(`Inatividade (${tempoLimite / 1000}s)`);
             }, tempoLimite);
         }
         
-        // Qualquer uma dessas ações reinicia o contador.
         window.onload = reiniciarContadorDeInatividade;
         document.onmousemove = reiniciarContadorDeInatividade;
         document.onkeydown = reiniciarContadorDeInatividade;
-        document.ontouchstart = reiniciarContadorDeInatividade; // Para toques no celular
+        document.ontouchstart = reiniciarContadorDeInatividade;
         document.onclick = reiniciarContadorDeInatividade;
-
-        console.log(`SynapCortex: Gatilho de inatividade configurado para ${tempoLimite / 1000} segundos.`);
     }
 
     // --- INICIALIZAÇÃO GERAL ---
     inicializarMotorDeGatilhos();
 
     // =================================================================================
-    // MÓDULO 4: LÓGICA DA PÁGINA (Modal, Formulários, etc. - Sem alterações)
+    // MÓDULO 4: LÓGICA DA PÁGINA (Modal, Formulários, etc. - CÓDIGO RESTAURADO)
     // =================================================================================
 
     const fecharPopupBtn = document.getElementById('fechar-popup');
@@ -140,8 +115,81 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- Lógica do Modal de Login/Cadastro (AGORA CORRETA E COMPLETA) ---
     const modal = document.getElementById('loginRegisterModal');
     const openModalBtn = document.getElementById('openLoginRegisterModal');
-    // ... (O restante do seu código para modal e formulários continua aqui, exatamente como estava)
-    // ...
+    const closeButton = document.querySelector('.modal .close-button'); // Seletor mais específico
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginErrorMessage = document.getElementById('loginErrorMessage');
+    const registerErrorMessage = document.getElementById('registerErrorMessage');
+
+    if (openModalBtn) {
+        openModalBtn.onclick = () => { modal.style.display = 'flex'; };
+    }
+    if (closeButton) {
+        closeButton.onclick = () => { modal.style.display = 'none'; };
+    }
+    window.onclick = (event) => { if (event.target == modal) { modal.style.display = 'none'; } };
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab + 'Tab').classList.add('active');
+        });
+    });
+
+    if(loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            loginErrorMessage.style.display = 'none';
+            const formData = new FormData(loginForm);
+            fetch("/login", {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams(formData)
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    throw data;
+                }
+            })
+            .catch(error => {
+                loginErrorMessage.textContent = error.message || 'Erro na comunicação.';
+                loginErrorMessage.style.display = 'block';
+            });
+        });
+    }
+
+    if(registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            registerErrorMessage.style.display = 'none';
+            const formData = new FormData(registerForm);
+            fetch("/registrar", {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams(formData)
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    throw data;
+                }
+            })
+            .catch(error => {
+                registerErrorMessage.textContent = error.message || 'Erro na comunicação.';
+                registerErrorMessage.style.display = 'block';
+            });
+        });
+    }
 });

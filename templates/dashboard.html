@@ -41,9 +41,9 @@
                 <h3>Visão Geral (O Cérebro da Operação)</h3>
                 <div class="status-message"><p>{{ mensagem_status_assinatura }}</p></div>
                 <div class="insights-grid">
-                    <div class="insight-item"><h4>Pop-ups Exibidos (Últimos 30 dias)</h4><p>{{ insights.popups_exibidos }}</p></div>
-                    <div class="insight-item"><h4>Clientes Recuperados (Últimos 30 dias)</h4><p>{{ insights.clientes_recuperados }}</p></div>
-                    <div class="insight-item"><h4>Taxa de Conversão do Pop-up</h4><p>{{ insights.taxa_conversao }}</p></div>
+                    <div class="insight-item"><h4>Visitantes Únicos (Mês)</h4><p>{{ insights.visitantes_unicos }}</p></div>
+                    <div class="insight-item"><h4>Taxa de Recuperação</h4><p>{{ insights.taxa_recuperacao }}</p></div>
+                    <div class="insight-item"><h4>Top Categoria de Interesse</h4><p>{{ insights.top_categoria }}</p></div>
                 </div>
             </div>
             <div class="secao-painel">
@@ -82,7 +82,7 @@
     <script>
         function copiarCodigo() { const textarea = document.getElementById('installCode'); textarea.select(); document.execCommand('copy'); alert('Código copiado!'); }
         const guiasDeAjuda = {
-            shopify: { titulo: "Instalando na Shopify", passos: `<p><strong>1. Acesse o Código do seu Tema...</strong></p>` },
+            shopify: { titulo: "Instalando na Shopify", passos: `<p><strong>1. Acesse o Código do seu Tema...</strong> (o resto do guia aqui)</p>` },
             woocommerce: { titulo: "Instalando no WooCommerce (WordPress)", passos: "<p>Instruções para WooCommerce em breve!</p>" },
             nuvemshop: { titulo: "Instalando na Nuvemshop", passos: "<p>Instruções para Nuvemshop em breve!</p>" },
             wix: { titulo: "Instalando no Wix", passos: "<p>Instruções para Wix em breve!</p>" }

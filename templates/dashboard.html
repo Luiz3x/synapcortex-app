@@ -7,103 +7,119 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .dashboard-container { max-width: 950px; margin: 0 auto; padding: 20px; }
-        .secao-painel {
-            background-color: var(--secondary-blue-dark);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
+        .secao-painel { background-color: var(--secondary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 25px; margin-bottom: 30px; }
         .secao-painel h3 { color: var(--accent-blue); border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-top: 0; margin-bottom: 20px; }
         /* (outros estilos que já tínhamos)... */
 
-        /* >>> INÍCIO DOS NOVOS ESTILOS PARA A CENTRAL DE AJUDA <<< */
-        .plataforma-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        .plataforma-logo {
-            background-color: var(--primary-blue-dark);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 15px;
-            cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 120px;
-            height: 70px;
-        }
-        .plataforma-logo:hover {
-            transform: scale(1.05);
-            border-color: var(--accent-blue);
-        }
-        .plataforma-logo img {
-            max-width: 100%;
-            max-height: 100%;
-            filter: grayscale(100%) contrast(120%); /* Efeito P&B */
-            opacity: 0.7;
-            transition: filter 0.2s ease, opacity 0.2s ease;
-        }
-        .plataforma-logo:hover img {
-            filter: grayscale(0%);
-            opacity: 1;
-        }
-        /* (Estilos para o modal/janela do guia, que usaremos depois) */
-        /* >>> FIM DOS NOVOS ESTILOS <<< */
+        /* >>> ESTILOS PARA A CENTRAL DE AJUDA <<< */
+        .plataforma-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 10px; }
+        .plataforma-logo { background-color: var(--primary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 15px; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; align-items: center; justify-content: center; width: 120px; height: 70px; }
+        .plataforma-logo:hover { transform: scale(1.05); border-color: var(--accent-blue); }
+        .plataforma-logo img { max-width: 100%; max-height: 100%; filter: grayscale(100%) contrast(120%); opacity: 0.7; transition: filter 0.2s ease, opacity 0.2s ease; }
+        .plataforma-logo:hover img { filter: grayscale(0%); opacity: 1; }
+        
+        /* Estilos para o modal/janela do guia */
+        .modal-ajuda { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .modal-ajuda-conteudo { background-color: var(--secondary-blue-dark); margin: auto; padding: 20px; border: 1px solid var(--border-light); width: 90%; max-width: 700px; border-radius: 10px; position: relative; }
+        .fechar-ajuda { color: var(--text-fade); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .fechar-ajuda:hover, .fechar-ajuda:focus { color: var(--text-light); text-decoration: none; }
+        .modal-ajuda-conteudo h4 { color: var(--accent-blue); font-size: 1.5em; margin-bottom: 15px; }
+        .modal-ajuda-conteudo p { margin-bottom: 10px; }
+        .modal-ajuda-conteudo strong { color: var(--accent-blue); }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <div class="header-logout">
-            <h3>Painel de Controle de: {{ usuario.nome_empresa if usuario.nome_empresa else usuario.email }}</h3>
-            <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+        <div class="secao-painel">
+            <h3>Central de Ajuda Interativa</h3>
+            <p class="descricao">Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
+            <div class="plataforma-grid">
+                <div class="plataforma-logo" data-plataforma="shopify">
+                    <img src="{{ url_for('static', filename='images/logos/shopify.png') }}" alt="Shopify">
+                </div>
+                <div class="plataforma-logo" data-plataforma="woocommerce">
+                    <img src="{{ url_for('static', filename='images/logos/woocommerce.png') }}" alt="WooCommerce">
+                </div>
+                <div class="plataforma-logo" data-plataforma="nuvemshop">
+                    <img src="{{ url_for('static', filename='images/logos/nuvemshop.png') }}" alt="Nuvemshop">
+                </div>
+                 <div class="plataforma-logo" data-plataforma="wix">
+                    <img src="{{ url_for('static', filename='images/logos/wix.png') }}" alt="Wix">
+                </div>
+            </div>
         </div>
 
-        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
-            
-            <div class="secao-painel">
-                <h3>Visão Geral (O Cérebro da Operação)</h3>
-                </div>
+        </div>
 
-            <div class="secao-painel">
-                <h3>Sua Chave de API e Código de Instalação</h3>
-                </div>
-
-            <div class="secao-painel">
-                <h3>Central de Ajuda Interativa</h3>
-                <p class="descricao">Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
-                <div class="plataforma-grid">
-                    <div class="plataforma-logo" data-plataforma="shopify">
-                        <img src="{{ url_for('static', filename='images/logos/shopify.png') }}" alt="Shopify">
-                    </div>
-                    <div class="plataforma-logo" data-plataforma="woocommerce">
-                        <img src="{{ url_for('static', filename='images/logos/woocommerce.png') }}" alt="WooCommerce">
-                    </div>
-                    <div class="plataforma-logo" data-plataforma="nuvemshop">
-                        <img src="{{ url_for('static', filename='images/logos/nuvemshop.png') }}" alt="Nuvemshop">
-                    </div>
-                     <div class="plataforma-logo" data-plataforma="wix">
-                        <img src="{{ url_for('static', filename='images/logos/wix.png') }}" alt="Wix">
-                    </div>
-                    </div>
-            </div>
-            <div class="secao-painel">
-                <h3>Arsenal de Gatilhos (Seus "Quartos")</h3>
-                </div>
-            <div class="secao-painel">
-                <h3>Configurações Gerais do Pop-up</h3>
-                </div>
-
-            <div style="text-align: center;">
-                <button type="submit" style="width: auto; padding: 15px 40px; font-size: 1.2em;">Salvar Todas as Configurações</button>
-            </div>
-        </form>
+    <div id="modal-guia" class="modal-ajuda">
+      <div class="modal-ajuda-conteudo">
+        <span class="fechar-ajuda">&times;</span>
+        <h4 id="guia-titulo"></h4>
+        <div id="guia-passos"></div>
+      </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // (Sua função copiarCodigo() e a lógica do gráfico continuam aqui)
+        function copiarCodigo() { /* ... */ }
+        // ... Lógica do Chart.js ...
 
-    </body>
+        // >>> INÍCIO DA NOVA LÓGICA DA CENTRAL DE AJUDA <<<
+        
+        // Objeto com o conteúdo de cada guia
+        const guiasDeAjuda = {
+            shopify: {
+                titulo: "Instalando na Shopify",
+                passos: `
+                    <p>Siga os passos abaixo. Leva menos de 60 segundos!</p>
+                    <p><strong>1. Acesse o Código do seu Tema:</strong> No seu painel Shopify, no menu da esquerda, clique em "Loja Virtual" e depois em "Temas".</p>
+                    <p><strong>2. Edite o Código Principal:</strong> No seu tema atual, clique no botão com três pontinhos (...) e escolha a opção "Editar código".</p>
+                    <p><strong>3. Encontre o Arquivo 'theme.liquid':</strong> Na lista de arquivos, na seção "Layout", clique no arquivo chamado 'theme.liquid'.</p>
+                    <p><strong>4. Cole o Código:</strong> Role o arquivo até o final e cole o seu código da SynapCortex logo acima da linha que diz &lt;/body&gt;.</p>
+                    <p><strong>5. Salve e Comemore!</strong> Clique no botão "Salvar". Pronto!</p>
+                `
+            },
+            woocommerce: {
+                titulo: "Instalando no WooCommerce (WordPress)",
+                passos: "<p>Instruções para WooCommerce em breve!</p>"
+            },
+            nuvemshop: {
+                titulo: "Instalando na Nuvemshop",
+                passos: "<p>Instruções para Nuvemshop em breve!</p>"
+            },
+            wix: {
+                titulo: "Instalando no Wix",
+                passos: "<p>Instruções para Wix em breve!</p>"
+            }
+        };
+
+        const modal = document.getElementById('modal-guia');
+        const logos = document.querySelectorAll('.plataforma-logo');
+        const fecharBtn = document.querySelector('.fechar-ajuda');
+
+        logos.forEach(logo => {
+            logo.addEventListener('click', function() {
+                const plataforma = this.dataset.plataforma;
+                const guia = guiasDeAjuda[plataforma];
+
+                if (guia) {
+                    document.getElementById('guia-titulo').innerText = guia.titulo;
+                    document.getElementById('guia-passos').innerHTML = guia.passos;
+                    modal.style.display = "flex";
+                }
+            });
+        });
+
+        fecharBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        // >>> FIM DA NOVA LÓGICA <<<
+    </script>
+</body>
 </html>

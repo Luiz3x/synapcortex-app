@@ -139,6 +139,17 @@ def dashboard():
     dados_usuario = usuarios.get(email_usuario)
     if not dados_usuario:
         session.clear(); return redirect(url_for('login'))
+
+    # >>> INÍCIO DA LÓGICA DE AUTO-CONSERTO <<<
+    # Verifica se o usuário não tem uma chave de API (porque é um usuário antigo)
+    if 'api_key' not in dados_usuario or not dados_usuario['api_key']:
+        print(f"Usuário antigo detectado ({email_usuario}), gerando nova chave de API.")
+        # Gera uma nova chave para ele e salva no banco de dados
+        dados_usuario['api_key'] = secrets.token_urlsafe(24)
+        usuarios[email_usuario] = dados_usuario
+        salvar_json(CAMINHO_USUARIOS, usuarios)
+    # >>> FIM DA LÓGICA DE AUTO-CONSERTO <<<
+
     status_assinatura = dados_usuario.get('status_assinatura', 'pendente')
     mensagem_status_assinatura = "Sua assinatura está pendente."
     if status_assinatura == 'ativo':

@@ -1,4 +1,4 @@
-# main.py - Versão da Base Estável (Central de Ajuda Funcional)
+# main.py - Versão 3.5 (Completa e Sincronizada, com cálculo de insights reais)
 
 import os
 import json
@@ -40,6 +40,27 @@ def carregar_json(caminho_arquivo, dados_padrao={}):
 def salvar_json(caminho_arquivo, dados):
     with open(caminho_arquivo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4, ensure_ascii=False)
+
+# --- FUNÇÃO DE CÁLCULO DE INSIGHTS ---
+def calcular_insights(dados_analytics):
+    total_visualizacoes = 0
+    total_cliques = 0
+    hoje = datetime.now()
+    for i in range(30):
+        data_corrente = hoje - timedelta(days=i)
+        data_chave = data_corrente.strftime('%Y-%m-%d')
+        dados_do_dia = dados_analytics.get(data_chave, {})
+        total_visualizacoes += dados_do_dia.get('visualizacoes', 0)
+        total_cliques += dados_do_dia.get('cliques', 0)
+    if total_visualizacoes == 0:
+        taxa_conversao = "0.00%"
+    else:
+        taxa_conversao = f"{(total_cliques / total_visualizacoes) * 100:.2f}%"
+    return {
+        'popups_exibidos': total_visualizacoes,
+        'clientes_recuperados': total_cliques,
+        'taxa_conversao': taxa_conversao
+    }
 
 # --- ROTAS PRINCIPAIS ---
 
@@ -132,15 +153,12 @@ def dashboard():
                 dias_restantes = (data_fim - hoje).days
                 mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
     if status_assinatura == 'pendente': return render_template('pagamento_pendente.html', usuario=dados_usuario)
-    
-    # Usando dados de exemplo para os insights, como na versão estável
-    insights_exemplo = {'visitantes_unicos': '1,234', 'taxa_recuperacao': '12%', 'top_categoria': 'Camisetas'}
-    
+    analytics_data = carregar_json(CAMINHO_ANALYTICS)
+    insights_reais = calcular_insights(analytics_data)
     labels_grafico, dados_visualizacoes, dados_cliques = [], [], []
-    
     return render_template(
         'dashboard.html', usuario=dados_usuario, config=dados_usuario.get('configuracoes', {}),
-        insights=insights_exemplo, mensagem_status_assinatura=mensagem_status_assinatura,
+        insights=insights_reais, mensagem_status_assinatura=mensagem_status_assinatura,
         labels_do_grafico=labels_grafico, visualizacoes_do_grafico=dados_visualizacoes,
         cliques_do_grafico=dados_cliques
     )
@@ -174,8 +192,7 @@ def logout():
 @app.route('/api/get-client-config')
 def get_client_config():
     api_key_recebida = request.args.get('key')
-    if not api_key_recebida:
-        return jsonify({'error': 'Chave de API não fornecida.'}), 401
+    if not api_key_recebida: return jsonify({'error': 'Chave de API não fornecida.'}), 401
     usuarios = carregar_json(CAMINHO_USUARIOS)
     for usuario in usuarios.values():
         if usuario.get('api_key') == api_key_recebida:
@@ -185,19 +202,15 @@ def get_client_config():
 @app.route('/api/track-view', methods=['POST']) 
 def track_view():
     hoje_str = datetime.now().strftime('%Y-%m-%d')
-    analytics = carregar_json(CAMINHO_ANALYTICS)
-    analytics.setdefault(hoje_str, {"visualizacoes": 0, "cliques": 0})
-    analytics[hoje_str]['visualizacoes'] += 1
-    salvar_json(CAMINHO_ANALYTICS, analytics)
+    analytics = carregar_json(CAMINHO_ANALYTICS); analytics.setdefault(hoje_str, {"visualizacoes": 0, "cliques": 0})
+    analytics[hoje_str]['visualizacoes'] += 1; salvar_json(CAMINHO_ANALYTICS, analytics)
     return jsonify({'status': 'success'}), 200
 
 @app.route('/api/track-click', methods=['POST']) 
 def track_click():
     hoje_str = datetime.now().strftime('%Y-%m-%d')
-    analytics = carregar_json(CAMINHO_ANALYTICS)
-    analytics.setdefault(hoje_str, {"visualizacoes": 0, "cliques": 0})
-    analytics[hoje_str]['cliques'] += 1
-    salvar_json(CAMINHO_ANALYTICS, analytics)
+    analytics = carregar_json(CAMINHO_ANALYTICS); analytics.setdefault(hoje_str, {"visualizacoes": 0, "cliques": 0})
+    analytics[hoje_str]['cliques'] += 1; salvar_json(CAMINHO_ANALYTICS, analytics)
     return jsonify({'status': 'success'}), 200
 
 # --- EXECUÇÃO ---

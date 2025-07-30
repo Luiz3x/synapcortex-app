@@ -9,117 +9,99 @@
         .dashboard-container { max-width: 950px; margin: 0 auto; padding: 20px; }
         .secao-painel { background-color: var(--secondary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 25px; margin-bottom: 30px; }
         .secao-painel h3 { color: var(--accent-blue); border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-top: 0; margin-bottom: 20px; }
-        /* (outros estilos que já tínhamos)... */
-
-        /* >>> ESTILOS PARA A CENTRAL DE AJUDA <<< */
+        .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
+        .insight-item h4 { margin-bottom: 5px; color: var(--text-fade); font-weight: 500;}
+        .insight-item p { font-size: 1.8em; font-weight: bold; color: var(--text-light); margin: 0;}
+        .gatilho-item { border: 1px solid var(--border-light); padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .gatilho-item label { font-weight: bold; font-size: 1.1em; }
+        .gatilho-item .descricao { font-size: 0.9em; color: var(--text-fade); margin-top: 5px; }
+        .config-quarto { border-top: 1px solid var(--border-light); margin-top: 15px; padding-top: 15px; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; float: right; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;}
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;}
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(26px); }
         .plataforma-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 10px; }
         .plataforma-logo { background-color: var(--primary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 15px; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; align-items: center; justify-content: center; width: 120px; height: 70px; }
         .plataforma-logo:hover { transform: scale(1.05); border-color: var(--accent-blue); }
         .plataforma-logo img { max-width: 100%; max-height: 100%; filter: grayscale(100%) contrast(120%); opacity: 0.7; transition: filter 0.2s ease, opacity 0.2s ease; }
         .plataforma-logo:hover img { filter: grayscale(0%); opacity: 1; }
-        
-        /* Estilos para o modal/janela do guia */
         .modal-ajuda { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
         .modal-ajuda-conteudo { background-color: var(--secondary-blue-dark); margin: auto; padding: 20px; border: 1px solid var(--border-light); width: 90%; max-width: 700px; border-radius: 10px; position: relative; }
         .fechar-ajuda { color: var(--text-fade); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .fechar-ajuda:hover, .fechar-ajuda:focus { color: var(--text-light); text-decoration: none; }
         .modal-ajuda-conteudo h4 { color: var(--accent-blue); font-size: 1.5em; margin-bottom: 15px; }
-        .modal-ajuda-conteudo p { margin-bottom: 10px; }
-        .modal-ajuda-conteudo strong { color: var(--accent-blue); }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <div class="secao-painel">
-            <h3>Central de Ajuda Interativa</h3>
-            <p class="descricao">Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
-            <div class="plataforma-grid">
-                <div class="plataforma-logo" data-plataforma="shopify">
-                    <img src="{{ url_for('static', filename='images/logos/shopify.png') }}" alt="Shopify">
-                </div>
-                <div class="plataforma-logo" data-plataforma="woocommerce">
-                    <img src="{{ url_for('static', filename='images/logos/woocommerce.png') }}" alt="WooCommerce">
-                </div>
-                <div class="plataforma-logo" data-plataforma="nuvemshop">
-                    <img src="{{ url_for('static', filename='images/logos/nuvemshop.png') }}" alt="Nuvemshop">
-                </div>
-                 <div class="plataforma-logo" data-plataforma="wix">
-                    <img src="{{ url_for('static', filename='images/logos/wix.png') }}" alt="Wix">
+        <div class="header-logout"><h3>Painel de Controle de: {{ usuario.nome_empresa if usuario.nome_empresa else usuario.email }}</h3><a href="{{ url_for('logout') }}" class="logout-link">Sair</a></div>
+        <form method="POST" action="{{ url_for('salvar_configuracoes') }}">
+            <div class="secao-painel">
+                <h3>Visão Geral (O Cérebro da Operação)</h3>
+                <div class="status-message"><p>{{ mensagem_status_assinatura }}</p></div>
+                <div class="insights-grid">
+                    <div class="insight-item"><h4>Pop-ups Exibidos (Últimos 30 dias)</h4><p>{{ insights.popups_exibidos }}</p></div>
+                    <div class="insight-item"><h4>Clientes Recuperados (Últimos 30 dias)</h4><p>{{ insights.clientes_recuperados }}</p></div>
+                    <div class="insight-item"><h4>Taxa de Conversão do Pop-up</h4><p>{{ insights.taxa_conversao }}</p></div>
                 </div>
             </div>
-        </div>
-
-        </div>
-
-    <div id="modal-guia" class="modal-ajuda">
-      <div class="modal-ajuda-conteudo">
-        <span class="fechar-ajuda">&times;</span>
-        <h4 id="guia-titulo"></h4>
-        <div id="guia-passos"></div>
-      </div>
+            <div class="secao-painel">
+                <h3>Sua Chave de API e Código de Instalação</h3>
+                <p class="descricao">Use o código abaixo para instalar o espião SynapCortex no seu site. Copie e cole antes do fechamento da tag `&lt;/body&gt;`.</p>
+                <div class="input-group"><label>Seu código de instalação:</label><textarea id="installCode" rows="2" readonly style="background-color: #0a0a2a; color: #bbbbbb; font-family: monospace; resize: none;">&lt;script id="synapcortex-spy-script" src="https://synapcortex-app.onrender.com/static/spy.js?key={{ usuario.api_key }}"&gt;&lt;/script&gt;</textarea></div>
+                <button type="button" onclick="copiarCodigo()">Copiar Código</button>
+            </div>
+            <div class="secao-painel">
+                <h3>Central de Ajuda Interativa</h3>
+                <p class="descricao">Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
+                <div class="plataforma-grid">
+                    <div class="plataforma-logo" data-plataforma="shopify"><img src="{{ url_for('static', filename='images/logos/shopify.png') }}" alt="Shopify"></div>
+                    <div class="plataforma-logo" data-plataforma="woocommerce"><img src="{{ url_for('static', filename='images/logos/woocommerce.png') }}" alt="WooCommerce"></div>
+                    <div class="plataforma-logo" data-plataforma="nuvemshop"><img src="{{ url_for('static', filename='images/logos/nuvemshop.png') }}" alt="Nuvemshop"></div>
+                    <div class="plataforma-logo" data-plataforma="wix"><img src="{{ url_for('static', filename='images/logos/wix.png') }}" alt="Wix"></div>
+                </div>
+            </div>
+            <div class="secao-painel">
+                <h3>Arsenal de Gatilhos (Seus "Quartos")</h3>
+                <div class="gatilho-item"><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label><label>Gatilho Principal: Abandono de Site</label><p class="descricao">A tática principal para recuperar vendas. Ativo por padrão.</p></div>
+                <div class="gatilho-item"><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {% if config.ativar_quarto_bem_vindo %}checked{% endif %}><span class="slider"></span></label><label>Ativar o Quarto "Bem-vindo de Volta"</label><p class="descricao">Mostra uma mensagem especial para visitantes que retornam ao site.</p><div class="config-quarto"><div class="input-group"><label for="msg_bem_vindo">Mensagem para o visitante que retorna:</label><textarea id="msg_bem_vindo" name="msg_bem_vindo" rows="3">{{ config.msg_bem_vindo }}</textarea></div></div></div>
+                <div class="gatilho-item"><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {% if config.ativar_quarto_interessado %}checked{% endif %}><span class="slider"></span></label><label>Ativar o Quarto "Interessado"</label><p class="descricao">Mostra uma mensagem se o cliente ficar inativo na página.</p><div class="config-quarto"><div class="input-group"><label for="msg_interessado">Mensagem para o visitante inativo:</label><textarea id="msg_interessado" name="msg_interessado" rows="3">{{ config.msg_interessado }}</textarea></div></div></div>
+            </div>
+            <div class="secao-painel">
+                <h3>Configurações Gerais do Pop-up</h3>
+                <p class="descricao">Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
+                <div class="input-group"><label for="popup-titulo">Título Padrão do Pop-up:</label><input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.popup_titulo }}"></div>
+                <div class="input-group"><label for="popup-mensagem">Mensagem Padrão do Pop-up (aceita HTML):</label><textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.popup_mensagem }}</textarea></div>
+            </div>
+            <div style="text-align: center;"><button type="submit" style="width: auto; padding: 15px 40px; font-size: 1.2em;">Salvar Todas as Configurações</button></div>
+        </form>
     </div>
+    <div id="modal-guia" class="modal-ajuda"><div class="modal-ajuda-conteudo"><span class="fechar-ajuda">&times;</span><h4 id="guia-titulo"></h4><div id="guia-passos"></div></div></div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // (Sua função copiarCodigo() e a lógica do gráfico continuam aqui)
-        function copiarCodigo() { /* ... */ }
-        // ... Lógica do Chart.js ...
-
-        // >>> INÍCIO DA NOVA LÓGICA DA CENTRAL DE AJUDA <<<
-        
-        // Objeto com o conteúdo de cada guia
+        function copiarCodigo() { const textarea = document.getElementById('installCode'); textarea.select(); document.execCommand('copy'); alert('Código copiado!'); }
         const guiasDeAjuda = {
-            shopify: {
-                titulo: "Instalando na Shopify",
-                passos: `
-                    <p>Siga os passos abaixo. Leva menos de 60 segundos!</p>
-                    <p><strong>1. Acesse o Código do seu Tema:</strong> No seu painel Shopify, no menu da esquerda, clique em "Loja Virtual" e depois em "Temas".</p>
-                    <p><strong>2. Edite o Código Principal:</strong> No seu tema atual, clique no botão com três pontinhos (...) e escolha a opção "Editar código".</p>
-                    <p><strong>3. Encontre o Arquivo 'theme.liquid':</strong> Na lista de arquivos, na seção "Layout", clique no arquivo chamado 'theme.liquid'.</p>
-                    <p><strong>4. Cole o Código:</strong> Role o arquivo até o final e cole o seu código da SynapCortex logo acima da linha que diz &lt;/body&gt;.</p>
-                    <p><strong>5. Salve e Comemore!</strong> Clique no botão "Salvar". Pronto!</p>
-                `
-            },
-            woocommerce: {
-                titulo: "Instalando no WooCommerce (WordPress)",
-                passos: "<p>Instruções para WooCommerce em breve!</p>"
-            },
-            nuvemshop: {
-                titulo: "Instalando na Nuvemshop",
-                passos: "<p>Instruções para Nuvemshop em breve!</p>"
-            },
-            wix: {
-                titulo: "Instalando no Wix",
-                passos: "<p>Instruções para Wix em breve!</p>"
-            }
+            shopify: { titulo: "Instalando na Shopify", passos: `<p><strong>1. Acesse o Código do seu Tema...</strong></p>` },
+            woocommerce: { titulo: "Instalando no WooCommerce (WordPress)", passos: "<p>Instruções para WooCommerce em breve!</p>" },
+            nuvemshop: { titulo: "Instalando na Nuvemshop", passos: "<p>Instruções para Nuvemshop em breve!</p>" },
+            wix: { titulo: "Instalando no Wix", passos: "<p>Instruções para Wix em breve!</p>" }
         };
-
-        const modal = document.getElementById('modal-guia');
-        const logos = document.querySelectorAll('.plataforma-logo');
-        const fecharBtn = document.querySelector('.fechar-ajuda');
-
-        logos.forEach(logo => {
+        const modalAjuda = document.getElementById('modal-guia');
+        document.querySelectorAll('.plataforma-logo').forEach(logo => {
             logo.addEventListener('click', function() {
-                const plataforma = this.dataset.plataforma;
-                const guia = guiasDeAjuda[plataforma];
-
+                const guia = guiasDeAjuda[this.dataset.plataforma];
                 if (guia) {
                     document.getElementById('guia-titulo').innerText = guia.titulo;
                     document.getElementById('guia-passos').innerHTML = guia.passos;
-                    modal.style.display = "flex";
+                    modalAjuda.style.display = "flex";
                 }
             });
         });
-
-        fecharBtn.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-        // >>> FIM DA NOVA LÓGICA <<<
+        document.querySelector('.fechar-ajuda').onclick = function() { modalAjuda.style.display = "none"; }
+        window.onclick = function(event) { if (event.target == modalAjuda) { modalAjuda.style.display = "none"; } }
+        const labelsDoGrafico={{labels_do_grafico|tojson}}; const visualizacoesDoGrafico={{visualizacoes_do_grafico|tojson}}; const cliquesDoGrafico={{cliques_do_grafico|tojson}}; const ctx=document.getElementById('graficoReal');
+        if(ctx&&labelsDoGrafico&&visualizacoesDoGrafico&&cliquesDoGrafico){new Chart(ctx,{type:'bar',data:{labels:labelsDoGrafico,datasets:[{label:'Visualizações',data:visualizacoesDoGrafico,backgroundColor:'rgba(75,192,192,0.7)'},{label:'Cliques',data:cliquesDoGrafico,backgroundColor:'rgba(0,204,255,0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true,ticks:{color:'white'},grid:{color:'rgba(255,255,255,0.1)'}},x:{ticks:{color:'white'},grid:{display:false}}},plugins:{legend:{labels:{color:'white'}}}}})}
     </script>
 </body>
 </html>

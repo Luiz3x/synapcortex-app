@@ -1,5 +1,7 @@
-// Arquivo: spy.js
-// Versão: 5.1 - "Voz Personalizada" (Completo e Corrigido)
+// spy.js - Versão 5.1 (Completo e Corrigido)
+document.addEventListener('DOMContentLoaded', function() {
+    // ... (todo o conteúdo do spy.js versão 5.1 que te enviei antes) ...
+});
 
 document.addEventListener('DOMContentLoaded', function() {
 

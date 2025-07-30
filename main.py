@@ -1,4 +1,4 @@
-# main.py - Versão 3.6 (Completa, com Rota de Teste /versao)
+# main.py - Versão da Base Estável (Central de Ajuda Funcional)
 
 import os
 import json
@@ -40,27 +40,6 @@ def carregar_json(caminho_arquivo, dados_padrao={}):
 def salvar_json(caminho_arquivo, dados):
     with open(caminho_arquivo, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4, ensure_ascii=False)
-
-# --- FUNÇÃO DE CÁLCULO DE INSIGHTS ---
-def calcular_insights(dados_analytics):
-    total_visualizacoes = 0
-    total_cliques = 0
-    hoje = datetime.now()
-    for i in range(30):
-        data_corrente = hoje - timedelta(days=i)
-        data_chave = data_corrente.strftime('%Y-%m-%d')
-        dados_do_dia = dados_analytics.get(data_chave, {})
-        total_visualizacoes += dados_do_dia.get('visualizacoes', 0)
-        total_cliques += dados_do_dia.get('cliques', 0)
-    if total_visualizacoes == 0:
-        taxa_conversao = "0.00%"
-    else:
-        taxa_conversao = f"{(total_cliques / total_visualizacoes) * 100:.2f}%"
-    return {
-        'popups_exibidos': total_visualizacoes,
-        'clientes_recuperados': total_cliques,
-        'taxa_conversao': taxa_conversao
-    }
 
 # --- ROTAS PRINCIPAIS ---
 
@@ -137,7 +116,6 @@ def dashboard():
     if not dados_usuario:
         session.clear(); return redirect(url_for('login'))
     if 'api_key' not in dados_usuario or not dados_usuario['api_key']:
-        print(f"Usuário antigo detectado ({email_usuario}), gerando nova chave de API.")
         dados_usuario['api_key'] = secrets.token_urlsafe(24)
         usuarios[email_usuario] = dados_usuario
         salvar_json(CAMINHO_USUARIOS, usuarios)
@@ -154,12 +132,15 @@ def dashboard():
                 dias_restantes = (data_fim - hoje).days
                 mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
     if status_assinatura == 'pendente': return render_template('pagamento_pendente.html', usuario=dados_usuario)
-    analytics_data = carregar_json(CAMINHO_ANALYTICS)
-    insights_reais = calcular_insights(analytics_data)
+    
+    # Usando dados de exemplo para os insights, como na versão estável
+    insights_exemplo = {'visitantes_unicos': '1,234', 'taxa_recuperacao': '12%', 'top_categoria': 'Camisetas'}
+    
     labels_grafico, dados_visualizacoes, dados_cliques = [], [], []
+    
     return render_template(
         'dashboard.html', usuario=dados_usuario, config=dados_usuario.get('configuracoes', {}),
-        insights=insights_reais, mensagem_status_assinatura=mensagem_status_assinatura,
+        insights=insights_exemplo, mensagem_status_assinatura=mensagem_status_assinatura,
         labels_do_grafico=labels_grafico, visualizacoes_do_grafico=dados_visualizacoes,
         cliques_do_grafico=dados_cliques
     )
@@ -218,12 +199,6 @@ def track_click():
     analytics[hoje_str]['cliques'] += 1
     salvar_json(CAMINHO_ANALYTICS, analytics)
     return jsonify({'status': 'success'}), 200
-
-# >>> INÍCIO DO NOSSO "CANÁRIO" DE TESTE <<<
-@app.route('/versao')
-def versao():
-    return "Versão do main.py: 3.6 - Com Auto-Conserto e Rota de Teste. Se você está vendo isso, o deploy FUNCIONOU."
-# >>> FIM DO "CANÁRIO" <<<
 
 # --- EXECUÇÃO ---
 if __name__ == '__main__':

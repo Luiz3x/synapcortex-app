@@ -1,4 +1,4 @@
-# main.py - Versão 3.4 (Completa, com cálculo de insights reais)
+# main.py - Versão 3.5 (Completa, com cálculo de insights reais)
 
 import os
 import json

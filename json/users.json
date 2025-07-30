@@ -1,1 +1,25 @@
-{}
+{
+    "luiz@gmail.com": {
+        "senha": "...",
+        "cnpj": "...",
+        ...
+    },
+    "demo@synapcortex.com": {
+        "senha": "pbkdf2:sha256:...",
+        "cnpj": "00000000000000",
+        "nome_empresa": "Sua Empresa de Sucesso",
+        "status_assinatura": "ativo",
+        "data_inicio_assinatura": "2025-07-01",
+        "data_fim_assinatura": "2099-12-31",
+        "api_key": "DEMO-KEY-NAO-FUNCIONAL-12345",
+        "configuracoes": {
+            "popup_titulo": "Este é um Test Drive!",
+            "popup_mensagem": "Veja como é fácil configurar seu pop-up com a SynapCortex.",
+            "tatica_mobile": "foco",
+            "ativar_quarto_bem_vindo": true,
+            "ativar_quarto_interessado": true,
+            "msg_bem_vindo": "Que bom te ver por aqui! Explore nosso painel.",
+            "msg_interessado": "Viu como é fácil? Comece seu teste grátis agora!"
+        }
+    }
+}

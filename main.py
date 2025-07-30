@@ -12,6 +12,16 @@ from flask_cors import CORS
 
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
 app = Flask(__name__, static_folder='static')
+
+# >>> INÍCIO DA MUDANÇA <<<
+# Configuração explícita da WhiteNoise para garantir que ela sirva a pasta /static
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static/')
+# >>> FIM DA MUDANÇA <<<
+
+app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
+# ... (o resto das configurações)
+CORS(app)
+# A linha antiga da WhiteNoise que estava aqui foi removida.
 app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-synapcortex-padrao')
 app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
 app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')

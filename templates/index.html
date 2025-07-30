@@ -23,77 +23,13 @@
             <h1>Bem-vindo à SynapCortex!</h1>
             <p>Descubra como a inteligência dinâmica pode transformar suas vendas.</p>
             
-            <p style="margin-top: 20px; color: var(--text-fade);">Clientes recuperados em tempo real:</p>
+            <div style="margin-top: 30px;">
+                <button id="demoLoginBtn" class="login-register-button" style="padding: 12px 25px; font-size: 1.1em; background-color: var(--accent-blue); color: var(--primary-blue-dark);">Faça um Test Drive do Painel</button>
+            </div>
+            <p style="margin-top: 30px; color: var(--text-fade);">Clientes recuperados em tempo real:</p>
             <canvas id="graficoDemonstracao" width="400" height="150"></canvas>
         </div>
-
-        <div id="popup-espiao" class="popup-container" style="display: none;">
-            <div class="popup-conteudo">
-                <button id="fechar-popup" class="fechar-btn">&times;</button>
-                <h2 id="popup-titulo-display"></h2>
-                <p id="popup-mensagem-display"></p>
-            </div>
         </div>
-
-        <div id="popup-bemvindo" class="popup-container" style="display: none;">
-            <div class="popup-conteudo">
-                <button id="fechar-bemvindo" class="fechar-btn">&times;</button>
-                <h2>Que bom te ver de novo! 🎉</h2>
-                <p>Para comemorar sua volta, seu frete hoje é por nossa conta!</p>
-                <p style="font-size: 1.2em; font-weight: bold; color: var(--accent-blue);">Use o cupom: BEMVINDO10</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="loginRegisterModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <div class="modal-tabs">
-                <button class="tab-button active" data-tab="login">Login</button>
-                <button class="tab-button" data-tab="register">Cadastre-se</button>
-            </div>
-            <div id="loginTab" class="tab-content active">
-                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                <h2>Acesse seu Painel</h2>
-                <form id="loginForm" method="POST">
-                    <div class="input-group">
-                        <label for="modal-email-login">E-mail Comercial:</label>
-                        <input type="email" id="modal-email-login" name="email" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="modal-password-login">Senha:</label>
-                        <input type="password" id="modal-password-login" name="password" required>
-                    </div>
-                    <p class="error-message" id="loginErrorMessage" style="display:none;"></p>
-                    <button type="submit">Entrar</button>
-                </form>
-            </div>
-            <div id="registerTab" class="tab-content">
-                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                <h2>Crie sua Conta</h2>
-                <form id="registerForm" method="POST">
-                    <div class="input-group">
-                        <label for="modal-nome_empresa">Nome da Empresa</label>
-                        <input type="text" id="modal-nome_empresa" name="nome_empresa" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="modal-cnpj">CNPJ (somente números)</label>
-                        <input type="text" id="modal-cnpj" name="cnpj" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="modal-email-register">E-mail Comercial</label>
-                        <input type="email" id="modal-email-register" name="email" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="modal-password-register">Crie sua Senha</label>
-                        <input type="password" id="modal-password-register" name="password" required>
-                    </div>
-                    <p class="error-message" id="registerErrorMessage" style="display:none;"></p>
-                    <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <script src="{{ url_for('static', filename='spy.js') }}"></script>
 </body>

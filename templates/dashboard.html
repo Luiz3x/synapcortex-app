@@ -4,43 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        .dashboard-container { max-width: 950px; margin: 0 auto; padding: 20px; }
-        .secao-painel { background-color: var(--secondary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 25px; margin-bottom: 30px; }
-        .secao-painel h3 { color: var(--accent-blue); border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-top: 0; margin-bottom: 20px; }
-        .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
-        .insight-item h4 { margin-bottom: 5px; color: var(--text-fade); font-weight: 500;}
-        .insight-item p { font-size: 1.8em; font-weight: bold; color: var(--text-light); margin: 0;}
-        .plataforma-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 10px; }
-        .plataforma-logo { background-color: var(--primary-blue-dark); border: 1px solid var(--border-light); border-radius: 8px; padding: 15px; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; align-items: center; justify-content: center; width: 120px; height: 70px; }
-        .plataforma-logo:hover { transform: scale(1.05); border-color: var(--accent-blue); }
-        .plataforma-logo img { max-width: 100%; max-height: 100%; filter: grayscale(100%) contrast(120%); opacity: 0.7; transition: filter 0.2s ease, opacity 0.2s ease; }
-        .plataforma-logo:hover img { filter: grayscale(0%); opacity: 1; }
-        .modal-ajuda { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-ajuda-conteudo { background-color: var(--secondary-blue-dark); margin: auto; padding: 20px; border: 1px solid var(--border-light); width: 90%; max-width: 700px; border-radius: 10px; position: relative; }
-        .fechar-ajuda { color: var(--text-fade); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .modal-ajuda-conteudo h4 { color: var(--accent-blue); font-size: 1.5em; margin-bottom: 15px; }
-    </style>
-</head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
 <body>
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="SynapCortex Logo" style="height: 40px;">
+            </a>
+            <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
+        </nav>
+    </header>
+
     <div class="dashboard-container">
-        <form method="POST" action="/salvar-configuracoes">
+        <div class="secao-painel">
+            <h3>Visão Geral (O Cérebro da Operação)</h3>
+            <div class="status-message">
+                <p>{{ mensagem_status_assinatura }}</p>
+            </div>
+            </div>
+
+        <form id="config-form" method="POST" action="{{ url_for('salvar_configuracoes') }}">
             <div class="secao-painel">
-                <h3>Visão Geral (O Cérebro da Operação)</h3>
-                <div class="status-message"><p>{{ mensagem_status_assinatura }}</p></div>
-                <div class="insights-grid">
-                    <div class="insight-item"><h4>Pop-ups Exibidos (Últimos 30 dias)</h4><p>{{ insights.popups_exibidos }}</p></div>
-                    <div class="insight-item"><h4>Clientes Recuperados (Últimos 30 dias)</h4><p>{{ insights.clientes_recuperados }}</p></div>
-                    <div class="insight-item"><h4>Taxa de Conversão do Pop-up</h4><p>{{ insights.taxa_conversao }}</p></div>
+                <h3>Configurações Gerais do Pop-up</h3>
+                <p>Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
+                
+                <div class="input-group">
+                    <label for="popup-titulo">Título Padrão do Pop-up:</label>
+                    <input type="text" id="popup-titulo" name="popup_titulo" value="{{ config.popup_titulo }}">
+                </div>
+
+                <div class="input-group">
+                    <label for="popup-mensagem">Mensagem Padrão do Pop-up (aceita HTML):</label>
+                    <textarea id="popup-mensagem" name="popup_mensagem" rows="4">{{ config.popup_mensagem }}</textarea>
                 </div>
             </div>
-            </form>
+            
+            <button type="submit" class="cta-button">Salvar Todas as Configurações</button>
+        </form>
     </div>
-    <div id="modal-guia" class="modal-ajuda"> </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // ... (todo o javascript do dashboard, para o chart e a central de ajuda) ...
-    </script>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>

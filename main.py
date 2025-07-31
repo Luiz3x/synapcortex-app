@@ -24,7 +24,8 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # --- WhiteNoise: A FORMA CORRETA E SIMPLES ---
 # Serve os arquivos da pasta 'static' automaticamente. É só isso.
-app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
+# A VERSÃO FINAL E CORRETA
+app.wsgi_app = WhiteNoise(app.wsgi_app)
 
 
 # --- Funções Auxiliares para Manipular JSON ---

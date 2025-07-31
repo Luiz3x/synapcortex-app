@@ -4,75 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pagamento Pendente - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Estilos CSS específicos para esta página */
-        .pagamento-container {
-            text-align: center;
-            padding: 20px;
-        }
-        #card-element { /* Estilo básico para o campo do cartão do Stripe */
-            border: 1px solid var(--border-light); /* Usando variável do style.css */
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            background-color: var(--primary-blue-dark); /* Usando variável do style.css */
-            color: var(--text-light); /* Usando variável do style.css */
-        }
-        /* Os estilos para o botão submit e links já estão no style.css geral,
-            mas podemos ajustá-los aqui se necessário */
-        #payment-form button {
-            background-color: #6772E5; /* Cor padrão do Stripe */
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.2s ease;
-        }
-        #payment-form button:hover {
-            background-color: #5765d7;
-        }
-        #card-errors { /* Para mensagens de erro do Stripe Elements */
-            color: var(--error-red); /* Usando variável do style.css */
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .logout-link { /* Garante que o link sair fique bom */
-            display: block;
-            margin-top: 30px;
-            font-size: 14px;
-            color: var(--text-fade);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="login-container pagamento-container">
+        <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
         <h3>Acesso Pendente</h3>
-        <p>Sua assinatura ainda não está ativa. Para liberar todas as funcionalidades do painel, por favor, realize o pagamento.</p>
+        <p>Sua assinatura ou período de teste expirou. Para reativar sua conta e liberar todas as funcionalidades, por favor, realize o pagamento.</p>
         
         <form id="payment-form">
             <div id="card-element">
-            </div>
+              </div>
             <div id="card-errors" role="alert"></div>
-            <button id="submit-button">Pagar Assinatura</button>
+            <button id="submit-button" class="cta-button">Pagar Assinatura (R$ 99,90/mês)</button>
         </form>
         
-        <a 
-    href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+        <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
     </div>
 
-    </div> <script>
-        // Passa as variáveis do Flask para o JavaScript de forma segura
-        var stripe_publishable_key = "{{ stripe_publishable_key }}";
-        var companyName = "{{ usuario.nome_empresa | e }}";
-        var clientSecret = ""; // Esta variável será preenchida pelo script abaixo
-    </script>
-        
     <script src="https://js.stripe.com/v3/"></script>
-        
-    <script src="{{ url_for('static', filename='stripe_elements.js') }}"></script>
-
+    <script>
+        // Passa a chave publicável do Flask para o JavaScript
+        const stripe_publishable_key = "{{ stripe_publishable_key }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/stripe_elements.js') }}"></script>
 </body>
+</html>

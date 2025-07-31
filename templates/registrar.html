@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="login-container">
@@ -12,14 +12,14 @@
         <h2>Crie sua Conta na SynapCortex</h2>
         <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
         
-        <form method="POST">
+        <form method="POST" action="{{ url_for('registrar') }}">
             <div class="input-group">
                 <label for="nome_empresa">Nome da Empresa</label>
                 <input type="text" id="nome_empresa" name="nome_empresa" required>
             </div>
             <div class="input-group">
                 <label for="cnpj">CNPJ (somente números)</label>
-                <input type="text" id="cnpj" name="cnpj" required title="Por favor, insira 14 dígitos numéricos para o CNPJ.">
+                <input type="text" id="cnpj" name="cnpj" pattern="\d{14}" title="Por favor, insira 14 dígitos numéricos para o CNPJ." required>
             </div>
             <div class="input-group">
                 <label for="email">E-mail Comercial (seu login)</label>

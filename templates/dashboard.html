@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    </head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='1.0') }}">
+</head>
 <body>
     <header>
         <nav>
@@ -22,7 +22,7 @@
             <div class="status-message">
                 <p>{{ mensagem_status_assinatura }}</p>
             </div>
-            </div>
+        </div>
 
         <form id="config-form" method="POST" action="{{ url_for('salvar_configuracoes') }}">
             <div class="secao-painel">

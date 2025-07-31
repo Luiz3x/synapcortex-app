@@ -8,27 +8,25 @@ from datetime import datetime, timedelta
 from whitenoise import WhiteNoise
 from flask_cors import CORS
 
-app = Flask(__name__)
+# LINHA 1 DA MUDANÇA: Desabilitando o gerenciamento de 'static' do Flask
+# Desta forma, apenas o WhiteNoise será responsável pelos arquivos.
+app = Flask(__name__, static_folder=None)
 
 # --- Configurações Essenciais ---
-# Chave secreta para a sessão do Flask. Puxe de variáveis de ambiente em produção.
 app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-desenvolvimento-local')
-
-# Configuração do Stripe. Puxe de variáveis de ambiente em produção.
 app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
 app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
-# Habilita CORS para as rotas de API
+# Habilita CORS para as rotas de API, permitindo que outros sites acessem.
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# --- WhiteNoise: A FORMA CORRETA E SIMPLES ---
-# Serve os arquivos da pasta 'static' automaticamente. É só isso.
-# A VERSÃO FINAL E CORRETA
-app.wsgi_app = WhiteNoise(app.wsgi_app)
+# LINHA 2 DA MUDANÇA: Configuração explícita e direta do WhiteNoise.
+# Damos a ordem direta: a raiz dos arquivos é a pasta 'static' e o prefixo na URL é '/static/'.
+app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="/static/")
 
 
-# --- Funções Auxiliares para Manipular JSON ---
+# --- Funções Auxiliares para Manipular Arquivos JSON ---
 diretorio_de_dados = "data"
 CAMINHO_USUARIOS = os.path.join(diretorio_de_dados, "users.json")
 CAMINHO_ANALYTICS = os.path.join(diretorio_de_dados, "analytics.json")
@@ -89,14 +87,12 @@ def login():
 @app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
-        # Coleta de dados do formulário
         email = request.form.get('email', '').lower()
         password = request.form.get('password', '')
         cnpj = request.form.get('cnpj', '')
         nome_empresa = request.form.get('nome_empresa', '')
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-        # Validações
         if not all([email, password, cnpj, nome_empresa]):
             message = 'Todos os campos são obrigatórios.'
             if is_ajax: return jsonify({'success': False, 'message': message}), 400
@@ -113,7 +109,6 @@ def registrar():
             if is_ajax: return jsonify({'success': False, 'message': message}), 409
             return render_template('registrar.html', error=message)
 
-        # Criação do novo usuário
         hashed_password = generate_password_hash(password)
         data_inicio = datetime.now()
         data_fim = data_inicio + timedelta(days=30)
@@ -160,7 +155,6 @@ def dashboard():
         session.clear()
         return redirect(url_for('login'))
 
-    # Lógica de verificação da assinatura
     data_fim_str = dados_usuario.get('data_fim_assinatura')
     hoje = datetime.now().date()
     data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
@@ -168,7 +162,6 @@ def dashboard():
     if hoje > data_fim:
         dados_usuario['status_assinatura'] = 'pendente'
         salvar_json(CAMINHO_USUARIOS, usuarios)
-        # Passa a chave publicável do Stripe para a página de pagamento
         return render_template('pagamento_pendente.html', 
                                stripe_publishable_key=app.config['STRIPE_PUBLISHABLE_KEY_TEST'],
                                usuario=dados_usuario)
@@ -177,7 +170,7 @@ def dashboard():
     mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
     
     analytics_data = carregar_json(CAMINHO_ANALYTICS)
-    insights_reais = {'popups_exibidos': 0, 'clientes_recuperados': 0, 'taxa_conversao': "0.00%"} # Adicionar lógica de cálculo se necessário
+    insights_reais = {'popups_exibidos': 0, 'clientes_recuperados': 0, 'taxa_conversao': "0.00%"}
 
     return render_template('dashboard.html', 
                            usuario=dados_usuario, 
@@ -205,14 +198,13 @@ def salvar_configuracoes():
     
     return redirect(url_for('dashboard'))
 
-# ROTA CRÍTICA DE PAGAMENTO QUE FALTAVA
+
 @app.route('/create-payment-intent', methods=['POST'])
 def create_payment_intent():
     if 'logged_in' not in session:
         return jsonify({'error': 'Usuário não autenticado'}), 401
     
     try:
-        # Preço fixo de R$ 99,90 (9990 centavos)
         intent = stripe.PaymentIntent.create(
             amount=9990,
             currency='brl',
@@ -227,7 +219,7 @@ def create_payment_intent():
         return jsonify(error=str(e)), 403
 
 
-# --- Rotas da API Pública ---
+# --- API Pública ---
 @app.route('/api/get-client-config')
 def get_client_config():
     api_key_recebida = request.args.get('key')
@@ -240,9 +232,3 @@ def get_client_config():
             return jsonify(usuario.get('configuracoes', {}))
             
     return jsonify({'error': 'Chave de API inválida.'}), 403
-
-
-# Inicializa a aplicação
-if __name__ == '__main__':
-    inicializar_arquivos_json()
-    app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000), debug=False)

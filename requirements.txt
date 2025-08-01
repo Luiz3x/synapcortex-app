@@ -1,5 +1,10 @@
+# requirements.txt
 Flask
 gunicorn
 Flask-Cors
 stripe
 whitenoise
+Flask==...
+gunicorn==...
+whitenoise
+# ...outras dependências

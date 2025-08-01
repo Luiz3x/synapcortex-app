@@ -1,4 +1,4 @@
-# main.py - Versão Final Reconstruída
+# main.py - Versão Final para o Teste Estratégico
 
 import os
 import json
@@ -7,7 +7,7 @@ import stripe
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-# A importação do WhiteNoise foi removida daqui
+from whitenoise import WhiteNoise  # <-- GARANTA QUE ESTE IMPORT ESTÁ AQUI
 from flask_cors import CORS
 
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
@@ -18,7 +18,8 @@ app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 CORS(app)
 
-# A linha do WhiteNoise foi REMOVIDA daqui. A responsabilidade agora é 100% do wsgi.py
+# A linha de configuração do WhiteNoise está de volta, como parte da nossa estratégia final
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/') # <-- GARANTA QUE ESTA LINHA ESTÁ AQUI
 
 # --- GERENCIAMENTO DE DADOS ---
 diretorio_de_dados = "data"
@@ -134,10 +135,9 @@ def dashboard():
                 mensagem_status_assinatura = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
     if status_assinatura == 'pendente': return render_template('pagamento_pendente.html', usuario=dados_usuario)
     
-    # Usando dados de exemplo para os insights, como na versão estável
     insights_exemplo = {'visitantes_unicos': '1,234', 'taxa_recuperacao': '12%', 'top_categoria': 'Camisetas', 'popups_exibidos': '789', 'clientes_recuperados': '95', 'taxa_conversao': '12.04%'}
     
-    labels_grafico, dados_visualizacoes, dados_cliques = [], [], [] # Você pode popular isso com dados reais
+    labels_grafico, dados_visualizacoes, dados_cliques = [], [], []
     
     return render_template(
         'dashboard.html', usuario=dados_usuario, config=dados_usuario.get('configuracoes', {}),
@@ -153,7 +153,6 @@ def salvar_configuracoes():
     usuarios = carregar_json(CAMINHO_USUARIOS)
     if email_usuario not in usuarios: return redirect(url_for('login'))
     
-    # Coleta todos os dados do formulário
     configuracoes_atuais = usuarios[email_usuario].get('configuracoes', {})
     configuracoes_atuais.update({
         'popup_titulo': request.form.get('popup_titulo', ''),
@@ -185,8 +184,6 @@ def get_client_config():
         if usuario.get('api_key') == api_key_recebida:
             return jsonify(usuario.get('configuracoes', {}))
     return jsonify({'error': 'Chave de API inválida.'}), 403
-
-# ... (outras rotas de API como track-view, track-click, se existirem) ...
 
 # --- EXECUÇÃO ---
 if __name__ == '__main__':

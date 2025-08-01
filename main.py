@@ -195,3 +195,4 @@ def get_client_config():
         if usuario.get('api_key') == api_key_recebida:
             return jsonify(usuario.get('configuracoes', {}))
     return jsonify({'error': 'Chave de API inválida.'}), 403
+    

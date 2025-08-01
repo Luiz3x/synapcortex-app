@@ -6,6 +6,7 @@
     <title>Sua Página Principal - SynapCortex</title>
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -75,6 +76,6 @@
         </div>
     </div>
     
-    <script src="{{ url_for('static', filename='js/spy.js') }}"></script>
+    <script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js') }}"></script>
 </body>
 </html>

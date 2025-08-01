@@ -1,11 +1,14 @@
-# wsgi.py
+# wsgi.py (Versão "Caça-Fantasmas")
 
-# Importa a sua aplicação 'app' do arquivo main.py
 from main import app
-
-# Importa a biblioteca WhiteNoise
 from whitenoise import WhiteNoise
+import os
 
-# A linha abaixo "envelopa" sua aplicação e diz ao WhiteNoise
-# onde encontrar a pasta 'static'. Esta é a única configuração necessária.
-application = WhiteNoise(app, root="static/")
+# Cria o caminho absoluto para a pasta 'static'.
+static_path = os.path.join(os.path.dirname(__file__), 'static')
+
+# Envolve a aplicação Flask com o WhiteNoise.
+application = WhiteNoise(app)
+
+# Adiciona explicitamente os arquivos da sua pasta static, servindo-os sob o prefixo '/static/'
+application.add_files(static_path, prefix='static/')

@@ -1,115 +1,211 @@
-# main.py - Versão com Memória Permanente (Render Disk)
-
-# --- 1. Importações ---
-# Importamos todas as bibliotecas necessárias
 import os
 import json
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import secrets
+import stripe
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
+from flask_cors import CORS
 
-# --- 2. Configuração Inicial da Aplicação ---
+# --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
 app = Flask(__name__)
-# Chave secreta para gerenciar sessões de login. Pode ser qualquer texto.
-app.secret_key = 'sua-chave-secreta-super-dificil'
+CORS(app)
 
-# --- 3. O CORAÇÃO DA NOSSA MUDANÇA: O DISCO PERMANENTE ---
-# Definimos o caminho exato onde nosso arquivo de dados será salvo no disco da Render.
-DATA_FILE_PATH = '/var/data/users.json'
+# É CRUCIAL que você configure estas variáveis de ambiente na Render
+app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-desenvolvimento-local')
+app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
+app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
+stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
-# Este bloco de código é o nosso "seguro de vida":
-# Ele verifica se a pasta /var/data já existe. Se não existir, ele a cria.
-# Isso evita que o programa quebre na primeira vez que tentar salvar um arquivo.
-try:
-    directory = os.path.dirname(DATA_FILE_PATH)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-except Exception as e:
-    # Se houver um erro ao criar o diretório (raro, mas possível), nós saberemos.
-    print(f"ERRO CRÍTICO AO CRIAR DIRETÓRIO: {e}")
+# --- GERENCIAMENTO DE DADOS (Apontando para o Disco Persistente) ---
 
+# O caminho de montagem do disco que configuramos na Render
+caminho_do_disco = '/data' 
 
-# --- 4. Funções Auxiliares para Manipular os Dados ---
+# Nossa pasta 'data' será criada DENTRO do disco permanente
+diretorio_de_dados = os.path.join(caminho_do_disco, 'data') 
 
-def load_users():
-    """Carrega os dados dos usuários do nosso disco permanente."""
+CAMINHO_USUARIOS = os.path.join(diretorio_de_dados, "users.json")
+# CAMINHO_ANALYTICS = os.path.join(diretorio_de_dados, "analytics.json") # Futura implementação
+
+# Garante que o diretório seja criado no disco na primeira vez que a app rodar
+if not os.path.exists(diretorio_de_dados):
+    os.makedirs(diretorio_de_dados)
+
+def carregar_json(caminho_arquivo, dados_padrao={}):
+    """Carrega dados de um arquivo JSON, criando-o se não existir."""
     try:
-        with open(DATA_FILE_PATH, 'r') as f:
+        if not os.path.exists(caminho_arquivo):
+            with open(caminho_arquivo, 'w', encoding='utf-8') as f:
+                json.dump(dados_padrao, f)
+        with open(caminho_arquivo, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        # Se o arquivo não existe ou está vazio/corrompido, retorna um dicionário vazio.
-        return {}
+    except (IOError, json.JSONDecodeError):
+        return dados_padrao
 
-def save_users(data):
-    """Salva os dados dos usuários no nosso disco permanente."""
-    with open(DATA_FILE_PATH, 'w') as f:
-        json.dump(data, f, indent=4)
+def salvar_json(caminho_arquivo, dados):
+    """Salva dados em um arquivo JSON."""
+    with open(caminho_arquivo, 'w', encoding='utf-8') as f:
+        json.dump(dados, f, indent=4, ensure_ascii=False)
 
-
-# --- 5. Rotas da Aplicação (As "Páginas" do nosso site) ---
+# --- ROTAS PRINCIPAIS E DE AUTENTICAÇÃO ---
 
 @app.route('/')
-def home():
-    """Página inicial."""
-    if 'username' in session:
-        return redirect(url_for('dashboard'))
-    return render_template('index.html') # Você precisará ter um index.html
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    """Página de cadastro de novos usuários."""
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        users = load_users()
-
-        if username in users:
-            flash("Este nome de usuário já existe!")
-            return redirect(url_for('register'))
-
-        users[username] = {'password': password}
-        save_users(users)
-
-        flash("Cadastro realizado com sucesso! Faça o login.")
-        return redirect(url_for('login'))
-
-    return render_template('register.html') # Você precisará ter um register.html
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """Página de login."""
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        users = load_users()
-
-        if username in users and users[username]['password'] == password:
-            session['username'] = username
-            return redirect(url_for('dashboard'))
-        else:
-            flash("Usuário ou senha inválidos.")
-            return redirect(url_for('login'))
-
-    return render_template('login.html') # Você precisará ter um login.html
+def index():
+    """Renderiza a página inicial."""
+    return render_template('index.html')
 
 @app.route('/dashboard')
 def dashboard():
-    """Página protegida, só acessível após o login."""
-    if 'username' in session:
-        username = session['username']
-        return render_template('dashboard.html', user=username) # Você precisará ter um dashboard.html
-    else:
-        return redirect(url_for('login'))
+    """Renderiza o painel de controle do usuário."""
+    if 'email' not in session:
+        return redirect(url_for('index'))
+
+    email = session['email']
+    usuarios = carregar_json(CAMINHO_USUARIOS)
+    user_data = usuarios.get(email)
+
+    if not user_data:
+        session.pop('email', None)
+        return redirect(url_for('index'))
+    
+    # Lógica para verificar a validade da assinatura
+    status_assinatura = user_data.get('status_assinatura', 'pendente')
+    mensagem_status = "Sua assinatura está pendente."
+    
+    if status_assinatura == 'ativo':
+        data_fim_str = user_data.get('data_fim_assinatura')
+        if data_fim_str:
+            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+            hoje = datetime.now().date()
+            if hoje > data_fim:
+                user_data['status_assinatura'] = 'pendente'
+                usuarios[email] = user_data
+                salvar_json(CAMINHO_USUARIOS, usuarios)
+                status_assinatura = 'pendente'
+            else:
+                dias_restantes = (data_fim - hoje).days
+                mensagem_status = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
+    
+    if status_assinatura == 'pendente':
+        return render_template('pagamento_pendente.html', 
+                               stripe_publishable_key=app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
+
+    return render_template('dashboard.html', 
+                           config=user_data.get('configuracoes', {}),
+                           mensagem_status_assinatura=mensagem_status)
+
+@app.route('/login', methods=['POST'])
+def login():
+    """Processa a tentativa de login via AJAX."""
+    email = request.form.get('email', '').lower()
+    senha = request.form.get('password', '')
+    
+    usuarios = carregar_json(CAMINHO_USUARIOS)
+    user_data = usuarios.get(email)
+
+    if user_data and check_password_hash(user_data.get('senha', ''), senha):
+        session['email'] = email
+        return jsonify({'success': True, 'redirect_url': url_for('dashboard')})
+    
+    return jsonify({'success': False, 'message': 'E-mail ou senha inválidos.'}), 401
+
+@app.route('/registrar', methods=['POST'])
+def registrar():
+    """Processa um novo registro de usuário via AJAX."""
+    email = request.form.get('email', '').lower()
+    senha = request.form.get('password', '')
+    nome_empresa = request.form.get('nome_empresa', '')
+    cnpj = request.form.get('cnpj', '')
+
+    if not all([email, senha, nome_empresa, cnpj]):
+        return jsonify({'success': False, 'message': 'Todos os campos são obrigatórios.'}), 400
+
+    usuarios = carregar_json(CAMINHO_USUARIOS)
+
+    if email in usuarios:
+        return jsonify({'success': False, 'message': 'Este e-mail já está cadastrado.'}), 409
+    
+    # Criação da nova conta com período de teste de 30 dias
+    data_inicio = datetime.now()
+    data_fim = data_inicio + timedelta(days=30)
+    
+    usuarios[email] = {
+        "senha": generate_password_hash(senha), "cnpj": cnpj, "nome_empresa": nome_empresa,
+        "status_assinatura": "ativo", "data_inicio_assinatura": data_inicio.strftime('%Y-%m-%d'),
+        "data_fim_assinatura": data_fim.strftime('%Y-%m-%d'), "api_key": secrets.token_urlsafe(24),
+        "configuracoes": {
+            "popup_titulo": "Não vá embora!", "popup_mensagem": "Temos uma oferta especial para você.",
+            "tatica_mobile": "foco", "ativar_quarto_bem_vindo": True, "ativar_quarto_interessado": True,
+            "msg_bem_vindo": "Que bom te ver de volta!", "msg_interessado": "Parece que você encontrou algo interessante..."
+        }
+    }
+
+    salvar_json(CAMINHO_USUARIOS, usuarios)
+    session['email'] = email
+    
+    return jsonify({'success': True, 'redirect_url': url_for('dashboard')})
 
 @app.route('/logout')
 def logout():
-    """Rota para fazer logout."""
-    session.pop('username', None)
-    return redirect(url_for('home'))
+    """Desloga o usuário."""
+    session.pop('email', None)
+    return redirect(url_for('index'))
 
+@app.route('/salvar-configuracoes', methods=['POST'])
+def salvar_configuracoes():
+    """Salva as configurações do painel."""
+    if 'email' not in session:
+        return jsonify({'success': False, 'message': 'Não autorizado'}), 401
 
-# --- 6. Execução da Aplicação ---
-# Este bloco faz com que a aplicação rode.
-# O host '0.0.0.0' é essencial para funcionar na Render.
+    email = session['email']
+    usuarios = carregar_json(CAMINHO_USUARIOS)
+    
+    if email not in usuarios:
+         return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
+
+    for key, value in request.form.items():
+        if key in usuarios[email]['configuracoes']:
+            usuarios[email]['configuracoes'][key] = value
+
+    salvar_json(usuarios)
+    return jsonify({'success': True, 'message': 'Configurações salvas!'})
+
+# --- ROTAS DE API ---
+
+@app.route('/api/get-client-config')
+def get_client_config():
+    """Fornece os dados de configuração para o script espião."""
+    api_key = request.args.get('key')
+    if not api_key:
+        return jsonify({'error': 'Chave de API não fornecida'}), 400
+
+    usuarios = carregar_json(CAMINHO_USUARIOS)
+    for user_data in usuarios.values():
+        if user_data.get('api_key') == api_key and user_data.get('status_assinatura') == 'ativo':
+            return jsonify(user_data.get('configuracoes', {}))
+
+    return jsonify({'error': 'Chave de API inválida ou conta inativa'}), 403
+
+@app.route('/create-payment-intent', methods=['POST'])
+def create_payment():
+    """Cria uma intenção de pagamento no Stripe."""
+    try:
+        # Preço fixo de R$ 99,90, convertido para centavos
+        intent = stripe.PaymentIntent.create(
+            amount=9990,
+            currency='brl',
+            automatic_payment_methods={
+                'enabled': True,
+            },
+        )
+        return jsonify({
+            'clientSecret': intent.client_secret
+        })
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+# --- EXECUÇÃO ---
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Bloco para rodar localmente. A Render usará Gunicorn/wsgi.py.
+    app.run(host='0.0.0.0', port=5000, debug=True)

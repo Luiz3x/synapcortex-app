@@ -3,4 +3,6 @@ gunicorn
 Flask-Cors
 stripe
 whitenoise
+Flask-SQLAlchemy
+psycopg2-binary
 # ...outras dependências

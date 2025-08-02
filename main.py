@@ -1,113 +1,102 @@
 import os
-import json
 import secrets
 import stripe
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
 app = Flask(__name__)
 CORS(app)
 
-# É CRUCIAL que você configure estas variáveis de ambiente na Render
-app.secret_key = os.environ.get('SECRET_KEY', 'chave-super-secreta-para-desenvolvimento-local')
+# Carrega as chaves das variáveis de ambiente
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_KEY_TEST')
 app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
-# --- GERENCIAMENTO DE DADOS (Apontando DIRETAMENTE para o Disco) ---
+# --- CONFIGURAÇÃO DO BANCO DE DADOS ---
+# Pega a "chave do cofre" que guardamos na Render
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-# O caminho do disco é o nosso diretório final. Não precisamos de subpastas.
-diretorio_de_dados = '/data' 
+# --- MODELO DO BANCO DE DADOS (A ESTRUTURA DO NOSSO "COFRE") ---
 
-CAMINHO_USUARIOS = os.path.join(diretorio_de_dados, "users.json")
-# CAMINHO_ANALYTICS = os.path.join(diretorio_de_dados, "analytics.json") # Futura implementação
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    senha = db.Column(db.String(200), nullable=False)
+    cnpj = db.Column(db.String(14), unique=True, nullable=False)
+    nome_empresa = db.Column(db.String(150))
+    status_assinatura = db.Column(db.String(50), default='ativo')
+    data_inicio_assinatura = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    data_fim_assinatura = db.Column(db.DateTime(timezone=True))
+    api_key = db.Column(db.String(100), unique=True, default=lambda: secrets.token_urlsafe(24))
+    
+    # Configurações agora são colunas individuais para facilitar o acesso
+    popup_titulo = db.Column(db.String(100), default="Não vá embora!")
+    popup_mensagem = db.Column(db.String(255), default="Temos uma oferta especial para você.")
+    ativar_quarto_bem_vindo = db.Column(db.Boolean, default=True)
+    msg_bem_vindo = db.Column(db.String(255), default="Que bom te ver de volta!")
+    ativar_quarto_interessado = db.Column(db.Boolean, default=True)
+    msg_interessado = db.Column(db.String(255), default="Parece que você encontrou algo interessante...")
 
-# A linha "if not os.path.exists..." foi REMOVIDA pois não criamos mais um novo diretório.
-
-def carregar_json(caminho_arquivo, dados_padrao={}):
-    """Carrega dados de um arquivo JSON, criando-o se não existir."""
-    try:
-        if not os.path.exists(caminho_arquivo):
-            with open(caminho_arquivo, 'w', encoding='utf-8') as f:
-                json.dump(dados_padrao, f)
-        with open(caminho_arquivo, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (IOError, json.JSONDecodeError):
-        return dados_padrao
-
-def salvar_json(caminho_arquivo, dados):
-    """Salva dados em um arquivo JSON."""
-    with open(caminho_arquivo, 'w', encoding='utf-8') as f:
-        json.dump(dados, f, indent=4, ensure_ascii=False)
-
-# --- ROTAS PRINCIPAIS E DE AUTENTICAÇÃO ---
+# --- ROTAS DA APLICAÇÃO (AGORA USANDO O BANCO DE DADOS) ---
 
 @app.route('/')
 def index():
-    """Renderiza a página inicial."""
     return render_template('index.html')
 
 @app.route('/dashboard')
 def dashboard():
-    """Renderiza o painel de controle do usuário."""
     if 'email' not in session:
         return redirect(url_for('index'))
 
-    email = session['email']
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-    user_data = usuarios.get(email)
+    user = User.query.filter_by(email=session['email']).first()
 
-    if not user_data:
-        session.pop('email', None)
+    if not user:
+        session.clear()
         return redirect(url_for('index'))
     
-    # Lógica para verificar a validade da assinatura
-    status_assinatura = user_data.get('status_assinatura', 'pendente')
-    mensagem_status = "Sua assinatura está pendente."
+    # Lógica de verificação da assinatura
+    if user.status_assinatura == 'ativo' and datetime.now().date() > user.data_fim_assinatura.date():
+        user.status_assinatura = 'pendente'
+        db.session.commit()
     
-    if status_assinatura == 'ativo':
-        data_fim_str = user_data.get('data_fim_assinatura')
-        if data_fim_str:
-            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
-            hoje = datetime.now().date()
-            if hoje > data_fim:
-                user_data['status_assinatura'] = 'pendente'
-                usuarios[email] = user_data
-                salvar_json(CAMINHO_USUARIOS, usuarios)
-                status_assinatura = 'pendente'
-            else:
-                dias_restantes = (data_fim - hoje).days
-                mensagem_status = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
-    
-    if status_assinatura == 'pendente':
+    if user.status_assinatura == 'pendente':
         return render_template('pagamento_pendente.html', 
                                stripe_publishable_key=app.config['STRIPE_PUBLISHABLE_KEY_TEST'])
 
-    return render_template('dashboard.html', 
-                           config=user_data.get('configuracoes', {}),
-                           mensagem_status_assinatura=mensagem_status)
+    dias_restantes = (user.data_fim_assinatura.date() - datetime.now().date()).days
+    mensagem_status = f"Sua avaliação gratuita termina em {dias_restantes} dia(s)."
+
+    # Criamos um dicionário 'config' para manter a compatibilidade com o template
+    config = {
+        'popup_titulo': user.popup_titulo,
+        'popup_mensagem': user.popup_mensagem
+    }
+
+    return render_template('dashboard.html', config=config, mensagem_status_assinatura=mensagem_status)
 
 @app.route('/login', methods=['POST'])
 def login():
-    """Processa a tentativa de login via AJAX."""
     email = request.form.get('email', '').lower()
     senha = request.form.get('password', '')
     
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-    user_data = usuarios.get(email)
+    user = User.query.filter_by(email=email).first()
 
-    if user_data and check_password_hash(user_data.get('senha', ''), senha):
-        session['email'] = email
+    if user and check_password_hash(user.senha, senha):
+        session['email'] = user.email
         return jsonify({'success': True, 'redirect_url': url_for('dashboard')})
     
     return jsonify({'success': False, 'message': 'E-mail ou senha inválidos.'}), 401
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
-    """Processa um novo registro de usuário via AJAX."""
     email = request.form.get('email', '').lower()
     senha = request.form.get('password', '')
     nome_empresa = request.form.get('nome_empresa', '')
@@ -116,117 +105,83 @@ def registrar():
     if not all([email, senha, nome_empresa, cnpj]):
         return jsonify({'success': False, 'message': 'Todos os campos são obrigatórios.'}), 400
 
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-
-    if email in usuarios:
+    if User.query.filter_by(email=email).first():
         return jsonify({'success': False, 'message': 'Este e-mail já está cadastrado.'}), 409
-    
-    # Criação da nova conta com período de teste de 30 dias
-    data_inicio = datetime.now()
-    data_fim = data_inicio + timedelta(days=30)
-    
-    usuarios[email] = {
-        "senha": generate_password_hash(senha), "cnpj": cnpj, "nome_empresa": nome_empresa,
-        "status_assinatura": "ativo", "data_inicio_assinatura": data_inicio.strftime('%Y-%m-%d'),
-        "data_fim_assinatura": data_fim.strftime('%Y-%m-%d'), "api_key": secrets.token_urlsafe(24),
-        "configuracoes": {
-            "popup_titulo": "Não vá embora!", "popup_mensagem": "Temos uma oferta especial para você.",
-            "tatica_mobile": "foco", "ativar_quarto_bem_vindo": True, "ativar_quarto_interessado": True,
-            "msg_bem_vindo": "Que bom te ver de volta!", "msg_interessado": "Parece que você encontrou algo interessante..."
-        }
-    }
 
-    salvar_json(CAMINHO_USUARIOS, usuarios)
-    session['email'] = email
+    if User.query.filter_by(cnpj=cnpj).first():
+        return jsonify({'success': False, 'message': 'Este CNPJ já está cadastrado.'}), 409
+
+    novo_usuario = User(
+        email=email,
+        senha=generate_password_hash(senha),
+        nome_empresa=nome_empresa,
+        cnpj=cnpj,
+        data_fim_assinatura=datetime.now() + timedelta(days=30)
+    )
     
+    db.session.add(novo_usuario)
+    db.session.commit()
+    
+    session['email'] = novo_usuario.email
     return jsonify({'success': True, 'redirect_url': url_for('dashboard')})
 
 @app.route('/logout')
 def logout():
-    """Desloga o usuário."""
-    session.pop('email', None)
+    session.clear()
     return redirect(url_for('index'))
 
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
-    """Salva as configurações do painel."""
     if 'email' not in session:
         return jsonify({'success': False, 'message': 'Não autorizado'}), 401
 
-    email = session['email']
-    usuarios = carregar_json(CAMINHO_USUARIOS)
+    user = User.query.filter_by(email=session['email']).first()
     
-    if email not in usuarios:
+    if not user:
          return jsonify({'success': False, 'message': 'Usuário não encontrado'}), 404
 
-    for key, value in request.form.items():
-        if key in usuarios[email]['configuracoes']:
-            usuarios[email]['configuracoes'][key] = value
-
-    salvar_json(usuarios)
+    user.popup_titulo = request.form.get('popup_titulo')
+    user.popup_mensagem = request.form.get('popup_mensagem')
+    # Adicionar outras configurações aqui se necessário no futuro
+    
+    db.session.commit()
     return jsonify({'success': True, 'message': 'Configurações salvas!'})
-
-# --- ROTAS DE API ---
 
 @app.route('/api/get-client-config')
 def get_client_config():
-    """Fornece os dados de configuração para o script espião."""
     api_key = request.args.get('key')
     if not api_key:
         return jsonify({'error': 'Chave de API não fornecida'}), 400
 
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-    for user_data in usuarios.values():
-        if user_data.get('api_key') == api_key and user_data.get('status_assinatura') == 'ativo':
-            return jsonify(user_data.get('configuracoes', {}))
+    user = User.query.filter_by(api_key=api_key).first()
+
+    if user and user.status_assinatura == 'ativo':
+        config = {
+            "popup_titulo": user.popup_titulo,
+            "popup_mensagem": user.popup_mensagem,
+            "ativar_quarto_bem_vindo": user.ativar_quarto_bem_vindo,
+            "msg_bem_vindo": user.msg_bem_vindo,
+            "ativar_quarto_interessado": user.ativar_quarto_interessado,
+            "msg_interessado": user.msg_interessado,
+        }
+        return jsonify(config)
 
     return jsonify({'error': 'Chave de API inválida ou conta inativa'}), 403
 
 @app.route('/create-payment-intent', methods=['POST'])
 def create_payment():
-    """Cria uma intenção de pagamento no Stripe."""
     try:
-        # Preço fixo de R$ 99,90, convertido para centavos
         intent = stripe.PaymentIntent.create(
-            amount=9990,
-            currency='brl',
-            automatic_payment_methods={
-                'enabled': True,
-            },
+            amount=9990, currency='brl',
+            automatic_payment_methods={'enabled': True}
         )
-        return jsonify({
-            'clientSecret': intent.client_secret
-        })
+        return jsonify({'clientSecret': intent.client_secret})
     except Exception as e:
         return jsonify(error=str(e)), 403
 
-# --- EXECUÇÃO ---
-# =============================================================
-# ROTA DE DEBUG TEMPORÁRIA - REMOVER DEPOIS
-# =============================================================
-@app.route('/debug-css')
-def debug_css():
-    """
-    Esta rota serve para testar se o Flask consegue encontrar o arquivo CSS.
-    Ela ignora o WhiteNoise e tenta entregar o arquivo diretamente.
-    """
-    from flask import send_from_directory
-    
-    try:
-        # O caminho para a pasta 'static/css'
-        css_dir = os.path.join(app.root_path, 'static', 'css')
-        
-        # O nome do arquivo que queremos
-        filename = 'main_style.css'
-        
-        print(f"DEBUG: Tentando servir o arquivo '{filename}' do diretório '{css_dir}'")
-        
-        return send_from_directory(css_dir, filename)
+# Bloco para criar as tabelas no banco de dados na primeira vez
+with app.app_context():
+    db.create_all()
 
-    except Exception as e:
-        print(f"DEBUG: Erro ao tentar servir o arquivo: {e}")
-        return f"Ocorreu um erro ao tentar encontrar o arquivo: {e}", 500
-# =============================================================
 if __name__ == '__main__':
-    # Bloco para rodar localmente. A Render usará Gunicorn/wsgi.py.
     app.run(host='0.0.0.0', port=5000, debug=True)

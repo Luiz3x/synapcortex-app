@@ -17,20 +17,15 @@ app.config['STRIPE_PUBLISHABLE_KEY_TEST'] = os.environ.get('STRIPE_PUBLISHABLE_K
 app.config['STRIPE_SECRET_KEY_TEST'] = os.environ.get('STRIPE_SECRET_KEY_TEST')
 stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
-# --- GERENCIAMENTO DE DADOS (Apontando para o Disco Persistente) ---
+# --- GERENCIAMENTO DE DADOS (Apontando DIRETAMENTE para o Disco) ---
 
-# O caminho de montagem do disco que configuramos na Render
-caminho_do_disco = '/data' 
-
-# Nossa pasta 'data' será criada DENTRO do disco permanente
-diretorio_de_dados = os.path.join(caminho_do_disco, 'data') 
+# O caminho do disco é o nosso diretório final. Não precisamos de subpastas.
+diretorio_de_dados = '/data' 
 
 CAMINHO_USUARIOS = os.path.join(diretorio_de_dados, "users.json")
 # CAMINHO_ANALYTICS = os.path.join(diretorio_de_dados, "analytics.json") # Futura implementação
 
-# Garante que o diretório seja criado no disco na primeira vez que a app rodar
-if not os.path.exists(diretorio_de_dados):
-    os.makedirs(diretorio_de_dados)
+# A linha "if not os.path.exists..." foi REMOVIDA pois não criamos mais um novo diretório.
 
 def carregar_json(caminho_arquivo, dados_padrao={}):
     """Carrega dados de um arquivo JSON, criando-o se não existir."""

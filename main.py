@@ -201,6 +201,32 @@ def create_payment():
         return jsonify(error=str(e)), 403
 
 # --- EXECUÇÃO ---
+# =============================================================
+# ROTA DE DEBUG TEMPORÁRIA - REMOVER DEPOIS
+# =============================================================
+@app.route('/debug-css')
+def debug_css():
+    """
+    Esta rota serve para testar se o Flask consegue encontrar o arquivo CSS.
+    Ela ignora o WhiteNoise e tenta entregar o arquivo diretamente.
+    """
+    from flask import send_from_directory
+    
+    try:
+        # O caminho para a pasta 'static/css'
+        css_dir = os.path.join(app.root_path, 'static', 'css')
+        
+        # O nome do arquivo que queremos
+        filename = 'main_style.css'
+        
+        print(f"DEBUG: Tentando servir o arquivo '{filename}' do diretório '{css_dir}'")
+        
+        return send_from_directory(css_dir, filename)
+
+    except Exception as e:
+        print(f"DEBUG: Erro ao tentar servir o arquivo: {e}")
+        return f"Ocorreu um erro ao tentar encontrar o arquivo: {e}", 500
+# =============================================================
 if __name__ == '__main__':
     # Bloco para rodar localmente. A Render usará Gunicorn/wsgi.py.
     app.run(host='0.0.0.0', port=5000, debug=True)

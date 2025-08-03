@@ -22,10 +22,18 @@ stripe.api_k_ey = app.config.get('STRIPE_SECRET_KEY_TEST')
 # Pega a URL do Neon da variável de ambiente
 database_url = os.environ.get('DATABASE_URL')
 
-# **A CORREÇÃO CRÍTICA ESTÁ AQUI, APLICADA CORRETAMENTE**
+# =================================================================
+# DEBUG: VAMOS IMPRIMIR A CHAVE NO LOG PARA VER O QUE ESTÁ CHEGANDO
+print("--- CHAVE DO BANCO DE DADOS RECEBIDA PELA RENDER ---")
+print(f"Valor recebido: '{database_url}'")
+print(f"Tipo do valor: {type(database_url)}")
+print("-------------------------------------------------")
+# =================================================================
+
 # "Traduz" de 'postgres://' para 'postgresql://' se necessário
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+# ... o resto do código continua igual ...
 
 # Entrega a URL JÁ CORRIGIDA para o SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url

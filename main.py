@@ -20,7 +20,15 @@ stripe.api_key = app.config.get('STRIPE_SECRET_KEY_TEST')
 
 # --- CONFIGURAÇÃO DO BANCO DE DADOS ---
 # Pega a "chave do cofre" que guardamos na Render
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# Pega a URL do Neon da variável de ambiente
+database_url = os.environ.get('DATABASE_URL')
+
+# "Traduz" de 'postgres://' para 'postgresql://' se a URL começar do jeito antigo
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# Entrega a URL já corrigida para o SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 

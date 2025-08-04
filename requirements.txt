@@ -1,8 +1,7 @@
 Flask
 gunicorn
-Flask-Cors
-stripe
 whitenoise
-Flask-SQLAlchemy
-psycopg2-binary
-# ...outras dependências
+#Flask-Cors
+#stripe
+#Flask-SQLAlchemy
+#psycopg2-binary

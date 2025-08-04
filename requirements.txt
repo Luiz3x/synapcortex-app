@@ -1,7 +1,7 @@
 Flask
 gunicorn
 whitenoise
-#Flask-Cors
-#stripe
-#Flask-SQLAlchemy
-#psycopg2-binary
+Flask-Cors
+stripe
+Flask-SQLAlchemy
+psycopg2-binary

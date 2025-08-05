@@ -20,6 +20,7 @@
     </header>
 
     <div class="main-content">
+
         <div class="login-container">
             <video class="cerebro-animado" autoplay loop muted playsinline>
                 <source src="{{ url_for('static', filename='videos/cerebro_animado.mp4') }}" type="video/mp4">
@@ -28,22 +29,14 @@
             <p>Descubra como a inteligência dinâmica pode transformar suas vendas.</p>
             
             <div style="margin-top: 30px;">
-                <button id="demoLoginBtn" class="login-register-button" style="padding: 12px 25px; font-size: 1.1em; background-color: var(--accent-blue); color: var(--primary-blue-dark);">Faça um Test Drive do Painel</button>
+                <button id="demoLoginBtn" class="cta-button">Faça um Test Drive do Painel</button>
             </div>
 
             <p style="margin-top: 30px; color: var(--text-fade);">Clientes recuperados em tempo real:</p>
             <canvas id="graficoDemonstracao" width="400" height="150"></canvas>
         </div>
 
-        <div id="popup-espiao" class="popup-container" style="display: none;">
-            <div class="popup-conteudo">
-                <button class="fechar-btn">&times;</button>
-                <h2 id="popup-titulo-display"></h2>
-                <p id="popup-mensagem-display"></p>
-            </div>
-        </div>
     </div>
-
     <div id="loginRegisterModal" class="modal" style="display:none;">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -52,9 +45,8 @@
                 <button class="tab-button" data-tab="register">Cadastre-se</button>
             </div>
             <div id="loginTab" class="tab-content active">
-                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                <h2>Acesse seu Painel</h2>
                 <form id="loginForm">
+                    <h2>Acesse seu Painel</h2>
                     <div class="input-group"><label for="modal-email-login">E-mail Comercial:</label><input type="email" id="modal-email-login" name="email" required></div>
                     <div class="input-group"><label for="modal-password-login">Senha:</label><input type="password" id="modal-password-login" name="password" required></div>
                     <p class="error-message" id="loginErrorMessage" style="display:none;"></p>
@@ -62,9 +54,8 @@
                 </form>
             </div>
             <div id="registerTab" class="tab-content">
-                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
-                <h2>Crie sua Conta</h2>
                 <form id="registerForm">
+                    <h2>Crie sua Conta</h2>
                     <div class="input-group"><label for="modal-nome_empresa">Nome da Empresa</label><input type="text" id="modal-nome_empresa" name="nome_empresa" required></div>
                     <div class="input-group"><label for="modal-cnpj">CNPJ</label><input type="text" id="modal-cnpj" name="cnpj" required></div>
                     <div class="input-group"><label for="modal-email-register">E-mail Comercial</label><input type="email" id="modal-email-register" name="email" required></div>
@@ -76,6 +67,7 @@
         </div>
     </div>
     
-    <script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/spy.js') }}?v=1.1"></script>
+
 </body>
 </html>

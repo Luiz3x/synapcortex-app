@@ -122,35 +122,42 @@ def dashboard():
 
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
-    # Passo 1: Primeiro, verificamos se o usuário está logado
-    email_usuario = session.get('email')
-    if not email_usuario:
+    # ======================================================
+    #               LANTERNA DE DIAGNÓSTICO
+    # ======================================================
+    email_na_sessao = session.get('email')
+    print("--- INICIANDO ROTA /salvar-configuracoes ---")
+    print(f"EMAIL NA SESSÃO É: '{email_na_sessao}'")
+    print(f"O TIPO DO DADO É: {type(email_na_sessao)}")
+    print(f"A comparação (email == 'demo@synapcortex.com') resulta em: {email_na_sessao == 'demo@synapcortex.com'}")
+    print("---------------------------------------------")
+    # ======================================================
+
+    # O resto da lógica continua
+    if not email_na_sessao:
         return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
 
-    # Passo 2: AGORA, com certeza temos um email, verificamos se é a conta demo
-    if email_usuario == 'demo@synapcortex.com':
-        # Se for a conta demo, retorna o aviso e PARA A EXECUÇÃO AQUI.
+    if email_na_sessao == 'demo@synapcortex.com':
         return jsonify({
             'status': 'info', 
             'message': 'Na conta de demonstração, as alterações não são salvas.'
         }), 200
     
-    # Passo 3: Se não for o demo, o código de salvar continua para usuários reais.
     usuarios = carregar_json(CAMINHO_USUARIOS)
-    if email_usuario in usuarios:
-        if 'configuracoes' not in usuarios[email_usuario]:
-            usuarios[email_usuario]['configuracoes'] = {}
+    if email_na_sessao in usuarios:
+        if 'configuracoes' not in usuarios[email_na_sessao]:
+            usuarios[email_na_sessao]['configuracoes'] = {}
 
         for chave, valor in request.form.items():
             if valor == 'on':
-                usuarios[email_usuario]['configuracoes'][chave] = True
+                usuarios[email_na_sessao]['configuracoes'][chave] = True
             else:
-                usuarios[email_usuario]['configuracoes'][chave] = valor
+                usuarios[email_na_sessao]['configuracoes'][chave] = valor
         
         checkboxes = ['ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
         for check in checkboxes:
             if check not in request.form:
-                usuarios[email_usuario]['configuracoes'][check] = False
+                usuarios[email_na_sessao]['configuracoes'][check] = False
         
         salvar_json(CAMINHO_USUARIOS, usuarios)
         return jsonify({'status': 'success', 'message': 'Configurações salvas!'}), 200

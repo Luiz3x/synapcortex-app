@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.2 - Com Fundação para o Módulo de Analytics
+# Versão 2.3 - Com Diagnóstico Avançado na Inicialização
 # =================================================================================
 
 import os
@@ -28,8 +28,6 @@ app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # --- MODELOS DO BANCO DE DADOS ---
-
-# Modelo para Usuários do nosso aplicativo
 class AppUser(db.Model):
     __tablename__ = 'app_user'
     id = db.Column(db.Integer, primary_key=True)
@@ -41,62 +39,147 @@ class AppUser(db.Model):
     data_registro = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     status_assinatura = db.Column(db.String(20), nullable=False, default='trial')
     configuracoes = db.Column(db.Text, nullable=False, default='{}')
-    # Relacionamento com os eventos de analytics
     events = db.relationship('AnalyticsEvent', backref='owner', lazy=True)
 
-# [NOVO] Modelo para a "Sala de Evidências" de Analytics
 class AnalyticsEvent(db.Model):
     __tablename__ = 'analytics_event'
     id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
     visitor_id = db.Column(db.String(100), nullable=False)
-    event_name = db.Column(db.String(50), nullable=False) # ex: 'page_view', 'popup_shown'
-    event_data = db.Column(db.Text, nullable=True) # JSON com detalhes do evento
+    event_name = db.Column(db.String(50), nullable=False)
+    event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-# --- LÓGICA DE INICIALIZAÇÃO DO APP ---
-with app.app_context():
-    db.create_all() # Cria TODAS as tabelas (AppUser e AnalyticsEvent) se não existirem
-    # ... (lógica da conta demo continua a mesma)
+# --- LÓGICA DE INICIALIZAÇÃO DO APP (COM REDE DE SEGURANÇA) ---
+try:
+    with app.app_context():
+        print(">>> [FASE 1] INICIANDO CRIAÇÃO DAS TABELAS DO BANCO DE DADOS...")
+        db.create_all()
+        print(">>> [FASE 1] TABELAS CRIADAS COM SUCESSO.")
+        
+        print(">>> [FASE 2] VERIFICANDO/CRIANDO CONTA DEMO...")
+        if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
+            print(">>> [FASE 2] CONTA DEMO NÃO ENCONTRADA. CRIANDO AGORA...")
+            demo_user = AppUser(
+                email='demo@synapcortex.com',
+                senha_hash=generate_password_hash('demo'),
+                nome_empresa='Loja de Demonstração',
+                cnpj='00000000000000',
+                api_key='chave_api_demo_123456',
+                configuracoes=json.dumps({'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'})
+            )
+            db.session.add(demo_user)
+            db.session.commit()
+            print(">>> [FASE 2] CONTA DEMO CRIADA COM SUCESSO!")
+        else:
+            print(">>> [FASE 2] CONTA DEMO JÁ EXISTE.")
+except Exception as e:
+    print(f"!!!!!! ERRO CRÍTICO DURANTE A INICIALIZAÇÃO DO APP: {e} !!!!!!")
 
-# --- ROTAS DE PÁGINAS E AUTENTICAÇÃO ---
-# ... (Todas as rotas como /, /login, /registrar, /dashboard, etc. continuam as mesmas)
 
-# --- ROTAS DE API E AÇÕES ---
+# --- ROTAS ---
+# (Todas as rotas, como /, /login, /registrar, /dashboard, etc., continuam exatamente as mesmas da Versão 2.1)
 
-# [NOVO] O "Ponto de Encontro Secreto" para o Agente Synapse
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        senha = request.form.get('password')
+        user = AppUser.query.filter_by(email=email).first()
+        if user and check_password_hash(user.senha_hash, senha):
+            session['logged_in'] = True
+            session['email'] = user.email
+            return redirect(url_for('dashboard'))
+        else:
+            flash('E-mail ou senha inválidos.', 'error')
+            return redirect(url_for('login'))
+    return render_template('login.html')
+
+@app.route('/registrar', methods=['GET', 'POST'])
+def registrar():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        if AppUser.query.filter_by(email=email).first():
+            flash('Este e-mail já está cadastrado. Tente fazer o login.', 'error')
+            return redirect(url_for('registrar'))
+        
+        new_user = AppUser(
+            email=email,
+            senha_hash=generate_password_hash(request.form.get('password')),
+            nome_empresa=request.form.get('nome_empresa'),
+            cnpj=request.form.get('cnpj'),
+            api_key=secrets.token_hex(16),
+            configuracoes=json.dumps({'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'})
+        )
+        db.session.add(new_user)
+        db.session.commit()
+
+        session['logged_in'] = True
+        session['email'] = new_user.email
+        flash('Conta criada com sucesso! Bem-vindo!', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('registrar.html')
+
+@app.route('/logout')
+def logout():
+    session.clear(); return redirect(url_for('index'))
+
+@app.route('/dashboard')
+def dashboard():
+    if 'logged_in' not in session: return redirect(url_for('login'))
+    user = AppUser.query.filter_by(email=session['email']).first()
+    if not user:
+        session.clear(); return redirect(url_for('login'))
+    user_config = json.loads(user.configuracoes)
+    return render_template('dashboard.html', usuario=user, config=user_config)
+
+@app.route('/salvar-configuracoes', methods=['POST'])
+def salvar_configuracoes():
+    email_na_sessao = session.get('email')
+    if not email_na_sessao: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
+    if email_na_sessao == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta de demonstração, as alterações não são salvas.'}), 200
+    
+    user = AppUser.query.filter_by(email=email_na_sessao).first()
+    if user:
+        config_atual = json.loads(user.configuracoes)
+        for chave, valor in request.form.items():
+            config_atual[chave] = True if valor == 'on' else valor
+        
+        checkboxes = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+        for check in checkboxes:
+            if check not in request.form:
+                config_atual[check] = False
+
+        user.configuracoes = json.dumps(config_atual)
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Configurações salvas!'}), 200
+    return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
+
 @app.route('/api/track', methods=['POST'])
 def track_event():
     data = request.get_json()
-    if not data:
-        return jsonify({'error': 'Requisição sem dados.'}), 400
-
-    api_key = data.get('apiKey')
-    visitor_id = data.get('visitorId')
-    event_name = data.get('eventName')
-    
-    if not all([api_key, visitor_id, event_name]):
-        return jsonify({'error': 'Dados incompletos.'}), 400
-
-    # Encontra o dono da API Key
+    if not data: return jsonify({'error': 'Requisição sem dados.'}), 400
+    api_key = data.get('apiKey'); visitor_id = data.get('visitorId'); event_name = data.get('eventName')
+    if not all([api_key, visitor_id, event_name]): return jsonify({'error': 'Dados incompletos.'}), 400
     user = AppUser.query.filter_by(api_key=api_key).first()
-    if not user:
-        return jsonify({'error': 'API Key inválida.'}), 403
-
-    # Cria o novo evento e salva no banco de dados
-    new_event = AnalyticsEvent(
-        owner_id=user.id,
-        visitor_id=visitor_id,
-        event_name=event_name,
-        event_data=json.dumps(data.get('eventData', {})) # Salva detalhes extras
-    )
+    if not user: return jsonify({'error': 'API Key inválida.'}), 403
+    new_event = AnalyticsEvent(owner_id=user.id, visitor_id=visitor_id, event_name=event_name, event_data=json.dumps(data.get('eventData', {})))
     db.session.add(new_event)
     db.session.commit()
-
     return jsonify({'status': 'ok'}), 200
 
+@app.route('/api/get-client-config')
+def get_client_config():
+    api_key = request.args.get('key')
+    if not api_key: return jsonify({'error': 'API Key não fornecida'}), 400
+    user = AppUser.query.filter_by(api_key=api_key).first()
+    if user:
+        return jsonify(json.loads(user.configuracoes))
+    return jsonify({'error': 'API Key inválida'}), 404
 
-# (As outras rotas de API como /get-client-config e a rota /salvar-configuracoes continuam as mesmas)
-
-# ... (Resto do seu main.py igual à versão 2.1)
-# ... (if __name__ == '__main__': etc.)
+if __name__ == '__main__':
+    app.run(debug=True)

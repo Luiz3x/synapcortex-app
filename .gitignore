@@ -1,0 +1,15 @@
+# Ambiente Virtual do Python
+venv/
+/venv/
+__pycache__/
+
+# Arquivos de configuração do Editor
+.vscode/
+
+# Arquivos temporários do sistema
+*.pyc
+.DS_Store
+
+# Arquivos gerados pelo nosso app (se houver no futuro)
+*.log
+*.sqlite3

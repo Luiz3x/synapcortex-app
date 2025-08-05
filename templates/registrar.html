@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - SynapCortex</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.1">
+    <title>Crie sua Conta - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="login-container">
-        <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Símbolo SynapCortex" class="login-logo">
+        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" class="login-logo"></a>
         <h2>Crie sua Conta na SynapCortex</h2>
-        <p>Comece a alavancar suas vendas! **Ganhe um mês grátis** para experimentar.</p>
+        <p>Comece a alavancar suas vendas! **Ganhe 30 dias grátis** para experimentar.</p>
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p class="error-message">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <form method="POST" action="{{ url_for('registrar') }}">
             <div class="input-group">
                 <label for="nome_empresa">Nome da Empresa</label>
@@ -20,7 +27,7 @@
             </div>
             <div class="input-group">
                 <label for="cnpj">CNPJ (somente números)</label>
-                <input type="text" id="cnpj" name="cnpj" pattern="\d{14}" title="Por favor, insira 14 dígitos numéricos para o CNPJ." required>
+                <input type="text" id="cnpj" name="cnpj" pattern="\d{14}" title="Por favor, insira os 14 dígitos do CNPJ." required>
             </div>
             <div class="input-group">
                 <label for="email">E-mail Comercial (seu login)</label>
@@ -30,14 +37,9 @@
                 <label for="password">Crie sua Senha</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            
-            {% if error %}
-                <p class="error-message">{{ error }}</p>
-            {% endif %}
-
-            <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
+            <button type="submit" class="cta-button">Cadastrar e Começar Meu Teste Grátis</button>
         </form>
-        <div class="extra-links">
+        <div class="extra-links" style="margin-top: 1rem;">
             <a href="{{ url_for('login') }}">Já tem uma conta? Faça login</a>
         </div>
     </div>

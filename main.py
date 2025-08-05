@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 1.0 - Estável e Completa
+# Versão 1.1 - Estrutura de Autenticação Finalizada
 # =================================================================================
 
 import os
@@ -63,7 +63,6 @@ def login():
         email = request.form.get('email')
         senha = request.form.get('password')
         usuarios = carregar_json(CAMINHO_USUARIOS)
-
         if email in usuarios and check_password_hash(usuarios[email].get('senha_hash', ''), senha):
             session['logged_in'] = True
             session['email'] = email
@@ -71,34 +70,35 @@ def login():
         else:
             flash('E-mail ou senha inválidos.', 'error')
             return redirect(url_for('login'))
-    
     return render_template('login.html')
 
-@app.route('/registrar', methods=['POST'])
+@app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
-    email = request.form.get('email')
-    senha = request.form.get('password')
-    nome_empresa = request.form.get('nome_empresa')
-    cnpj = request.form.get('cnpj')
-    usuarios = carregar_json(CAMINHO_USUARIOS)
+    if request.method == 'POST':
+        email = request.form.get('email')
+        senha = request.form.get('password')
+        nome_empresa = request.form.get('nome_empresa')
+        cnpj = request.form.get('cnpj')
+        usuarios = carregar_json(CAMINHO_USUARIOS)
 
-    if email in usuarios:
-        return jsonify({'message': 'Este e-mail já está cadastrado.'}), 400
+        if email in usuarios:
+            flash('Este e-mail já está cadastrado. Tente fazer o login.', 'error')
+            return redirect(url_for('registrar'))
 
-    usuarios[email] = {
-        'senha_hash': generate_password_hash(senha),
-        'nome_empresa': nome_empresa,
-        'cnpj': cnpj,
-        'data_registro': datetime.now().isoformat(),
-        'api_key': secrets.token_hex(16),
-        'status_assinatura': 'trial',
-        'configuracoes': {}
-    }
-    salvar_json(CAMINHO_USUARIOS, usuarios)
+        usuarios[email] = {
+            'senha_hash': generate_password_hash(senha), 'nome_empresa': nome_empresa,
+            'cnpj': cnpj, 'data_registro': datetime.now().isoformat(),
+            'api_key': secrets.token_hex(16), 'status_assinatura': 'trial',
+            'configuracoes': {}
+        }
+        salvar_json(CAMINHO_USUARIOS, usuarios)
 
-    session['logged_in'] = True
-    session['email'] = email
-    return jsonify({'redirect_url': url_for('dashboard')})
+        session['logged_in'] = True
+        session['email'] = email
+        flash('Conta criada com sucesso! Bem-vindo!', 'success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('registrar.html')
 
 @app.route('/logout')
 def logout():
@@ -166,4 +166,4 @@ def get_client_config():
 
 # Bloco para execução local (não é usado pela Render)
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True)

@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
@@ -13,6 +12,7 @@
             <a href="{{ url_for('index') }}" class="logo">
                 <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="SynapCortex Logo" style="height: 40px;">
             </a>
+            <span style="color: var(--text-fade);">Painel de: {{ usuario.nome_empresa }}</span>
             <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
         </nav>
     </header>
@@ -21,11 +21,21 @@
         <div class="secao-painel">
             <h3>Visão Geral (O Cérebro da Operação)</h3>
             <div class="status-message">
-                <p>{{ mensagem_status_assinatura }}</p>
+                <p>{{ mensagem_status_assinatura if mensagem_status_assinatura else 'Sua assinatura está ativa.' }}</p>
             </div>
-        </div>
+            </div>
 
-        <form id="config-form" method="POST" action="{{ url_for('salvar_configuracoes') }}">
+        <div class="secao-painel">
+            <h3>Sua Chave de API e Código de Instalação</h3>
+            <p>Use o código abaixo para instalar o espião SynapCortex no seu site. Copie e cole antes do fechamento da tag <code>&lt;/body&gt;</code>.</p>
+            
+            <div class="input-group" style="margin-top: 1.5rem;">
+                <label for="codigo-instalacao">Seu código de instalação:</label>
+                <textarea id="codigo-instalacao" rows="4" readonly style="font-family: monospace; background-color: #050a14; color: #f0f0f0;">&lt;script id="synapcortex-spy-script" src="https://synapcortex-app.onrender.com/static/js/spy.js?key={{ usuario.api_key }}" data-backend-url="https://synapcortex-app.onrender.com" defer&gt;&lt;/script&gt;</textarea>
+            </div>
+            <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
+        </div>
+        <form id="config-form">
             <div class="secao-painel">
                 <h3>Configurações Gerais do Pop-up</h3>
                 <p>Esta é a mensagem padrão, usada quando nenhum gatilho inteligente é acionado.</p>
@@ -45,6 +55,50 @@
         </form>
     </div>
 
-    <script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lógica para o botão de copiar
+            const copiarBtn = document.getElementById('copiar-codigo-btn');
+            const codigoTextarea = document.getElementById('codigo-instalacao');
+            if (copiarBtn) {
+                copiarBtn.addEventListener('click', function() {
+                    codigoTextarea.select();
+                    document.execCommand('copy');
+                    copiarBtn.textContent = 'Copiado!';
+                    setTimeout(() => { copiarBtn.textContent = 'Copiar Código'; }, 2000);
+                });
+            }
+
+            // Lógica do formulário de salvar configurações (que já tínhamos)
+            const configForm = document.getElementById('config-form');
+            if (configForm) {
+                configForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(configForm);
+                    const saveButton = configForm.querySelector('button[type="submit"]');
+                    
+                    fetch('/salvar-configuracoes', {
+                        method: 'POST',
+                        body: new URLSearchParams(formData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            saveButton.textContent = 'Salvo com Sucesso!';
+                            saveButton.style.backgroundColor = '#28a745';
+                            setTimeout(() => { window.location.reload(); }, 1500);
+                        } else if (data.status === 'info') {
+                            alert(data.message);
+                        } else {
+                            alert('Ocorreu um erro ao salvar.');
+                        }
+                    })
+                    .catch(error => {
+                        alert('Erro de comunicação.');
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

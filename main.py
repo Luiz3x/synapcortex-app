@@ -122,17 +122,22 @@ def dashboard():
 
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
-    # --- TRAVA DE SEGURANÇA PARA O MODO DEMO ---
-    if 'logged_in' not in session or session.get('email') == 'demo@synapcortex.com':
+    # Passo 1: Primeiro, verificamos se o usuário está logado
+    email_usuario = session.get('email')
+    if not email_usuario:
+        return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
+
+    # Passo 2: AGORA, com certeza temos um email, verificamos se é a conta demo
+    if email_usuario == 'demo@synapcortex.com':
+        # Se for a conta demo, retorna o aviso e PARA A EXECUÇÃO AQUI.
         return jsonify({
             'status': 'info', 
-            'message': 'Na conta de demonstração, as alterações não podem ser salvas.'
+            'message': 'Na conta de demonstração, as alterações não são salvas.'
         }), 200
-
-    email_usuario = session.get('email')
-    usuarios = carregar_json(CAMINHO_USUARIOS)
     
-    if email_usuario and email_usuario in usuarios:
+    # Passo 3: Se não for o demo, o código de salvar continua para usuários reais.
+    usuarios = carregar_json(CAMINHO_USUARIOS)
+    if email_usuario in usuarios:
         if 'configuracoes' not in usuarios[email_usuario]:
             usuarios[email_usuario]['configuracoes'] = {}
 

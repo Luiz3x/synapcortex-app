@@ -18,29 +18,39 @@
         }
         .container {
             text-align: center;
-            padding: 2rem;
-            border: 2px dashed #00bfff;
+            padding: 2rem 3rem;
+            border: 3px dashed #00bfff;
             border-radius: 15px;
-            background-color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-        h1 { color: #050a14; }
-        p { font-size: 1.2rem; }
-        strong { color: #d9534f; }
+        h1 { 
+            color: #050a14; 
+            margin-bottom: 1rem;
+        }
+        p { 
+            font-size: 1.2rem; 
+            margin-bottom: 0.5rem;
+        }
+        strong { 
+            color: #d9534f; 
+            font-weight: 600;
+        }
         code {
             background-color: #e9e9e9;
-            padding: 3px 6px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 5px;
             font-family: monospace;
+            font-size: 1rem;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Este é um Site de Teste</h1>
+        <h1>Este é o Site de Teste do Cliente</h1>
         <p>O espião da SynapCortex está instalado e vigiando esta página.</p>
-        <p>Siga as instruções para testar os gatilhos.</p>
+        <p>Siga as instruções para testar os gatilhos de abandono.</p>
     </div>
 
     <script 
@@ -49,6 +59,8 @@
         data-backend-url="https://synapcortex-app.onrender.com"
         defer>
     </script>
+    <script id="synapcortex-spy-script" src="https://synapcortex-app.onrender.com/static/js/spy.js?
+    key=2d17a7773a0dfe74f7014e38e7189452" data-backend-url="https://synapcortex-app.onrender.com" defer></script>
 
 </body>
 </html>

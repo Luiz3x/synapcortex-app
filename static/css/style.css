@@ -228,3 +228,9 @@ form {
     h1 { font-size: 2rem; }
     h2 { font-size: 1.5rem; }
 }
+/* Para ajustar a imagem do cérebro */
+.cerebro-animado {
+  width: 100%;           /* Mantém a responsividade */
+  max-width: 280px;      /* Altere este valor para o tamanho que achar ideal (ex: 300px, 250px) */
+  margin-bottom: 1.5rem; /* Ajuste o espaçamento abaixo, se necessário */
+}

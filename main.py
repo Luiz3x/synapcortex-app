@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 1.1 - Estrutura de Autenticação Finalizada
+# Versão 2.0 - Integrado com Banco de Dados PostgreSQL (Neon)
 # =================================================================================
 
 import os
@@ -9,50 +9,59 @@ import secrets
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 from whitenoise import WhiteNoise
 from flask_cors import CORS
 
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(16)
+
+# [MUDANÇA] Configuração do Banco de Dados a partir da Environment Variable
+db_url = os.environ.get('DATABASE_URL')
+# Render pode injetar um db_url que começa com 'postgres://', SQLAlchemy prefere 'postgresql://'
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# --- GERENCIAMENTO DE DADOS (JSON) ---
-CAMINHO_USUARIOS = 'usuarios.json'
+# --- [MUDANÇA] MODELO DO BANCO DE DADOS (A Planta da nossa Tabela) ---
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    senha_hash = db.Column(db.String(256), nullable=False)
+    nome_empresa = db.Column(db.String(120), nullable=False)
+    cnpj = db.Column(db.String(14), nullable=False)
+    api_key = db.Column(db.String(32), unique=True, nullable=False)
+    data_registro = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status_assinatura = db.Column(db.String(20), nullable=False, default='trial')
+    configuracoes = db.Column(db.Text, nullable=False, default='{}')
 
-def carregar_json(caminho):
-    if not os.path.exists(caminho): return {}
-    try:
-        with open(caminho, 'r', encoding='utf-8') as f: return json.load(f)
-    except (json.JSONDecodeError, FileNotFoundError):
-        return {}
+# --- LÓGICA DE INICIALIZAÇÃO DO APP ---
+with app.app_context():
+    db.create_all() # Cria as tabelas se elas não existirem
+    # [MUDANÇA] Cria o usuário demo no banco de dados, se não existir
+    if not User.query.filter_by(email='demo@synapcortex.com').first():
+        print(">>> Criando conta de demonstração no banco de dados...")
+        demo_user = User(
+            email='demo@synapcortex.com',
+            senha_hash=generate_password_hash('demo'),
+            nome_empresa='Loja de Demonstração',
+            cnpj='00000000000000',
+            api_key='chave_api_demo_123456',
+            configuracoes=json.dumps({
+                'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'
+            })
+        )
+        db.session.add(demo_user)
+        db.session.commit()
+        print(">>> Conta demo criada com sucesso!")
 
-def salvar_json(caminho, dados):
-    with open(caminho, 'w', encoding='utf-8') as f:
-        json.dump(dados, f, indent=4)
-
-# --- LÓGICA DE CRIAÇÃO DO USUÁRIO DEMO ---
-def inicializar_conta_demo():
-    users = carregar_json(CAMINHO_USUARIOS)
-    if 'demo@synapcortex.com' not in users:
-        print(">>> Criando conta de demonstração...")
-        users['demo@synapcortex.com'] = {
-            'senha_hash': generate_password_hash('demo'), 'nome_empresa': 'Loja de Demonstração',
-            'cnpj': '00000000000000', 'api_key': 'chave_api_demo_123456',
-            'data_registro': datetime.now().isoformat(), 'status_assinatura': 'trial',
-            'configuracoes': {
-                'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.',
-                'ativar_quarto_bem_vindo': True, 'msg_bem_vindo': 'Que bom te ver de novo!',
-                'ativar_quarto_interessado': True, 'msg_interessado': 'Parece que você encontrou algo interessante!'
-            }
-        }
-        salvar_json(CAMINHO_USUARIOS, users)
-
-inicializar_conta_demo()
-
-# --- ROTAS DE PÁGINAS E AUTENTICAÇÃO ---
-
+# --- ROTAS ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -62,10 +71,10 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         senha = request.form.get('password')
-        usuarios = carregar_json(CAMINHO_USUARIOS)
-        if email in usuarios and check_password_hash(usuarios[email].get('senha_hash', ''), senha):
+        user = User.query.filter_by(email=email).first() # [MUDANÇA] Busca no DB
+        if user and check_password_hash(user.senha_hash, senha):
             session['logged_in'] = True
-            session['email'] = email
+            session['email'] = user.email
             return redirect(url_for('dashboard'))
         else:
             flash('E-mail ou senha inválidos.', 'error')
@@ -76,77 +85,59 @@ def login():
 def registrar():
     if request.method == 'POST':
         email = request.form.get('email')
-        senha = request.form.get('password')
-        nome_empresa = request.form.get('nome_empresa')
-        cnpj = request.form.get('cnpj')
-        usuarios = carregar_json(CAMINHO_USUARIOS)
-
-        if email in usuarios:
+        if User.query.filter_by(email=email).first(): # [MUDANÇA] Busca no DB
             flash('Este e-mail já está cadastrado. Tente fazer o login.', 'error')
             return redirect(url_for('registrar'))
-
-        usuarios[email] = {
-            'senha_hash': generate_password_hash(senha), 'nome_empresa': nome_empresa,
-            'cnpj': cnpj, 'data_registro': datetime.now().isoformat(),
-            'api_key': secrets.token_hex(16), 'status_assinatura': 'trial',
-            'configuracoes': {}
-        }
-        salvar_json(CAMINHO_USUARIOS, usuarios)
+        
+        new_user = User(
+            email=email,
+            senha_hash=generate_password_hash(request.form.get('password')),
+            nome_empresa=request.form.get('nome_empresa'),
+            cnpj=request.form.get('cnpj'),
+            api_key=secrets.token_hex(16),
+            configuracoes=json.dumps({
+                'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'
+            })
+        )
+        db.session.add(new_user) # [MUDANÇA] Adiciona ao DB
+        db.session.commit()     # [MUDANÇA] Salva no DB
 
         session['logged_in'] = True
-        session['email'] = email
+        session['email'] = new_user.email
         flash('Conta criada com sucesso! Bem-vindo!', 'success')
         return redirect(url_for('dashboard'))
-    
     return render_template('registrar.html')
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('index'))
+    session.clear(); return redirect(url_for('index'))
 
 @app.route('/dashboard')
 def dashboard():
-    if 'logged_in' not in session:
-        return redirect(url_for('login'))
+    if 'logged_in' not in session: return redirect(url_for('login'))
+    user = User.query.filter_by(email=session['email']).first() # [MUDANÇA] Busca no DB
+    if not user:
+        session.clear(); return redirect(url_for('login'))
     
-    email_usuario = session['email']
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-    dados_usuario = usuarios.get(email_usuario)
-
-    if not dados_usuario:
-        session.clear()
-        return redirect(url_for('login'))
-        
-    return render_template('dashboard.html', 
-                           usuario=dados_usuario, 
-                           config=dados_usuario.get('configuracoes', {}))
-
-# --- ROTAS DE API E AÇÕES ---
+    # [MUDANÇA] Converte as configurações de texto JSON para um dicionário Python
+    user_config = json.loads(user.configuracoes)
+    
+    return render_template('dashboard.html', usuario=user, config=user_config)
 
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
     email_na_sessao = session.get('email')
-    if not email_na_sessao:
-        return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
-
-    if email_na_sessao == 'demo@synapcortex.com':
-        return jsonify({'status': 'info', 'message': 'Na conta de demonstração, as alterações não são salvas.'}), 200
+    if not email_na_sessao: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
+    if email_na_sessao == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta de demonstração, as alterações não são salvas.'}), 200
     
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-    if email_na_sessao in usuarios:
-        if 'configuracoes' not in usuarios[email_na_sessao]:
-            usuarios[email_na_sessao]['configuracoes'] = {}
-            
+    user = User.query.filter_by(email=email_na_sessao).first() # [MUDANÇA] Busca no DB
+    if user:
+        config_atual = json.loads(user.configuracoes)
         for chave, valor in request.form.items():
-            usuarios[email_na_sessao]['configuracoes'][chave] = True if valor == 'on' else valor
-            
-        checkboxes = ['ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
-        for check in checkboxes:
-            if check not in request.form:
-                usuarios[email_na_sessao]['configuracoes'][check] = False
-                
-        salvar_json(CAMINHO_USUARIOS, usuarios)
+            config_atual[chave] = True if valor == 'on' else valor
+        
+        user.configuracoes = json.dumps(config_atual) # [MUDANÇA] Salva como texto JSON
+        db.session.commit()
         return jsonify({'status': 'success', 'message': 'Configurações salvas!'}), 200
 
     return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
@@ -154,16 +145,11 @@ def salvar_configuracoes():
 @app.route('/api/get-client-config')
 def get_client_config():
     api_key = request.args.get('key')
-    if not api_key:
-        return jsonify({'error': 'API Key não fornecida'}), 400
-        
-    usuarios = carregar_json(CAMINHO_USUARIOS)
-    for email, dados in usuarios.items():
-        if dados.get('api_key') == api_key:
-            return jsonify(dados.get('configuracoes', {}))
-            
+    if not api_key: return jsonify({'error': 'API Key não fornecida'}), 400
+    user = User.query.filter_by(api_key=api_key).first() # [MUDANÇA] Busca no DB
+    if user:
+        return jsonify(json.loads(user.configuracoes))
     return jsonify({'error': 'API Key inválida'}), 404
 
-# Bloco para execução local (não é usado pela Render)
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 5.8 (Correção Definitiva da Criação de Usuário Demo)
+# Versão 5.9 (com Lanterna de Diagnóstico no Login)
 # =================================================================================
 
 import os
@@ -22,11 +22,9 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 CAMINHO_USUARIOS = 'usuarios.json'
 
 def carregar_json(caminho):
-    if not os.path.exists(caminho):
-        return {}
+    if not os.path.exists(caminho): return {}
     try:
-        with open(caminho, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        with open(caminho, 'r', encoding='utf-8') as f: return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         return {}
 
@@ -34,8 +32,7 @@ def salvar_json(caminho, dados):
     with open(caminho, 'w', encoding='utf-8') as f:
         json.dump(dados, f, indent=4)
 
-# --- [CORREÇÃO] LÓGICA DE CRIAÇÃO DO USUÁRIO DEMO ---
-# Movida para o escopo global para garantir que seja executada quando o servidor iniciar
+# --- LÓGICA DE CRIAÇÃO DO USUÁRIO DEMO ---
 def inicializar_conta_demo():
     print(">>> Verificando/Criando conta de demonstração...")
     users = carregar_json(CAMINHO_USUARIOS)
@@ -59,9 +56,10 @@ def inicializar_conta_demo():
     else:
         print(">>> Conta demo já existe.")
 
-inicializar_conta_demo() # Executa a função na inicialização do app
+inicializar_conta_demo()
 
 # --- ROTAS ---
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -72,19 +70,39 @@ def login():
     senha = request.form.get('password')
     usuarios = carregar_json(CAMINHO_USUARIOS)
 
-    if email in usuarios and check_password_hash(usuarios[email].get('senha_hash', ''), senha):
-        session['logged_in'] = True
-        session['email'] = email
-        return jsonify({'redirect_url': url_for('dashboard')})
+    # --- LANTERNA DE DIAGNÓSTICO DO LOGIN ---
+    print("\n--- TENTATIVA DE LOGIN ---")
+    print(f"E-mail recebido: '{email}'")
+    print(f"Senha recebida: '{senha}'")
+
+    if email in usuarios:
+        print(f"Usuário '{email}' ENCONTRADO no banco de dados.")
+        senha_hash_armazenada = usuarios[email].get('senha_hash', 'SENHA HASH NÃO ENCONTRADA')
+        print(f"Hash da senha armazenada: '{senha_hash_armazenada[:30]}...'")
+        
+        senha_correta = check_password_hash(senha_hash_armazenada, senha)
+        print(f"A senha fornecida está correta? -> {senha_correta}")
+
+        if senha_correta:
+            print(">>> SUCESSO: Login autorizado. Redirecionando...")
+            print("--------------------------\n")
+            session['logged_in'] = True
+            session['email'] = email
+            return jsonify({'redirect_url': url_for('dashboard')})
+    else:
+        print(f"Usuário '{email}' NÃO ENCONTRADO no banco de dados.")
     
+    print(">>> FALHA: Login negado. Retornando erro.")
+    print("--------------------------\n")
     return jsonify({'message': 'E-mail ou senha inválidos.'}), 401
 
-# (As outras rotas como /registrar, /logout, /dashboard continuam iguais...)
+
 @app.route('/registrar', methods=['POST'])
 def registrar():
     email = request.form.get('email')
     senha = request.form.get('password')
     nome_empresa = request.form.get('nome_empresa')
+    # Adicionar outros campos se houver no formulário
     usuarios = carregar_json(CAMINHO_USUARIOS)
 
     if email in usuarios:
@@ -119,15 +137,9 @@ def dashboard():
         session.clear(); return redirect(url_for('index'))
     return render_template('dashboard.html', usuario=dados_usuario, config=dados_usuario.get('configuracoes', {}))
 
-
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
-    # LANTERNA DE DIAGNÓSTICO
     email_na_sessao = session.get('email')
-    print("--- INICIANDO ROTA /salvar-configuracoes ---")
-    print(f"EMAIL NA SESSÃO É: '{email_na_sessao}'")
-    print("---------------------------------------------")
-
     if not email_na_sessao: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
 
     if email_na_sessao == 'demo@synapcortex.com':

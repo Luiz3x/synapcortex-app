@@ -1,17 +1,19 @@
-/* --- Variáveis de Cor e Fontes --- */
+/* VERSÃO CALIBRADA - O DESIGN PERFEITO */
+
+/* --- Variáveis de Cor e Fontes (Ajuste Fino) --- */
 :root {
-    --primary-blue-dark: #0d1a26;
-    --secondary-blue-dark: #1a2938;
-    --accent-blue: #00ccff;
-    --text-color: #ffffff;
-    --text-fade: #bbbbbb;
+    --primary-blue-dark: #050a14; /* <<< MAIS ESCURO */
+    --secondary-blue-dark: #101c2c; /* <<< MAIS ESCURO */
+    --accent-blue: #00bfff; /* <<< MAIS VIBRANTE (Deep Sky Blue) */
+    --text-color: #f0f0f0; /* <<< BRANCO SUAVE */
+    --text-fade: #a0a0a0;
     --error-red: #ff4d4d;
     --success-green: #28a745;
     --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* --- Estilos Globais e Reset --- */
-{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -28,7 +30,7 @@ body {
 header {
     background-color: var(--secondary-blue-dark);
     padding: 1rem 5%;
-    border-bottom: 1px solid var(--accent-blue);
+    border-bottom: 1px solid #1f2d3d;
 }
 
 nav {
@@ -42,23 +44,23 @@ nav .logo img {
     vertical-align: middle;
 }
 
-/* --- Estilos de Botões --- */
-.login-register-button, .cta-button, .modal button {
+/* --- Estilos de Botões (Ajuste Fino) --- */
+.login-register-button, .cta-button, .modal button, #submit-button {
     background-color: var(--accent-blue);
     color: var(--primary-blue-dark);
     border: none;
-    padding: 10px 20px;
+    padding: 12px 24px; /* <<< MAIS PADDING */
     border-radius: 5px;
     font-weight: bold;
     cursor: pointer;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 1.05rem; /* <<< FONTE UM POUCO MAIOR */
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.login-register-button:hover, .cta-button:hover, .modal button:hover {
-    background-color: #00b8e6;
-    transform: scale(1.05);
+.login-register-button:hover, .cta-button:hover, .modal button:hover, #submit-button:hover {
+    background-color: #00a4d3;
+    transform: scale(1.03);
 }
 
 /* --- Container Principal e Conteúdo (Login, Index) --- */
@@ -71,136 +73,90 @@ nav .logo img {
 .login-container {
     max-width: 500px;
     margin: 3rem auto;
-    padding: 2rem;
+    padding: 2.5rem;
     background-color: var(--secondary-blue-dark);
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
+    border: 1px solid #1f2d3d;
 }
 
 .login-logo {
     width: 80px;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-h1, h2, h3 {
-    color: var(--accent-blue);
-    margin-bottom: 1rem;
-}
+h1 { font-size: 2.5rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.5rem; color: var(--accent-blue); margin-bottom: 1rem; } /* <<< FONTE MAIOR */
 
-/* --- Animação do Cérebro (Vídeo) --- */
-.cerebro-animado {
-    width: 100%;
-    max-width: 300px;
-    margin-bottom: 1rem;
-}
 
 /* --- Formulários --- */
 form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-}
-
-.input-group {
-    text-align: left;
+    gap: 1.2rem;
 }
 
 .input-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     color: var(--text-fade);
+    font-weight: 500;
 }
 
 .input-group input, .input-group textarea {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background-color: var(--primary-blue-dark);
-    border: 1px solid var(--accent-blue);
+    border: 1px solid #2a3b4c;
     border-radius: 5px;
     color: var(--text-color);
     font-size: 1rem;
 }
 
-.error-message {
-    color: var(--error-red);
-    background-color: rgba(255, 77, 77, 0.1);
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
+.input-group input:focus, .input-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-blue);
 }
 
-.success-message {
-    color: var(--success-green);
-}
 
 /* --- Modal de Login/Registro --- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.7);
-    justify-content: center;
-    align-items: center;
-}
-
 .modal-content {
     background-color: var(--secondary-blue-dark);
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    position: relative;
+    border: 1px solid var(--accent-blue);
 }
+/* (O resto das regras do modal e de outras seções pode continuar o mesmo do CSS anterior) */
 
-.close-button {
-    color: var(--text-fade);
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.modal-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--primary-blue-dark);
-    margin-bottom: 1rem;
-}
-
-.tab-button {
-    background: none;
-    border: none;
-    color: var(--text-fade);
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 1.1rem;
-}
-
-.tab-button.active {
-    color: var(--accent-blue);
-    border-bottom: 2px solid var(--accent-blue);
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
 
 /* --- Dashboard --- */
 .secao-painel {
     background-color: var(--secondary-blue-dark);
-    padding: 1.5rem;
-    border-radius: 8px;
+    padding: 2rem;
+    border-radius: 10px;
     margin-bottom: 2rem;
+    border: 1px solid #1f2d3d;
+}
+
+.status-message {
+    padding: 1rem;
+    background-color: rgba(0, 191, 255, 0.1);
+    border-left: 4px solid var(--accent-blue);
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+}
+
+/* --- Pagamento Pendente --- */
+.pagamento-container #card-element {
+    background-color: var(--primary-blue-dark);
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #2a3b4c;
+    margin-bottom: 1.5rem;
+}
+.pagamento-container #card-errors {
+    color: var(--error-red);
+    margin-bottom: 1rem;
+    min-height: 20px;
 }
 
 /* --- Responsividade --- */
@@ -211,4 +167,6 @@ form {
     .modal-content {
         padding: 1.5rem;
     }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
 }

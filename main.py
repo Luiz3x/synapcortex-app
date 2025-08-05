@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 5.9 (com Lanterna de Diagnóstico no Login)
+# Versão 6.0 (Com Correção no Registro de CNPJ)
 # =================================================================================
 
 import os
@@ -39,14 +39,11 @@ def inicializar_conta_demo():
     if 'demo@synapcortex.com' not in users:
         print(">>> Conta demo não encontrada. Criando agora...")
         users['demo@synapcortex.com'] = {
-            'senha_hash': generate_password_hash('demo'),
-            'nome_empresa': 'Loja de Demonstração',
-            'api_key': 'chave_api_demo_123456',
-            'data_registro': datetime.now().isoformat(),
-            'status_assinatura': 'trial',
+            'senha_hash': generate_password_hash('demo'), 'nome_empresa': 'Loja de Demonstração',
+            'cnpj': '00000000000000', 'api_key': 'chave_api_demo_123456',
+            'data_registro': datetime.now().isoformat(), 'status_assinatura': 'trial',
             'configuracoes': {
-                'popup_titulo': 'Bem-vindo à Demo!',
-                'popup_mensagem': 'Explore nosso painel. As alterações não são salvas.',
+                'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.',
                 'ativar_quarto_bem_vindo': True, 'msg_bem_vindo': 'Que bom te ver de novo!',
                 'ativar_quarto_interessado': True, 'msg_interessado': 'Parece que você encontrou algo interessante!'
             }
@@ -102,7 +99,7 @@ def registrar():
     email = request.form.get('email')
     senha = request.form.get('password')
     nome_empresa = request.form.get('nome_empresa')
-    # Adicionar outros campos se houver no formulário
+    cnpj = request.form.get('cnpj') # <<< [CORREÇÃO] AGORA PEGAMOS O CNPJ
     usuarios = carregar_json(CAMINHO_USUARIOS)
 
     if email in usuarios:
@@ -111,6 +108,7 @@ def registrar():
     usuarios[email] = {
         'senha_hash': generate_password_hash(senha),
         'nome_empresa': nome_empresa,
+        'cnpj': cnpj, # <<< [CORREÇÃO] AGORA SALVAMOS O CNPJ
         'data_registro': datetime.now().isoformat(),
         'api_key': secrets.token_hex(16),
         'status_assinatura': 'trial',
@@ -122,6 +120,7 @@ def registrar():
     session['email'] = email
     return jsonify({'redirect_url': url_for('dashboard')})
 
+# (O resto das rotas, como /logout, /dashboard, etc., continuam iguais)
 @app.route('/logout')
 def logout():
     session.clear()

@@ -1,11 +1,11 @@
-/* VERSÃO CALIBRADA - O DESIGN PERFEITO */
+/* VERSÃO FINAL CALIBRADA - COM ALINHAMENTO CORRIGIDO */
 
 /* --- Variáveis de Cor e Fontes (Ajuste Fino) --- */
 :root {
-    --primary-blue-dark: #050a14; /* <<< MAIS ESCURO */
-    --secondary-blue-dark: #101c2c; /* <<< MAIS ESCURO */
-    --accent-blue: #00bfff; /* <<< MAIS VIBRANTE (Deep Sky Blue) */
-    --text-color: #f0f0f0; /* <<< BRANCO SUAVE */
+    --primary-blue-dark: #050a14; 
+    --secondary-blue-dark: #101c2c;
+    --accent-blue: #00bfff;
+    --text-color: #f0f0f0;
     --text-fade: #a0a0a0;
     --error-red: #ff4d4d;
     --success-green: #28a745;
@@ -49,12 +49,12 @@ nav .logo img {
     background-color: var(--accent-blue);
     color: var(--primary-blue-dark);
     border: none;
-    padding: 12px 24px; /* <<< MAIS PADDING */
+    padding: 12px 24px;
     border-radius: 5px;
     font-weight: bold;
     cursor: pointer;
     text-decoration: none;
-    font-size: 1.05rem; /* <<< FONTE UM POUCO MAIOR */
+    font-size: 1.05rem;
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
@@ -63,8 +63,17 @@ nav .logo img {
     transform: scale(1.03);
 }
 
-/* --- Container Principal e Conteúdo (Login, Index) --- */
-.main-content, .dashboard-container {
+/* --- Container Principal e Conteúdo (COM CORREÇÃO DE ALINHAMENTO) --- */
+.main-content {
+    display: flex; 
+    flex-direction: column;
+    align-items: center;   
+    justify-content: center; 
+    min-height: 80vh; 
+    padding: 2rem 1rem;
+}
+
+.dashboard-container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 2rem;
@@ -72,7 +81,7 @@ nav .logo img {
 
 .login-container {
     max-width: 500px;
-    margin: 3rem auto;
+    width: 100%; 
     padding: 2.5rem;
     background-color: var(--secondary-blue-dark);
     border-radius: 10px;
@@ -85,9 +94,9 @@ nav .logo img {
     margin-bottom: 1.5rem;
 }
 
-h1 { font-size: 2.5rem; }
-h2 { font-size: 1.8rem; }
-h3 { font-size: 1.5rem; color: var(--accent-blue); margin-bottom: 1rem; } /* <<< FONTE MAIOR */
+h1 { font-size: 2.5rem; color: var(--text-color); margin-bottom: 1rem; }
+h2 { font-size: 1.8rem; color: var(--accent-blue); margin-bottom: 1rem; }
+h3 { font-size: 1.5rem; color: var(--accent-blue); margin-bottom: 1rem; }
 
 
 /* --- Formulários --- */
@@ -121,11 +130,60 @@ form {
 
 
 /* --- Modal de Login/Registro --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
 .modal-content {
     background-color: var(--secondary-blue-dark);
     border: 1px solid var(--accent-blue);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
 }
-/* (O resto das regras do modal e de outras seções pode continuar o mesmo do CSS anterior) */
+.close-button {
+    color: var(--text-fade);
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--primary-blue-dark);
+    margin-bottom: 1rem;
+}
+.tab-button {
+    background: none;
+    border: none;
+    color: var(--text-fade);
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+.tab-button.active {
+    color: var(--accent-blue);
+    border-bottom: 2px solid var(--accent-blue);
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
 
 
 /* --- Dashboard --- */

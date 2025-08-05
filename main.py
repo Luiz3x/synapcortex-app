@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.0 - Integrado com Banco de Dados PostgreSQL (Neon)
+# Versão 2.1 - Corrigido nome da tabela do DB para AppUser
 # =================================================================================
 
 import os
@@ -17,9 +17,7 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 
-# [MUDANÇA] Configuração do Banco de Dados a partir da Environment Variable
 db_url = os.environ.get('DATABASE_URL')
-# Render pode injetar um db_url que começa com 'postgres://', SQLAlchemy prefere 'postgresql://'
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
@@ -29,8 +27,9 @@ db = SQLAlchemy(app)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# --- [MUDANÇA] MODELO DO BANCO DE DADOS (A Planta da nossa Tabela) ---
-class User(db.Model):
+# --- [CORREÇÃO] MODELO DO BANCO DE DADOS RENOMEADO ---
+class AppUser(db.Model):
+    __tablename__ = 'app_user' # Nome explícito da tabela para evitar problemas
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     senha_hash = db.Column(db.String(256), nullable=False)
@@ -43,19 +42,16 @@ class User(db.Model):
 
 # --- LÓGICA DE INICIALIZAÇÃO DO APP ---
 with app.app_context():
-    db.create_all() # Cria as tabelas se elas não existirem
-    # [MUDANÇA] Cria o usuário demo no banco de dados, se não existir
-    if not User.query.filter_by(email='demo@synapcortex.com').first():
+    db.create_all()
+    if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
         print(">>> Criando conta de demonstração no banco de dados...")
-        demo_user = User(
+        demo_user = AppUser(
             email='demo@synapcortex.com',
             senha_hash=generate_password_hash('demo'),
             nome_empresa='Loja de Demonstração',
             cnpj='00000000000000',
             api_key='chave_api_demo_123456',
-            configuracoes=json.dumps({
-                'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'
-            })
+            configuracoes=json.dumps({'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'})
         )
         db.session.add(demo_user)
         db.session.commit()
@@ -71,7 +67,7 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         senha = request.form.get('password')
-        user = User.query.filter_by(email=email).first() # [MUDANÇA] Busca no DB
+        user = AppUser.query.filter_by(email=email).first() # [CORREÇÃO]
         if user and check_password_hash(user.senha_hash, senha):
             session['logged_in'] = True
             session['email'] = user.email
@@ -85,22 +81,20 @@ def login():
 def registrar():
     if request.method == 'POST':
         email = request.form.get('email')
-        if User.query.filter_by(email=email).first(): # [MUDANÇA] Busca no DB
+        if AppUser.query.filter_by(email=email).first(): # [CORREÇÃO]
             flash('Este e-mail já está cadastrado. Tente fazer o login.', 'error')
             return redirect(url_for('registrar'))
         
-        new_user = User(
+        new_user = AppUser( # [CORREÇÃO]
             email=email,
             senha_hash=generate_password_hash(request.form.get('password')),
             nome_empresa=request.form.get('nome_empresa'),
             cnpj=request.form.get('cnpj'),
             api_key=secrets.token_hex(16),
-            configuracoes=json.dumps({
-                'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'
-            })
+            configuracoes=json.dumps({'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'})
         )
-        db.session.add(new_user) # [MUDANÇA] Adiciona ao DB
-        db.session.commit()     # [MUDANÇA] Salva no DB
+        db.session.add(new_user)
+        db.session.commit()
 
         session['logged_in'] = True
         session['email'] = new_user.email
@@ -115,13 +109,10 @@ def logout():
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('login'))
-    user = User.query.filter_by(email=session['email']).first() # [MUDANÇA] Busca no DB
+    user = AppUser.query.filter_by(email=session['email']).first() # [CORREÇÃO]
     if not user:
         session.clear(); return redirect(url_for('login'))
-    
-    # [MUDANÇA] Converte as configurações de texto JSON para um dicionário Python
     user_config = json.loads(user.configuracoes)
-    
     return render_template('dashboard.html', usuario=user, config=user_config)
 
 @app.route('/salvar-configuracoes', methods=['POST'])
@@ -130,23 +121,21 @@ def salvar_configuracoes():
     if not email_na_sessao: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
     if email_na_sessao == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta de demonstração, as alterações não são salvas.'}), 200
     
-    user = User.query.filter_by(email=email_na_sessao).first() # [MUDANÇA] Busca no DB
+    user = AppUser.query.filter_by(email=email_na_sessao).first() # [CORREÇÃO]
     if user:
         config_atual = json.loads(user.configuracoes)
         for chave, valor in request.form.items():
             config_atual[chave] = True if valor == 'on' else valor
-        
-        user.configuracoes = json.dumps(config_atual) # [MUDANÇA] Salva como texto JSON
+        user.configuracoes = json.dumps(config_atual)
         db.session.commit()
         return jsonify({'status': 'success', 'message': 'Configurações salvas!'}), 200
-
     return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
 
 @app.route('/api/get-client-config')
 def get_client_config():
     api_key = request.args.get('key')
     if not api_key: return jsonify({'error': 'API Key não fornecida'}), 400
-    user = User.query.filter_by(api_key=api_key).first() # [MUDANÇA] Busca no DB
+    user = AppUser.query.filter_by(api_key=api_key).first() # [CORREÇÃO]
     if user:
         return jsonify(json.loads(user.configuracoes))
     return jsonify({'error': 'API Key inválida'}), 404

@@ -1,126 +1,43 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        /* ... (todos os estilos anteriores do dashboard como cards, toggles, etc. continuam aqui) ... */
-        .platform-button { background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s ease; color: var(--text-color); font-size: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; min-height: 100px;}
-        .platform-button:hover { border-color: var(--accent-blue); transform: translateY(-5px); }
-        .platform-button .icon { font-size: 2.5rem; line-height: 1; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
-        
-        /* [NOVO] Estilos para o conteúdo do Guia de Ajuda */
-        .help-step {
-            text-align: left;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid #2a3b4c;
-        }
-        .help-step:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        .help-step strong {
-            color: var(--accent-blue);
-            font-size: 1.1rem;
-        }
-        .help-step img {
-            max-width: 100%;
-            border-radius: 5px;
-            margin-top: 1rem;
-            border: 1px solid #2a3b4c;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        </header>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... (lógica de copiar código e salvar form continua a mesma) ...
 
-    <div class="dashboard-container">
-        <div class="secao-painel">
-            <h3>Central de Ajuda Interativa</h3>
-            <p>Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo. Leva menos de 60 segundos!</p>
-            <div class="help-center-grid">
-                <button class="platform-button" data-platform="shopify"><span>🛒</span><span>Shopify</span></button>
-                <button class="platform-button" data-platform="woocommerce"><span>🎨</span><span>WooCommerce</span></button>
-                <button class="platform-button" data-platform="nuvemshop"><span>☁️</span><span>Nuvemshop</span></button>
-                <button class="platform-button" data-platform="universal"><span class="icon">&lt;/&gt;</span><span>Site Próprio / Universal</span></button>
-            </div>
-        </div>
+        // Lógica da Central de Ajuda ATUALIZADA
+        const helpModal = document.getElementById('helpModal');
+        // ... (outras variáveis do modal) ...
 
-        <div class="secao-painel">
-            <h3>Sua Chave de API e Código de Instalação</h3>
-            </div>
+        document.querySelectorAll('.platform-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const platform = this.dataset.platform;
+                let title = 'Guia de Instalação';
+                let content = '<p>As instruções para esta plataforma estarão disponíveis em breve!</p>';
+                let videoLink = '#'; // Link padrão
 
-        <form id="config-form">
-            </form>
-    </div>
-
-    <div id="helpModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 id="helpModalTitle"></h2>
-            <div id="helpModalContent" style="margin-top: 1.5rem; max-height: 60vh; overflow-y: auto; padding-right: 15px;">
-                </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // ... (javascript do botão copiar e do form de salvar) ...
-
-            // [ATUALIZADO] Lógica da Central de Ajuda com GIFs
-            const helpModal = document.getElementById('helpModal');
-            const helpModalTitle = document.getElementById('helpModalTitle');
-            const helpModalContent = document.getElementById('helpModalContent');
-            const closeModalBtn = helpModal.querySelector('.close-button');
-
-            document.querySelectorAll('.platform-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const platform = this.dataset.platform;
-                    let title = 'Guia de Instalação';
-                    let content = '<p>As instruções para esta plataforma estarão disponíveis em breve!</p>';
-
-                    if (platform === 'shopify') {
-                        title = 'Instalando na Shopify (Visual)';
-                        content = `
-                            <div class="help-step">
-                                <p><strong>Passo 1:</strong> No seu painel Shopify, clique em <strong>"Loja Virtual"</strong> e depois em <strong>"Temas"</strong>.</p>
-                                </div>
-                            <div class="help-step">
-                                <p><strong>Passo 2:</strong> No seu tema atual, clique no botão <strong>(...)</strong> e escolha <strong>"Editar código"</strong>.</p>
-                                <img src="https://i.imgur.com/vHqg2uL.gif" alt="Passo 2: Editar código">
-                            </div>
-                            <div class="help-step">
-                                <p><strong>Passo 3:</strong> Na pasta "Layout", clique no arquivo <strong>theme.liquid</strong>.</p>
-                                <img src="https://i.imgur.com/k2y2k1O.gif" alt="Passo 3: Encontrar theme.liquid">
-                            </div>
-                            <div class="help-step">
-                                <p><strong>Passo 4:</strong> Role até o final e cole o código da SynapCortex logo acima da tag <code>&lt;/body&gt;</code>.</p>
-                                <img src="https://i.imgur.com/2X8s14A.gif" alt="Passo 4: Colar o código">
-                            </div>
-                            <div class="help-step">
-                                <p><strong>Passo 5:</strong> Clique em <strong>"Salvar"</strong> no canto superior direito. Pronto!</p>
-                                <img src="https://i.imgur.com/V9Xm45N.gif" alt="Passo 5: Salvar">
-                            </div>
-                        `;
-                    } else if (platform === 'universal') {
-                        title = 'Instalação Universal (Qualquer Site HTML)';
-                        content = `<ol><li><strong>Encontre seu arquivo HTML principal.</li><li><strong>Localize a tag <code>&lt;/body&gt;</code>.</li><li><strong>Cole o Código</strong> acima da tag <code>&lt;/body&gt;</code>.</li><li><strong>Salve e publique.</strong> Pronto!</li></ol>`;
-                    }
-                    
-                    helpModalTitle.textContent = title;
-                    helpModalContent.innerHTML = content;
-                    helpModal.style.display = 'flex';
-                });
+                // Guia da Shopify
+                if (platform === 'shopify') {
+                    title = 'Instalando na Shopify (Visual)';
+                    videoLink = 'https://www.youtube.com/watch?v=SEU_VIDEO_SHOPIFY'; // Exemplo de link futuro
+                    content = ``;
+                } 
+                // Guia Universal
+                else if (platform === 'universal') {
+                    title = 'Instalação Universal (Qualquer Site HTML)';
+                    videoLink = 'https://www.youtube.com/watch?v=SEU_VIDEO_UNIVERSAL'; // Exemplo de link futuro
+                    content = `<ol><li><strong>Encontre seu arquivo HTML principal.</li><li><strong>Localize a tag <code>&lt;/body&gt;</code>.</li><li><strong>Cole o Código</strong> acima da tag.</li><li><strong>Salve e publique.</strong> Pronto!</li></ol>`;
+                }
+                
+                helpModalTitle.textContent = title;
+                // [NOVO] Adicionamos o link do vídeo ao final do conteúdo
+                helpModalContent.innerHTML = content + `
+                    <p style="margin-top: 2rem; font-size: 0.9rem; border-top: 1px solid #334155; padding-top: 1rem; text-align: center;">
+                        Prefere assistir? <a href="${videoLink}" target="_blank" style="color: var(--accent-blue);">Clique aqui para ver o tutorial em vídeo.</a>
+                    </p>
+                `;
+                helpModal.style.display = 'flex';
             });
-
-            closeModalBtn.onclick = () => { helpModal.style.display = 'none'; };
-            window.onclick = event => { if (event.target == helpModal) { helpModal.style.display = 'none'; } };
         });
-    </script>
+        // ... (lógica de fechar o modal continua a mesma) ...
+    });
+</script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.4 - Com todas as correções, incluindo CORS
+# Versão 2.5 - Com Conexão de Banco de Dados Blindada (Pool Pre-Ping)
 # =================================================================================
 
 import os
@@ -16,15 +16,18 @@ from flask_cors import CORS
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(16)
-
-# [CORREÇÃO] Configuração CORS: Permite que a nossa API seja acessada de qualquer lugar
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+# --- [CORREÇÃO] CONFIGURAÇÃO DE BANCO DE DADOS BLINDADA ---
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Estas 3 linhas são o nosso "despertador". Elas garantem que a conexão está sempre ativa.
+app.config['SQLALCHEMY_POOL_SIZE'] = 5
+app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
+app.config['SQLALCHEMY_POOL_PRE_PING'] = True
 
 db = SQLAlchemy(app)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
@@ -53,25 +56,22 @@ class AnalyticsEvent(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-# --- LÓGICA DE INICIALIZAÇÃO DO APP (COM REDE DE SEGURANÇA) ---
+# --- LÓGICA DE INICIALIZAÇÃO DO APP ---
 try:
     with app.app_context():
-        print(">>> [FASE 1] INICIANDO CRIAÇÃO DAS TABELAS DO BANCO DE DADOS...")
+        print(">>> INICIANDO CRIAÇÃO DAS TABELAS...")
         db.create_all()
-        print(">>> [FASE 1] TABELAS CRIADAS COM SUCESSO.")
-        
-        print(">>> [FASE 2] VERIFICANDO/CRIANDO CONTA DEMO...")
+        print(">>> TABELAS CRIADAS.")
         if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
-            print(">>> [FASE 2] CONTA DEMO NÃO ENCONTRADA. CRIANDO AGORA...")
-            demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456', configuracoes=json.dumps({'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'}))
+            print(">>> CRIANDO CONTA DEMO...")
+            demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456', configuracoes=json.dumps({'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore nosso painel.'}))
             db.session.add(demo_user)
             db.session.commit()
-            print(">>> [FASE 2] CONTA DEMO CRIADA COM SUCESSO!")
+            print(">>> CONTA DEMO CRIADA.")
         else:
-            print(">>> [FASE 2] CONTA DEMO JÁ EXISTE.")
+            print(">>> CONTA DEMO JÁ EXISTE.")
 except Exception as e:
-    print(f"!!!!!! ERRO CRÍTICO DURANTE A INICIALIZAÇÃO DO APP: {e} !!!!!!")
-
+    print(f"!!!!!! ERRO CRÍTICO DURANTE A INICIALIZAÇÃO: {e} !!!!!!")
 
 # --- ROTAS ---
 @app.route('/')
@@ -113,16 +113,14 @@ def registrar():
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('index'))
+    session.clear(); return redirect(url_for('index'))
 
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('login'))
     user = AppUser.query.filter_by(email=session['email']).first()
     if not user:
-        session.clear()
-        return redirect(url_for('login'))
+        session.clear(); return redirect(url_for('login'))
     user_config = json.loads(user.configuracoes)
     return render_template('dashboard.html', usuario=user, config=user_config)
 
@@ -150,15 +148,14 @@ def salvar_configuracoes():
 
 @app.route('/api/track', methods=['POST'])
 def track_event():
-    data = request.get_json()
+    data = request.get_json();
     if not data: return jsonify({'error': 'Requisição sem dados.'}), 400
     api_key = data.get('apiKey'); visitor_id = data.get('visitorId'); event_name = data.get('eventName')
     if not all([api_key, visitor_id, event_name]): return jsonify({'error': 'Dados incompletos.'}), 400
     user = AppUser.query.filter_by(api_key=api_key).first()
     if not user: return jsonify({'error': 'API Key inválida.'}), 403
     new_event = AnalyticsEvent(owner_id=user.id, visitor_id=visitor_id, event_name=event_name, event_data=json.dumps(data.get('eventData', {})))
-    db.session.add(new_event)
-    db.session.commit()
+    db.session.add(new_event); db.session.commit()
     return jsonify({'status': 'ok'}), 200
 
 @app.route('/api/get-client-config')

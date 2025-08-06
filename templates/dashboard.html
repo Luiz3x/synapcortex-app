@@ -1,43 +1,159 @@
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // ... (lógica de copiar código e salvar form continua a mesma) ...
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .quarto-card { background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+        .quarto-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+        .quarto-header h4 { margin: 0; display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 600; color: var(--text-color); }
+        .quarto-description { color: var(--text-fade); margin-top: 0.5rem; font-size: 0.9rem; }
+        .quarto-content { margin-top: 1.5rem; border-top: 1px solid #2a3b4c; padding-top: 1.5rem; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .help-center-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .platform-button { background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s ease; color: var(--text-color); font-size: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; min-height: 100px;}
+        .platform-button:hover { border-color: var(--accent-blue); transform: translateY(-5px); }
+        .platform-button .icon { font-size: 2.5rem; line-height: 1; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+        .modal-content { background-color: var(--secondary-blue-dark); padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
+        .close-button { color: var(--text-fade); position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" style="height: 40px;"></a>
+            <span style="color: var(--text-fade);">Painel de: {{ usuario.nome_empresa }}</span>
+            <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
+        </nav>
+    </header>
 
-        // Lógica da Central de Ajuda ATUALIZADA
-        const helpModal = document.getElementById('helpModal');
-        // ... (outras variáveis do modal) ...
+    <div class="dashboard-container">
+        <div class="secao-painel">
+            <h3>Visão Geral</h3>
+            <div class="status-message"><p>Sua assinatura está ativa.</p></div>
+        </div>
 
-        document.querySelectorAll('.platform-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const platform = this.dataset.platform;
-                let title = 'Guia de Instalação';
-                let content = '<p>As instruções para esta plataforma estarão disponíveis em breve!</p>';
-                let videoLink = '#'; // Link padrão
+        <div class="secao-painel">
+            <h3>Central de Ajuda Interativa</h3>
+            <p>Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
+            <div class="help-center-grid">
+                <button class="platform-button" data-platform="shopify"><span>🛒</span><span>Shopify</span></button>
+                <button class="platform-button" data-platform="woocommerce"><span>🎨</span><span>WooCommerce</span></button>
+                <button class="platform-button" data-platform="nuvemshop"><span>☁️</span><span>Nuvemshop</span></button>
+                <button class="platform-button" data-platform="universal"><span class="icon">&lt;/&gt;</span><span>Site Próprio / Universal</span></button>
+            </div>
+        </div>
 
-                // Guia da Shopify
-                if (platform === 'shopify') {
-                    title = 'Instalando na Shopify (Visual)';
-                    videoLink = 'https://www.youtube.com/watch?v=SEU_VIDEO_SHOPIFY'; // Exemplo de link futuro
-                    content = ``;
-                } 
-                // Guia Universal
-                else if (platform === 'universal') {
-                    title = 'Instalação Universal (Qualquer Site HTML)';
-                    videoLink = 'https://www.youtube.com/watch?v=SEU_VIDEO_UNIVERSAL'; // Exemplo de link futuro
-                    content = `<ol><li><strong>Encontre seu arquivo HTML principal.</li><li><strong>Localize a tag <code>&lt;/body&gt;</code>.</li><li><strong>Cole o Código</strong> acima da tag.</li><li><strong>Salve e publique.</strong> Pronto!</li></ol>`;
-                }
-                
-                helpModalTitle.textContent = title;
-                // [NOVO] Adicionamos o link do vídeo ao final do conteúdo
-                helpModalContent.innerHTML = content + `
-                    <p style="margin-top: 2rem; font-size: 0.9rem; border-top: 1px solid #334155; padding-top: 1rem; text-align: center;">
-                        Prefere assistir? <a href="${videoLink}" target="_blank" style="color: var(--accent-blue);">Clique aqui para ver o tutorial em vídeo.</a>
-                    </p>
-                `;
-                helpModal.style.display = 'flex';
+        <div class="secao-painel">
+            <h3>Sua Chave de API e Código de Instalação</h3>
+            <div class="input-group" style="margin-top: 1.5rem;">
+                <label for="codigo-instalacao">Seu código de instalação:</label>
+                <textarea id="codigo-instalacao" rows="4" readonly style="font-family: monospace;">&lt;script id="synapcortex-spy-script" src="https://synapcortex-app.onrender.com/static/js/spy.js?key={{ usuario.api_key }}" data-backend-url="https://synapcortex-app.onrender.com" defer&gt;&lt;/script&gt;</textarea>
+            </div>
+            <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
+        </div>
+
+        <form id="config-form">
+            <div class="secao-painel">
+                <h3>Arsenal de Gatilhos (Seus Quartos)</h3>
+                <p>Ative e configure os gatilhos para recuperar seus clientes.</p>
+                <div class="quarto-card" style="border: 2px solid var(--accent-blue);">
+                    <div class="quarto-header"><h4>⭐ Gatilho Principal: Abandono de Site</h4><label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label></div>
+                    <p class="quarto-description">A tática mais poderosa para recuperar vendas quando o cliente ameaça sair.</p>
+                    <div class="quarto-content">
+                        <div class="input-group"><label for="popup_titulo">Título do Pop-up:</label><input type="text" id="popup_titulo" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
+                        <div class="input-group"><label for="popup_mensagem">Mensagem do Pop-up:</label><textarea id="popup_mensagem" name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
+                    </div>
+                </div>
+                <div class="quarto-card">
+                    <div class="quarto-header"><h4>👋 Quarto "Bem-vindo de Volta"</h4><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label></div>
+                    <p class="quarto-description">Mostra uma mensagem especial para visitantes que retornam ao seu site.</p>
+                    <div class="quarto-content">
+                        <div class="input-group"><label for="msg_bem_vindo">Mensagem para o visitante que retorna:</label><textarea id="msg_bem_vindo" name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo', '') }}</textarea></div>
+                    </div>
+                </div>
+                <div class="quarto-card">
+                    <div class="quarto-header"><h4>🎯 Quarto do "Interessado"</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div>
+                    <p class="quarto-description">Mostra uma mensagem se o cliente fica muito tempo inativo na página.</p>
+                    <div class="quarto-content">
+                        <div class="input-group"><label for="msg_interessado">Mensagem para o visitante inativo:</label><textarea id="msg_interessado" name="msg_interessado" rows="3">{{ config.get('msg_interessado', '') }}</textarea></div>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="cta-button">Salvar Todas as Configurações</button>
+        </form>
+    </div>
+
+    <div id="helpModal" class="modal"><div class="modal-content"><span class="close-button">&times;</span><h2 id="helpModalTitle"></h2><div id="helpModalContent"></div></div></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const copiarBtn = document.getElementById('copiar-codigo-btn');
+            const codigoTextarea = document.getElementById('codigo-instalacao');
+            if (copiarBtn) {
+                copiarBtn.addEventListener('click', function() {
+                    codigoTextarea.select();
+                    document.execCommand('copy');
+                    copiarBtn.textContent = 'Copiado!';
+                    setTimeout(() => { copiarBtn.textContent = 'Copiar Código'; }, 2000);
+                });
+            }
+
+            const configForm = document.getElementById('config-form');
+            if (configForm) {
+                configForm.addEventListener('submit', function(event) {
+                    event.preventDefault(); 
+                    const formData = new FormData(configForm);
+                    const saveButton = configForm.querySelector('button[type="submit"]');
+                    fetch('/salvar-configuracoes', { method: 'POST', body: new URLSearchParams(formData) })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            saveButton.textContent = 'Salvo com Sucesso!';
+                            saveButton.style.backgroundColor = '#28a745';
+                            setTimeout(() => { window.location.reload(); }, 1500);
+                        } else if (data.status === 'info') {
+                            alert(data.message);
+                        } else {
+                            alert('Ocorreu um erro ao salvar.');
+                        }
+                    })
+                    .catch(error => { alert('Erro de comunicação.'); });
+                });
+            }
+
+            const helpModal = document.getElementById('helpModal');
+            const helpModalTitle = document.getElementById('helpModalTitle');
+            const helpModalContent = document.getElementById('helpModalContent');
+            const closeModalBtn = helpModal.querySelector('.close-button');
+            document.querySelectorAll('.platform-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const platform = this.dataset.platform;
+                    let title = 'Guia de Instalação';
+                    let content = '<p>As instruções para esta plataforma estarão disponíveis em breve!</p>';
+                    if (platform === 'shopify') {
+                        title = 'Instalando na Shopify';
+                        content = `<ol><li>Acesse "Loja Virtual" > "Temas".</li><li>Clique em (...) e escolha "Editar código".</li><li>Em "Layout", clique no arquivo 'theme.liquid'.</li><li>Cole o seu código acima da tag <code>&lt;/body&gt;</code>.</li><li>Salve. Pronto!</li></ol>`;
+                    } else if (platform === 'universal') {
+                        title = 'Instalação Universal (Qualquer Site HTML)';
+                        content = `<ol><li>Encontre seu arquivo HTML principal.</li><li>Localize a tag <code>&lt;/body&gt;</code>.</li><li>Cole o seu código acima da tag.</li><li>Salve e publique.</li></ol>`;
+                    }
+                    helpModalTitle.textContent = title;
+                    helpModalContent.innerHTML = content;
+                    helpModal.style.display = 'flex';
+                });
             });
+            closeModalBtn.onclick = () => { helpModal.style.display = 'none'; };
+            window.onclick = event => { if (event.target == helpModal) { helpModal.style.display = 'none'; } };
         });
-        // ... (lógica de fechar o modal continua a mesma) ...
-    });
-</script>
+    </script>
 </body>
 </html>

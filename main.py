@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.3 - Com Diagnóstico Avançado na Inicialização
+# Versão 2.4 - Com todas as correções, incluindo CORS
 # =================================================================================
 
 import os
@@ -17,6 +17,9 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 
+# [CORREÇÃO] Configuração CORS: Permite que a nossa API seja acessada de qualquer lugar
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -25,7 +28,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 
 # --- MODELOS DO BANCO DE DADOS ---
 class AppUser(db.Model):
@@ -60,14 +63,7 @@ try:
         print(">>> [FASE 2] VERIFICANDO/CRIANDO CONTA DEMO...")
         if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
             print(">>> [FASE 2] CONTA DEMO NÃO ENCONTRADA. CRIANDO AGORA...")
-            demo_user = AppUser(
-                email='demo@synapcortex.com',
-                senha_hash=generate_password_hash('demo'),
-                nome_empresa='Loja de Demonstração',
-                cnpj='00000000000000',
-                api_key='chave_api_demo_123456',
-                configuracoes=json.dumps({'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'})
-            )
+            demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456', configuracoes=json.dumps({'popup_titulo': 'Bem-vindo à Demo!', 'popup_mensagem': 'Explore nosso painel.'}))
             db.session.add(demo_user)
             db.session.commit()
             print(">>> [FASE 2] CONTA DEMO CRIADA COM SUCESSO!")
@@ -78,8 +74,6 @@ except Exception as e:
 
 
 # --- ROTAS ---
-# (Todas as rotas, como /, /login, /registrar, /dashboard, etc., continuam exatamente as mesmas da Versão 2.1)
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -107,14 +101,7 @@ def registrar():
             flash('Este e-mail já está cadastrado. Tente fazer o login.', 'error')
             return redirect(url_for('registrar'))
         
-        new_user = AppUser(
-            email=email,
-            senha_hash=generate_password_hash(request.form.get('password')),
-            nome_empresa=request.form.get('nome_empresa'),
-            cnpj=request.form.get('cnpj'),
-            api_key=secrets.token_hex(16),
-            configuracoes=json.dumps({'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'})
-        )
+        new_user = AppUser(email=email, senha_hash=generate_password_hash(request.form.get('password')), nome_empresa=request.form.get('nome_empresa'), cnpj=request.form.get('cnpj'), api_key=secrets.token_hex(16), configuracoes=json.dumps({'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'}))
         db.session.add(new_user)
         db.session.commit()
 
@@ -126,14 +113,16 @@ def registrar():
 
 @app.route('/logout')
 def logout():
-    session.clear(); return redirect(url_for('index'))
+    session.clear()
+    return redirect(url_for('index'))
 
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('login'))
     user = AppUser.query.filter_by(email=session['email']).first()
     if not user:
-        session.clear(); return redirect(url_for('login'))
+        session.clear()
+        return redirect(url_for('login'))
     user_config = json.loads(user.configuracoes)
     return render_template('dashboard.html', usuario=user, config=user_config)
 

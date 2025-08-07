@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.5 - Com Conexão de Banco de Dados Blindada (Pool Pre-Ping)
+# Versão 2.6 - Com Cálculo de Métricas no Dashboard
 # =================================================================================
 
 import os
@@ -18,13 +18,11 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# --- [CORREÇÃO] CONFIGURAÇÃO DE BANCO DE DADOS BLINDADA ---
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Estas 3 linhas são o nosso "despertador". Elas garantem que a conexão está sempre ativa.
 app.config['SQLALCHEMY_POOL_SIZE'] = 5
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
 app.config['SQLALCHEMY_POOL_PRE_PING'] = True
@@ -59,17 +57,11 @@ class AnalyticsEvent(db.Model):
 # --- LÓGICA DE INICIALIZAÇÃO DO APP ---
 try:
     with app.app_context():
-        print(">>> INICIANDO CRIAÇÃO DAS TABELAS...")
         db.create_all()
-        print(">>> TABELAS CRIADAS.")
         if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
-            print(">>> CRIANDO CONTA DEMO...")
             demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456', configuracoes=json.dumps({'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore nosso painel.'}))
             db.session.add(demo_user)
             db.session.commit()
-            print(">>> CONTA DEMO CRIADA.")
-        else:
-            print(">>> CONTA DEMO JÁ EXISTE.")
 except Exception as e:
     print(f"!!!!!! ERRO CRÍTICO DURANTE A INICIALIZAÇÃO: {e} !!!!!!")
 
@@ -81,10 +73,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
-        senha = request.form.get('password')
-        user = AppUser.query.filter_by(email=email).first()
-        if user and check_password_hash(user.senha_hash, senha):
+        user = AppUser.query.filter_by(email=request.form.get('email')).first()
+        if user and check_password_hash(user.senha_hash, request.form.get('password')):
             session['logged_in'] = True
             session['email'] = user.email
             return redirect(url_for('dashboard'))
@@ -98,7 +88,7 @@ def registrar():
     if request.method == 'POST':
         email = request.form.get('email')
         if AppUser.query.filter_by(email=email).first():
-            flash('Este e-mail já está cadastrado. Tente fazer o login.', 'error')
+            flash('Este e-mail já está cadastrado.', 'error')
             return redirect(url_for('registrar'))
         
         new_user = AppUser(email=email, senha_hash=generate_password_hash(request.form.get('password')), nome_empresa=request.form.get('nome_empresa'), cnpj=request.form.get('cnpj'), api_key=secrets.token_hex(16), configuracoes=json.dumps({'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'}))
@@ -118,11 +108,20 @@ def logout():
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('login'))
+    
     user = AppUser.query.filter_by(email=session['email']).first()
     if not user:
         session.clear(); return redirect(url_for('login'))
+
+    # --- [NOVO] LÓGICA DE ANALYTICS ---
+    popups_exibidos = AnalyticsEvent.query.filter_by(owner_id=user.id, event_name='popup_exibido').count()
+    
     user_config = json.loads(user.configuracoes)
-    return render_template('dashboard.html', usuario=user, config=user_config)
+    
+    return render_template('dashboard.html', 
+                           usuario=user, 
+                           config=user_config,
+                           popups_exibidos=popups_exibidos)
 
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():

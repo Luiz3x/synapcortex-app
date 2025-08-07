@@ -1,11 +1,11 @@
-html, body {
-    height: 100%;
-}
-/* VERSÃO FINAL CALIBRADA - COM ALINHAMENTO CORRIGIDO */
+/* =================================================================================
+   SYNAPCORTEX - FOLHA DE ESTILO MESTRA
+   Versão 1.0 - Consolidada e Organizada
+   ================================================================================= */
 
-/* --- Variáveis de Cor e Fontes (Ajuste Fino) --- */
+/* --- Variáveis de Cor e Fontes --- */
 :root {
-    --primary-blue-dark: #050a14; 
+    --primary-blue-dark: #050a14;
     --secondary-blue-dark: #101c2c;
     --accent-blue: #00bfff;
     --text-color: #f0f0f0;
@@ -29,25 +29,31 @@ body {
     line-height: 1.6;
 }
 
-/* --- Estilos do Header e Navegação --- */
+a {
+    color: var(--accent-blue);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Header e Navegação --- */
 header {
     background-color: var(--secondary-blue-dark);
     padding: 1rem 5%;
     border-bottom: 1px solid #1f2d3d;
 }
-
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
 nav .logo img {
     height: 40px;
     vertical-align: middle;
 }
 
-/* --- Estilos de Botões (Ajuste Fino) --- */
+/* --- Botões --- */
 .login-register-button, .cta-button, .modal button, #submit-button {
     background-color: var(--accent-blue);
     color: var(--primary-blue-dark);
@@ -60,28 +66,25 @@ nav .logo img {
     font-size: 1.05rem;
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
-
 .login-register-button:hover, .cta-button:hover, .modal button:hover, #submit-button:hover {
     background-color: #00a4d3;
     transform: scale(1.03);
 }
 
-/* --- Container Principal e Conteúdo (COM CORREÇÃO DE ALINHAMENTO) --- */
+/* --- Layout e Containers --- */
 .main-content {
     display: flex; 
     flex-direction: column;
     align-items: center;   
     justify-content: center; 
-    min-height: 80vh; 
+    min-height: calc(100vh - 75px); /* 100% da altura da tela menos o header */
     padding: 2rem 1rem;
 }
-
 .dashboard-container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 2rem;
 }
-
 .login-container {
     max-width: 500px;
     width: 100%; 
@@ -91,149 +94,66 @@ nav .logo img {
     text-align: center;
     border: 1px solid #1f2d3d;
 }
-
 .login-logo {
     width: 80px;
     margin-bottom: 1.5rem;
 }
 
+/* --- Títulos --- */
 h1 { font-size: 2.5rem; color: var(--text-color); margin-bottom: 1rem; }
 h2 { font-size: 1.8rem; color: var(--accent-blue); margin-bottom: 1rem; }
 h3 { font-size: 1.5rem; color: var(--accent-blue); margin-bottom: 1rem; }
 
-
 /* --- Formulários --- */
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-fade);
-    font-weight: 500;
-}
-
+form { display: flex; flex-direction: column; gap: 1.2rem; }
+.input-group { text-align: left; }
+.input-group label { display: block; margin-bottom: 8px; color: var(--text-fade); font-weight: 500; }
 .input-group input, .input-group textarea {
-    width: 100%;
-    padding: 14px;
-    background-color: var(--primary-blue-dark);
-    border: 1px solid #2a3b4c;
-    border-radius: 5px;
-    color: var(--text-color);
-    font-size: 1rem;
+    width: 100%; padding: 14px; background-color: var(--primary-blue-dark);
+    border: 1px solid #2a3b4c; border-radius: 5px; color: var(--text-color); font-size: 1rem;
 }
+.input-group input:focus, .input-group textarea:focus { outline: none; border-color: var(--accent-blue); }
+.error-message { color: var(--error-red); background-color: rgba(255, 77, 77, 0.1); padding: 10px; border-radius: 5px; text-align: center; margin-top: 1rem; }
 
-.input-group input:focus, .input-group textarea:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-}
+/* --- Seções do Painel --- */
+.secao-painel { background-color: var(--secondary-blue-dark); padding: 2rem; border-radius: 10px; margin-bottom: 2rem; border: 1px solid #1f2d3d; }
+.status-message { padding: 1rem; background-color: rgba(0, 191, 255, 0.1); border-left: 4px solid var(--accent-blue); border-radius: 4px; }
 
+/* --- Central de Ajuda --- */
+.help-center-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.platform-button {
+    background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 8px;
+    padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s ease; color: var(--text-color);
+    font-size: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.5rem; min-height: 100px;
+}
+.platform-button:hover { border-color: var(--accent-blue); transform: translateY(-5px); }
+.platform-button .icon { font-size: 2.5rem; line-height: 1; }
 
-/* --- Modal de Login/Registro --- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.7);
-    justify-content: center;
-    align-items: center;
-}
-.modal-content {
-    background-color: var(--secondary-blue-dark);
-    border: 1px solid var(--accent-blue);
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    position: relative;
-}
-.close-button {
-    color: var(--text-fade);
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.modal-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--primary-blue-dark);
-    margin-bottom: 1rem;
-}
-.tab-button {
-    background: none;
-    border: none;
-    color: var(--text-fade);
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 1.1rem;
-}
-.tab-button.active {
-    color: var(--accent-blue);
-    border-bottom: 2px solid var(--accent-blue);
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-}
+/* --- Arsenal de Gatilhos ("Quartos") --- */
+.quarto-card { background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+.quarto-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.quarto-header h4 { margin: 0; display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 600; color: var(--text-color); }
+.quarto-description { color: var(--text-fade); margin-top: 0.5rem; font-size: 0.9rem; }
+.quarto-content { margin-top: 1.5rem; border-top: 1px solid #2a3b4c; padding-top: 1.5rem; }
 
+/* --- Toggle Switch --- */
+.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent-blue); }
+input:checked + .slider:before { transform: translateX(26px); }
 
-/* --- Dashboard --- */
-.secao-painel {
-    background-color: var(--secondary-blue-dark);
-    padding: 2rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
-    border: 1px solid #1f2d3d;
-}
-
-.status-message {
-    padding: 1rem;
-    background-color: rgba(0, 191, 255, 0.1);
-    border-left: 4px solid var(--accent-blue);
-    margin-bottom: 1.5rem;
-    border-radius: 4px;
-}
-
-/* --- Pagamento Pendente --- */
-.pagamento-container #card-element {
-    background-color: var(--primary-blue-dark);
-    padding: 15px;
-    border-radius: 5px;
-    border: 1px solid #2a3b4c;
-    margin-bottom: 1.5rem;
-}
-.pagamento-container #card-errors {
-    color: var(--error-red);
-    margin-bottom: 1rem;
-    min-height: 20px;
-}
+/* --- Modals (Login/Registro, Ajuda) --- */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+.modal-content { background-color: var(--secondary-blue-dark); padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; }
+.close-button { color: var(--text-fade); position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
 
 /* --- Responsividade --- */
 @media (max-width: 768px) {
-    .main-content, .dashboard-container {
-        padding: 0 1rem;
-    }
-    .modal-content {
-        padding: 1.5rem;
-    }
+    .dashboard-container { padding: 0 1rem; }
+    .modal-content { padding: 1.5rem; }
     h1 { font-size: 2rem; }
     h2 { font-size: 1.5rem; }
-}
-/* Para ajustar a imagem do cérebro */
-.cerebro-animado {
-  width: 100%;           /* Mantém a responsividade */
-  max-width: 280px;      /* Altere este valor para o tamanho que achar ideal (ex: 300px, 250px) */
-  margin-bottom: 1.5rem; /* Ajuste o espaçamento abaixo, se necessário */
 }

@@ -36,28 +36,10 @@
     </header>
 
     <div class="dashboard-container">
-        
         <div class="secao-painel">
-            <h3>Visão Geral (O Cérebro da Operação)</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2rem; text-align: center; margin-top: 1.5rem;">
-                <div>
-                    <h4 style="color: var(--text-fade); font-weight: 500;">Pop-ups Exibidos</h4>
-                    <p style="font-size: 2.5rem; font-weight: 700; color: var(--accent-blue);">{{ popups_exibidos }}</p>
-                    <small>(Total)</small>
-                </div>
-                <div>
-                    <h4 style="color: var(--text-fade); font-weight: 500;">Clientes Recuperados</h4>
-                    <p style="font-size: 2.5rem; font-weight: 700;">0</p>
-                    <small>(Em breve)</small>
-                </div>
-                <div>
-                    <h4 style="color: var(--text-fade); font-weight: 500;">Taxa de Conversão</h4>
-                    <p style="font-size: 2.5rem; font-weight: 700;">0.00%</p>
-                    <small>(Em breve)</small>
-                </div>
-            </div>
+            <h3>Visão Geral</h3>
+            <div class="status-message"><p>Sua assinatura está ativa.</p></div>
         </div>
-
         <div class="secao-painel">
             <h3>Central de Ajuda Interativa</h3>
             <p>Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
@@ -68,7 +50,6 @@
                 <button class="platform-button" data-platform="universal"><span class="icon">&lt;/&gt;</span><span>Site Próprio / Universal</span></button>
             </div>
         </div>
-
         <div class="secao-painel">
             <h3>Sua Chave de API e Código de Instalação</h3>
             <div class="input-group" style="margin-top: 1.5rem;">
@@ -82,7 +63,6 @@
             </div>
             <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
         </div>
-
         <form id="config-form">
             <div class="secao-painel">
                 <h3>Arsenal de Gatilhos (Seus Quartos)</h3>
@@ -103,7 +83,7 @@
                     </div>
                 </div>
                 <div class="quarto-card">
-                    <div class="quarto-header"><h4>🎯 Quarto do "Interesado"</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div>
+                    <div class="quarto-header"><h4>🎯 Quarto do "Interessado"</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div>
                     <p class="quarto-description">Mostra uma mensagem se o cliente fica muito tempo inativo na página.</p>
                     <div class="quarto-content">
                         <div class="input-group"><label for="msg_interessado">Mensagem para o visitante inativo:</label><textarea id="msg_interessado" name="msg_interessado" rows="3">{{ config.get('msg_interessado', '') }}</textarea></div>
@@ -113,12 +93,75 @@
             <button type="submit" class="cta-button">Salvar Todas as Configurações</button>
         </form>
     </div>
-
     <div id="helpModal" class="modal"><div class="modal-content"><span class="close-button">&times;</span><h2 id="helpModalTitle"></h2><div id="helpModalContent"></div></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ... (coloque aqui todo o JavaScript completo da versão 2.4 que te enviei)
+            const copiarBtn = document.getElementById('copiar-codigo-btn');
+            if (copiarBtn) {
+                const codigoTextarea = document.getElementById('codigo-instalacao');
+                copiarBtn.addEventListener('click', function() {
+                    codigoTextarea.select();
+                    document.execCommand('copy');
+                    copiarBtn.textContent = 'Copiado!';
+                    setTimeout(() => { copiarBtn.textContent = 'Copiar Código'; }, 2000);
+                });
+            }
+
+            const configForm = document.getElementById('config-form');
+            if (configForm) {
+                configForm.addEventListener('submit', function(event) {
+                    event.preventDefault(); 
+                    const formData = new FormData(configForm);
+                    const saveButton = configForm.querySelector('button[type="submit"]');
+                    fetch('/salvar-configuracoes', { method: 'POST', body: new URLSearchParams(formData) })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            saveButton.textContent = 'Salvo com Sucesso!';
+                            saveButton.style.backgroundColor = '#28a745';
+                            setTimeout(() => { window.location.reload(); }, 1500);
+                        } else if (data.status === 'info') {
+                            alert(data.message);
+                        } else {
+                            alert('Ocorreu um erro ao salvar.');
+                        }
+                    })
+                    .catch(error => { alert('Erro de comunicação.'); });
+                });
+            }
+
+            const helpModal = document.getElementById('helpModal');
+            if(helpModal) {
+                const helpModalTitle = document.getElementById('helpModalTitle');
+                const helpModalContent = document.getElementById('helpModalContent');
+                const closeModalBtn = helpModal.querySelector('.close-button');
+                document.querySelectorAll('.platform-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const platform = this.dataset.platform;
+                        let title = 'Guia de Instalação';
+                        let content = '<p>As instruções para esta plataforma estarão disponíveis em breve!</p>';
+                        if (platform === 'shopify') {
+                            title = 'Instalando na Shopify';
+                            content = `<ol><li>Acesse "Loja Virtual" > "Temas".</li><li>Clique em (...) e escolha "Editar código".</li><li>Em "Layout", clique no arquivo 'theme.liquid'.</li><li>Cole o seu código acima da tag <code>&lt;/body&gt;</code>.</li><li>Salve. Pronto!</li></ol>`;
+                        } else if (platform === 'woocommerce') {
+                            title = 'Instalando no WooCommerce (WordPress)';
+                            content = `<ol><li>No seu painel WordPress, vá em "Aparência" > "Editor de Arquivos de Tema".</li><li>Um aviso pode aparecer, clique em "Entendi".</li><li>Na lista à direita, encontre e clique em "Rodapé do Tema (footer.php)".</li><li>Cole o seu código acima da tag <code>&lt;/body&gt;</code>.</li><li>Clique em "Atualizar arquivo". Pronto!</li></ol>`;
+                        } else if (platform === 'nuvemshop') {
+                            title = 'Instalando na Nuvemshop';
+                            content = `<ol><li>No painel da sua Nuvemshop, no menu da esquerda, clique em "Configurações".</li><li>Procure pela opção "Códigos externos" e clique nela.</li><li>Role até a seção "Códigos de rastreamento".</li><li>Cole o seu código SynapCortex dentro da caixa que diz "No corpo do site".</li><li>Clique em "Salvar alterações". Pronto!</li></ol>`;
+                        } else if (platform === 'universal') {
+                            title = 'Instalação Universal (Qualquer Site HTML)';
+                            content = `<ol><li>Encontre seu arquivo HTML principal.</li><li>Localize a tag <code>&lt;/body&gt;</code>.</li><li>Cole o seu código acima da tag.</li><li>Salve e publique.</li></ol>`;
+                        }
+                        helpModalTitle.textContent = title;
+                        helpModalContent.innerHTML = content;
+                        helpModal.style.display = 'flex';
+                    });
+                });
+                closeModalBtn.onclick = () => { helpModal.style.display = 'none'; };
+                window.onclick = event => { if (event.target == helpModal) { helpModal.style.display = 'none'; } };
+            }
         });
     </script>
 </body>

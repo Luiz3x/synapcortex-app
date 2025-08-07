@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.6 - COMPLETA E ESTÁVEL COM ANALYTICS
+# Versão Final Estável
 # =================================================================================
 import os, json, secrets
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash

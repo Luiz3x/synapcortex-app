@@ -1,14 +1,9 @@
-# wsgi.py (Versão "Caça-Fantasmas")
+# wsgi.py (Versão FINAL E CORRIGIDA)
 
 from main import app
 from whitenoise import WhiteNoise
-import os
 
-# Cria o caminho absoluto para a pasta 'static'.
-static_path = os.path.join(os.path.dirname(__file__), 'static')
-
-# Envolve a aplicação Flask com o WhiteNoise.
-application = WhiteNoise(app)
-
-# Adiciona explicitamente os arquivos da sua pasta static, servindo-os sob o prefixo '/static/'
-application.add_files(static_path, prefix='static/')
+# O WhiteNoise "envolve" nossa aplicação principal para gerenciar os arquivos estáticos.
+# O mais importante é que o resultado final continue na variável 'app'.
+# Assim, a Render encontra exatamente o que o comando 'gunicorn wsgi:app' está procurando.
+app = WhiteNoise(app, root='static/')

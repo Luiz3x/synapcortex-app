@@ -1,102 +1,105 @@
 // =================================================================================
 // SYNAPCORTEX - SCRIPT MESTRE (VERSÃO PENTE FINO)
-// Versão 3.0 - Arquitetura unificada e final com todas as lógicas corrigidas.
+// Versão 3.0 - Arquitetura unificada e final com todas as lógicas.
 // =================================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    // =============================================================================
-    // PARTE 1: O AGENTE SYNAPSE (SÓ RODA NO SITE DO CLIENTE)
-    // =============================================================================
-    const synapseAgent = {
-        apiKey: null,
-        backendUrl: null,
-        visitorId: null,
-
-        init: function() {
-            const scriptTag = document.getElementById('synapcortex-spy-script');
-            if (!scriptTag) return false;
-            
-            const scriptUrl = new URL(scriptTag.src);
-            const key = scriptUrl.searchParams.get('key');
-            if (!key) return false;
-
-            this.apiKey = key;
-            this.backendUrl = scriptTag.dataset.backendUrl || 'https://synapcortex-app.onrender.com';
-            
-            let storedVisitorId = localStorage.getItem('synapcortex_visitor_id');
-            if (!storedVisitorId) {
-                storedVisitorId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('synapcortex_visitor_id', storedVisitorId);
-            }
-            this.visitorId = storedVisitorId;
-            return true;
-        },
-
-        trackEvent: function(eventName, eventData = {}) {
-            if (!this.apiKey) return;
-            const payload = {
-                apiKey: this.apiKey, visitorId: this.visitorId,
-                eventName: eventName, eventData: eventData
-            };
-            fetch(`${this.backendUrl}/api/track`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload), keepalive: true
-            }).catch(err => console.error("SynapCortex: Falha ao enviar relatório.", err));
-        }
-    };
-
-    // --- BLOCO DE EXECUÇÃO PRINCIPAL DO ESPIÃO ---
+    // Tenta inicializar o agente espião. Se conseguir, para a execução aqui.
     if (synapseAgent.init()) {
+        runSynapseAgent();
+        return; 
+    }
+    
+    // Se não for o espião, executa a lógica do nosso site/painel.
+    runSynapCortexSiteLogic();
+});
+
+// =============================================================================
+// PARTE 1: O AGENTE SYNAPSE (SÓ RODA NO SITE DO CLIENTE)
+// =============================================================================
+const synapseAgent = {
+    apiKey: null,
+    backendUrl: null,
+    visitorId: null,
+    init: function() {
+        const scriptTag = document.getElementById('synapcortex-spy-script');
+        if (!scriptTag) return false;
         
-        let popupMostradoNestaSessao = false;
-        function mostrarPopup(motivo, titulo, mensagem) {
-            if (popupMostradoNestaSessao) return;
-            popupMostradoNestaSessao = true;
-            synapseAgent.trackEvent('popup_exibido', { gatilho: motivo });
+        const scriptUrl = new URL(scriptTag.src);
+        const key = scriptUrl.searchParams.get('key');
+        if (!key) return false;
 
-            const popupContainer = document.createElement('div');
-            popupContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;';
-            const popupContent = document.createElement('div');
-            popupContent.style.cssText = 'background-color: white; padding: 20px 30px; border-radius: 8px; text-align: center; max-width: 400px; color: #333;';
-            popupContent.innerHTML = `<h2>${titulo}</h2><p>${mensagem}</p><button id="synapcortex-close-popup" style="margin-top: 15px; padding: 10px 20px; border: none; background-color: #333; color: white; border-radius: 5px; cursor: pointer;">Fechar</button>`;
-            popupContainer.appendChild(popupContent);
-            document.body.appendChild(popupContainer);
+        this.apiKey = key;
+        this.backendUrl = scriptTag.dataset.backendUrl || 'https://synapcortex-app.onrender.com';
+        
+        let storedVisitorId = localStorage.getItem('synapcortex_visitor_id');
+        if (!storedVisitorId) {
+            storedVisitorId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('synapcortex_visitor_id', storedVisitorId);
+        }
+        this.visitorId = storedVisitorId;
+        return true;
+    },
+    trackEvent: function(eventName, eventData = {}) {
+        if (!this.apiKey) return;
+        const payload = {
+            apiKey: this.apiKey, visitorId: this.visitorId,
+            eventName: eventName, eventData: eventData
+        };
+        fetch(`${this.backendUrl}/api/track`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload), keepalive: true
+        }).catch(err => console.error("SynapCortex: Falha ao enviar relatório.", err));
+    }
+};
 
-            popupContainer.addEventListener('click', function(e) {
-                if (e.target === this || e.target.id === 'synapcortex-close-popup') {
-                    document.body.removeChild(popupContainer);
+function runSynapseAgent() {
+    let popupMostradoNestaSessao = false;
+    function mostrarPopup(motivo, titulo, mensagem) {
+        if (popupMostradoNestaSessao) return;
+        popupMostradoNestaSessao = true;
+        synapseAgent.trackEvent('popup_exibido', { gatilho: motivo });
+
+        const popupContainer = document.createElement('div');
+        popupContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;';
+        const popupContent = document.createElement('div');
+        popupContent.style.cssText = 'background-color: white; padding: 20px 30px; border-radius: 8px; text-align: center; max-width: 400px; color: #333;';
+        popupContent.innerHTML = `<h2>${titulo}</h2><p>${mensagem}</p><button id="synapcortex-close-popup" style="margin-top: 15px; padding: 10px 20px; border: none; background-color: #333; color: white; border-radius: 5px; cursor: pointer;">Fechar</button>`;
+        popupContainer.appendChild(popupContent);
+        document.body.appendChild(popupContainer);
+
+        popupContainer.addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'synapcortex-close-popup') {
+                document.body.removeChild(popupContainer);
+            }
+        });
+    }
+
+    function inicializarMotorDeGatilhos(config) {
+        if (config.ativar_abandono) {
+            document.addEventListener('mouseleave', function(e) {
+                if (e.clientY <= 0) {
+                    mostrarPopup('abandono_de_site', config.popup_titulo || 'Não vá embora!', config.popup_mensagem || 'Temos uma oferta especial.');
                 }
             });
         }
-
-        function inicializarMotorDeGatilhos(config) {
-            if (config.ativar_abandono) {
-                document.addEventListener('mouseleave', function(e) {
-                    if (e.clientY <= 0) {
-                        mostrarPopup('abandono_de_site', config.popup_titulo || 'Não vá embora!', config.popup_mensagem || 'Temos uma oferta especial.');
-                    }
-                });
-            }
-        }
-
-        synapseAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
-        fetch(`${synapseAgent.backendUrl}/api/get-client-config?key=${synapseAgent.apiKey}`)
-            .then(response => response.json())
-            .then(config => {
-                if (config && !config.error) { inicializarMotorDeGatilhos(config); }
-            })
-            .catch(error => { console.error("SynapCortex: Falha ao obter configs.", error); });
-        
-        return; // IMPORTANTE: Para a execução do script aqui.
     }
-    
 
-    // =============================================================================
-    // PARTE 2: LÓGICA DO NOSSO SITE (PÁGINA INICIAL E DASHBOARD)
-    // =============================================================================
+    synapseAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
+    fetch(`${synapseAgent.backendUrl}/api/get-client-config?key=${synapseAgent.apiKey}`)
+        .then(response => response.json())
+        .then(config => {
+            if (config && !config.error) { inicializarMotorDeGatilhos(config); }
+        })
+        .catch(error => { console.error("SynapCortex: Falha ao obter configs.", error); });
+}
 
-    // Lógica para o Modal de Login/Registro na página inicial
+// =============================================================================
+// PARTE 2: LÓGICA DO NOSSO SITE (PÁGINA INICIAL E DASHBOARD)
+// =============================================================================
+function runSynapCortexSiteLogic() {
+    // Lógica para o Modal de Login/Registro
     const loginRegisterModal = document.getElementById('loginRegisterModal');
     if (loginRegisterModal) {
         const openModalBtn = document.getElementById('openLoginRegisterModal');
@@ -135,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Lógica para o botão "Test Drive" na página inicial
+    // Lógica para o botão "Test Drive"
     const demoLoginBtn = document.getElementById('demoLoginBtn');
     if (demoLoginBtn) {
         demoLoginBtn.addEventListener('click', function() {
@@ -186,4 +189,4 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
-});
+}

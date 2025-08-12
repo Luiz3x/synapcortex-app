@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3.0">
 </head>
 <body>
     <header>
         <nav>
-            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" style="height: 40px;"></a>
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo">
+            </a>
             <span style="color: var(--text-fade);">Painel de: {{ usuario.nome_empresa }}</span>
             <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
         </nav>
@@ -39,7 +41,7 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="status-message" style="margin-top: 1rem;">Ainda não há dados de visitas para analisar.</p>
+                    <p class="status-message">Ainda não há dados de visitas para analisar.</p>
                 {% endif %}
             </div>
 
@@ -71,6 +73,6 @@
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/spy.js') }}?v=1.3"></script>
+    <script src="{{ url_for('static', filename='js/spy.js') }}?v=3.0"></script>
 </body>
 </html>

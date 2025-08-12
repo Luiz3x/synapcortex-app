@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sua Página Principal - SynapCortex</title>
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.1">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>SynapCortex - Inteligência para seu E-commerce</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3.0">
 </head>
 <body>
     <header>
         <nav>
-            <a href="{{ url_for('index') }}" class="logo">
-                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="SynapCortex Logo" style="height: 40px;">
-            </a>
+            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="SynapCortex Logo"></a>
             <button id="openLoginRegisterModal" class="login-register-button">Login / Cadastre-se</button>
         </nav>
     </header>
 
     <div class="main-content">
-
+        <video class="cerebro-animado" autoplay loop muted playsinline>
+            <source src="{{ url_for('static', filename='videos/cerebro_animado.mp4') }}" type="video/mp4">
+        </video>
         <div class="login-container">
-            <video class="cerebro-animado" autoplay loop muted playsinline>
-                <source src="{{ url_for('static', filename='videos/cerebro_animado.mp4') }}" type="video/mp4">
-            </video>
             <h1>Bem-vindo à SynapCortex!</h1>
             <p>Descubra como a inteligência dinâmica pode transformar suas vendas.</p>
-            
             <div style="margin-top: 30px;">
                 <button id="demoLoginBtn" class="cta-button">Faça um Test Drive do Painel</button>
             </div>
-
             <p style="margin-top: 30px; color: var(--text-fade);">Clientes recuperados em tempo real:</p>
             <canvas id="graficoDemonstracao" width="400" height="150"></canvas>
         </div>
-
     </div>
+
     <div id="loginRegisterModal" class="modal" style="display:none;">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -49,7 +41,6 @@
                     <h2>Acesse seu Painel</h2>
                     <div class="input-group"><label for="modal-email-login">E-mail Comercial:</label><input type="email" id="modal-email-login" name="email" required></div>
                     <div class="input-group"><label for="modal-password-login">Senha:</label><input type="password" id="modal-password-login" name="password" required></div>
-                    <p class="error-message" id="loginErrorMessage" style="display:none;"></p>
                     <button type="submit">Entrar</button>
                 </form>
             </div>
@@ -60,14 +51,12 @@
                     <div class="input-group"><label for="modal-cnpj">CNPJ</label><input type="text" id="modal-cnpj" name="cnpj" required></div>
                     <div class="input-group"><label for="modal-email-register">E-mail Comercial</label><input type="email" id="modal-email-register" name="email" required></div>
                     <div class="input-group"><label for="modal-password-register">Crie sua Senha</label><input type="password" id="modal-password-register" name="password" required></div>
-                    <p class="error-message" id="registerErrorMessage" style="display:none;"></p>
                     <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
                 </form>
             </div>
         </div>
     </div>
     
-    <script src="{{ url_for('static', filename='js/spy.js') }}?v=1.1"></script>
-
+    <script src="{{ url_for('static', filename='js/spy.js') }}?v=3.0"></script>
 </body>
 </html>

@@ -3,36 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SynapCortex</title>
+    <title>SynapCortex - Inteligência para seu E-commerce</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" class="login-logo"></a>
-        <h2>Acesse seu Painel</h2>
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="SynapCortex Logo"></a>
+            <button id="openLoginRegisterModal" class="login-register-button">Login / Cadastre-se</button>
+        </nav>
+    </header>
 
+    <div class="flash-container" style="position: absolute; top: 100px; left: 50%; transform: translateX(-50%); z-index: 1001;">
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <p class="error-message">{{ message }}</p>
-            {% endfor %}
-          {% endif %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}" style="background-color: var(--error-red); color: white; padding: 1rem 2rem; border-radius: 5px; margin-bottom: 1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
         {% endwith %}
+    </div>
 
-        <form method="POST" action="{{ url_for('login') }}">
-            <div class="input-group">
-                <label for="email">E-mail Comercial:</label>
-                <input type="email" id="email" name="email" required>
+    <div class="main-content">
+        <video class="cerebro-animado" autoplay loop muted playsinline>
+            <source src="{{ url_for('static', filename='videos/cerebro_animado.mp4') }}" type="video/mp4">
+        </video>
+        <div class="login-container">
+            <h1>Bem-vindo à SynapCortex!</h1>
+            <p>Descubra como a inteligência dinâmica pode transformar suas vendas.</p>
+            <div style="margin-top: 30px;">
+                <button id="demoLoginBtn" class="cta-button">Faça um Test Drive do Painel</button>
             </div>
-            <div class="input-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="cta-button">Entrar</button>
-        </form>
-        <div class="extra-links" style="margin-top: 1rem;">
-            <a href="{{ url_for('registrar') }}">Não tem uma conta? Crie uma</a>
         </div>
     </div>
+
+    <div id="loginRegisterModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div class="modal-tabs">
+                <button class="tab-button active" data-tab="login">Login</button>
+                <button class="tab-button" data-tab="register">Cadastre-se</button>
+            </div>
+            <div id="loginTab" class="tab-content active">
+                <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+                    <h2>Acesse seu Painel</h2>
+                    <div class="input-group"><label for="modal-email-login">E-mail Comercial:</label><input type="email" id="modal-email-login" name="email" required></div>
+                    <div class="input-group"><label for="modal-password-login">Senha:</label><input type="password" id="modal-password-login" name="password" required></div>
+                    <button type="submit">Entrar</button>
+                </form>
+            </div>
+            <div id="registerTab" class="tab-content">
+                <form id="registerForm" method="POST" action="{{ url_for('registrar') }}">
+                    <h2>Crie sua Conta</h2>
+                    <div class="input-group"><label for="modal-nome_empresa">Nome da Empresa</label><input type="text" id="modal-nome_empresa" name="nome_empresa" required></div>
+                    <div class="input-group"><label for="modal-cnpj">CNPJ</label><input type="text" id="modal-cnpj" name="cnpj" required></div>
+                    <div class="input-group"><label for="modal-email-register">E-mail Comercial</label><input type="email" id="modal-email-register" name="email" required></div>
+                    <div class="input-group"><label for="modal-password-register">Crie sua Senha</label><input type="password" id="modal-password-register" name="password" required></div>
+                    <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/spy.js') }}"></script>
 </body>
 </html>

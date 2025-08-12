@@ -1,11 +1,13 @@
 // =================================================================================
-// SYNAPCORTEX - SCRIPT MESTRE (v3.1 - COMPLETO)
+// SYNAPCORTEX - SCRIPT MESTRE (v3.2 - CORREÇÃO LÓGICA DO SITE)
 // =================================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof synapseAgent !== 'undefined' && synapseAgent.init()) {
-        runSynapseAgent();
-        return; 
+    if (document.getElementById('synapcortex-spy-script')) {
+        if (typeof synapseAgent !== 'undefined' && synapseAgent.init()) {
+            runSynapseAgent();
+            return;
+        }
     }
     runSynapCortexSiteLogic();
 });
@@ -16,9 +18,11 @@ const synapseAgent = {
     init: function() {
         const scriptTag = document.getElementById('synapcortex-spy-script');
         if (!scriptTag) return false;
-        const key = new URL(scriptTag.src).searchParams.get('key');
-        if (!key) return false;
-        this.apiKey = key;
+        try {
+            const key = new URL(scriptTag.src).searchParams.get('key');
+            if (!key) return false;
+            this.apiKey = key;
+        } catch(e) { return false; }
         this.backendUrl = scriptTag.dataset.backendUrl || 'https://synapcortex-app.onrender.com';
         let storedVisitorId = localStorage.getItem('synapcortex_visitor_id');
         if (!storedVisitorId) {
@@ -30,83 +34,67 @@ const synapseAgent = {
     },
     trackEvent: function(eventName, eventData = {}) {
         if (!this.apiKey) return;
-        const payload = {
-            apiKey: this.apiKey, visitorId: this.visitorId,
-            eventName: eventName, eventData: eventData
-        };
-        navigator.sendBeacon(`${this.backendUrl}/api/track`, JSON.stringify(payload));
+        const payload = { apiKey: this.apiKey, visitorId: this.visitorId, eventName, eventData };
+        try {
+            navigator.sendBeacon(`${this.backendUrl}/api/track`, JSON.stringify(payload));
+        } catch (e) {
+            fetch(`${this.backendUrl}/api/track`, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(console.error);
+        }
     }
 };
 
 function runSynapseAgent() {
-    let popupMostradoNestaSessao = false;
-    function mostrarPopup(motivo, titulo, mensagem) {
-        if (popupMostradoNestaSessao) return;
-        popupMostradoNestaSessao = true;
-        synapseAgent.trackEvent('popup_exibido', { gatilho: motivo });
-        const popupContainer = document.createElement('div');
-        popupContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;';
-        const popupContent = document.createElement('div');
-        popupContent.style.cssText = 'background-color: white; padding: 20px 30px; border-radius: 8px; text-align: center; max-width: 400px; color: #333;';
-        popupContent.innerHTML = `<h2>${titulo}</h2><p>${mensagem}</p><button id="synapcortex-close-popup" style="margin-top: 15px; padding: 10px 20px; border: none; background-color: #333; color: white; border-radius: 5px; cursor: pointer;">Fechar</button>`;
-        popupContainer.appendChild(popupContent);
-        document.body.appendChild(popupContainer);
-        popupContainer.addEventListener('click', function(e) {
-            if (e.target === this || e.target.id === 'synapcortex-close-popup') {
-                document.body.removeChild(popupContainer);
-            }
-        });
-    }
-
-    function inicializarMotorDeGatilhos(config) {
-        if (config.ativar_abandono) {
-            document.addEventListener('mouseleave', (e) => {
-                if (e.clientY <= 0) mostrarPopup('abandono_de_site', config.popup_titulo, config.popup_mensagem);
-            });
-        }
-        // ... (lógica para outros gatilhos como 'bem_vindo' e 'interessado' viria aqui)
-    }
-
+    // Lógica do espião que roda no site do cliente
     synapseAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
-    fetch(`${synapseAgent.backendUrl}/api/get-client-config?key=${synapseAgent.apiKey}`)
-        .then(response => response.json())
-        .then(config => {
-            if (config && !config.error) inicializarMotorDeGatilhos(config);
-        }).catch(console.error);
+    // ... (restante da lógica do espião, como pop-ups)
 }
 
 // PARTE 2: LÓGICA DO NOSSO SITE (PÁGINA INICIAL E DASHBOARD)
 function runSynapCortexSiteLogic() {
+    // Lógica para o Modal de Login/Registro na index.html
     const loginRegisterModal = document.getElementById('loginRegisterModal');
     if (loginRegisterModal) {
         const openModalBtn = document.getElementById('openLoginRegisterModal');
         const closeModalBtn = loginRegisterModal.querySelector('.close-button');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const demoLoginBtn = document.getElementById('demoLoginBtn');
+
         openModalBtn.addEventListener('click', () => { loginRegisterModal.style.display = 'flex'; });
         closeModalBtn.addEventListener('click', () => { loginRegisterModal.style.display = 'none'; });
         window.addEventListener('click', (e) => { if (e.target == loginRegisterModal) loginRegisterModal.style.display = 'none'; });
-        // ... (lógica de abas e formulários de login/registro)
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit(); // Envia o formulário da maneira tradicional
+        });
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit(); // Envia o formulário da maneira tradicional
+        });
+
+        if (demoLoginBtn) {
+            demoLoginBtn.addEventListener('click', function() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/login';
+                const emailInput = document.createElement('input');
+                emailInput.type = 'hidden';
+                emailInput.name = 'email';
+                emailInput.value = 'demo@synapcortex.com';
+                form.appendChild(emailInput);
+                const passInput = document.createElement('input');
+                passInput.type = 'hidden';
+                passInput.name = 'password';
+                passInput.value = 'demo';
+                form.appendChild(passInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        }
     }
 
-    const configForm = document.getElementById('config-form');
-    if (configForm) {
-        configForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(configForm);
-            const saveButton = configForm.querySelector('button[type="submit"]');
-            fetch('/salvar-configuracoes', { method: 'POST', body: new URLSearchParams(formData) })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        saveButton.textContent = 'Salvo com Sucesso!';
-                        saveButton.style.backgroundColor = 'var(--success-green)';
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else if (data.status === 'info') {
-                        alert(data.message);
-                    } else { alert('Ocorreu um erro.'); }
-                }).catch(() => alert('Erro de comunicação.'));
-        });
-    }
-    
+    // Lógica para o botão de copiar no dashboard.html
     const copiarBtn = document.getElementById('copiar-codigo-btn');
     if (copiarBtn) {
         copiarBtn.addEventListener('click', () => {
@@ -114,12 +102,34 @@ function runSynapCortexSiteLogic() {
             navigator.clipboard.writeText(codigoTextarea.value).then(() => {
                 copiarBtn.textContent = 'Copiado!';
                 setTimeout(() => { copiarBtn.textContent = 'Copiar Código'; }, 2000);
+            }, () => {
+                copiarBtn.textContent = 'Erro ao copiar';
             });
         });
     }
-
-    const helpModal = document.getElementById('helpModal');
-    if (helpModal) {
-        // ... (toda a lógica do modal de ajuda que já está no seu dashboard.html)
+    
+    // Lógica para o form de config no dashboard.html
+    const configForm = document.getElementById('config-form');
+    if (configForm) {
+        configForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(configForm);
+            const saveButton = configForm.querySelector('button[type="submit"]');
+            saveButton.textContent = 'Salvando...';
+            fetch('/salvar-configuracoes', { method: 'POST', body: new URLSearchParams(formData) })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        saveButton.textContent = 'Salvo com Sucesso!';
+                        saveButton.style.backgroundColor = 'var(--success-green)';
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                         saveButton.textContent = 'Erro ao Salvar';
+                         alert(data.message || 'Ocorreu um erro.');
+                    }
+                }).catch(() => {
+                    saveButton.textContent = 'Erro de comunicação';
+                });
+        });
     }
 }

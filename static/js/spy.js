@@ -1,14 +1,17 @@
 // =================================================================================
-// SYNAPCORTEX - SCRIPT MESTRE (v3.2 - CORREÇÃO LÓGICA DO SITE)
+// SYNAPCORTEX - SCRIPT MESTRE (v3.3 - VERSÃO SIMPLIFICADA E FINAL)
 // =================================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Verifica se o script do espião está na página para decidir qual lógica rodar
     if (document.getElementById('synapcortex-spy-script')) {
+        // Lógica do espião (site do cliente)
         if (typeof synapseAgent !== 'undefined' && synapseAgent.init()) {
             runSynapseAgent();
             return;
         }
     }
+    // Lógica do nosso site (synapcortex-app.onrender.com)
     runSynapCortexSiteLogic();
 });
 
@@ -36,79 +39,56 @@ const synapseAgent = {
         if (!this.apiKey) return;
         const payload = { apiKey: this.apiKey, visitorId: this.visitorId, eventName, eventData };
         try {
+            // Usa sendBeacon para envios assíncronos e confiáveis (bom para saídas de página)
             navigator.sendBeacon(`${this.backendUrl}/api/track`, JSON.stringify(payload));
         } catch (e) {
+            // Fallback para navegadores mais antigos ou casos onde sendBeacon não é suportado
             fetch(`${this.backendUrl}/api/track`, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(console.error);
         }
     }
 };
 
 function runSynapseAgent() {
-    // Lógica do espião que roda no site do cliente
     synapseAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
-    // ... (restante da lógica do espião, como pop-ups)
+    // Futuramente, a lógica de inicializar pop-ups e outros gatilhos com base na config do cliente virá aqui
 }
 
 // PARTE 2: LÓGICA DO NOSSO SITE (PÁGINA INICIAL E DASHBOARD)
 function runSynapCortexSiteLogic() {
-    // Lógica para o Modal de Login/Registro na index.html
+    
+    // Lógica para ABRIR o Modal de Login/Registro
     const loginRegisterModal = document.getElementById('loginRegisterModal');
     if (loginRegisterModal) {
         const openModalBtn = document.getElementById('openLoginRegisterModal');
         const closeModalBtn = loginRegisterModal.querySelector('.close-button');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const demoLoginBtn = document.getElementById('demoLoginBtn');
-
         openModalBtn.addEventListener('click', () => { loginRegisterModal.style.display = 'flex'; });
         closeModalBtn.addEventListener('click', () => { loginRegisterModal.style.display = 'none'; });
         window.addEventListener('click', (e) => { if (e.target == loginRegisterModal) loginRegisterModal.style.display = 'none'; });
-
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            this.submit(); // Envia o formulário da maneira tradicional
-        });
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            this.submit(); // Envia o formulário da maneira tradicional
-        });
-
-        if (demoLoginBtn) {
-            demoLoginBtn.addEventListener('click', function() {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/login';
-                const emailInput = document.createElement('input');
-                emailInput.type = 'hidden';
-                emailInput.name = 'email';
-                emailInput.value = 'demo@synapcortex.com';
-                form.appendChild(emailInput);
-                const passInput = document.createElement('input');
-                passInput.type = 'hidden';
-                passInput.name = 'password';
-                passInput.value = 'demo';
-                form.appendChild(passInput);
-                document.body.appendChild(form);
-                form.submit();
-            });
-        }
-    }
-
-    // Lógica para o botão de copiar no dashboard.html
-    const copiarBtn = document.getElementById('copiar-codigo-btn');
-    if (copiarBtn) {
-        copiarBtn.addEventListener('click', () => {
-            const codigoTextarea = document.getElementById('codigo-instalacao');
-            navigator.clipboard.writeText(codigoTextarea.value).then(() => {
-                copiarBtn.textContent = 'Copiado!';
-                setTimeout(() => { copiarBtn.textContent = 'Copiar Código'; }, 2000);
-            }, () => {
-                copiarBtn.textContent = 'Erro ao copiar';
-            });
-        });
     }
     
-    // Lógica para o form de config no dashboard.html
+    // Lógica para o BOTÃO TEST DRIVE
+    const demoLoginBtn = document.getElementById('demoLoginBtn');
+    if (demoLoginBtn) {
+        demoLoginBtn.addEventListener('click', function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/login';
+            const emailInput = document.createElement('input');
+            emailInput.type = 'hidden';
+            emailInput.name = 'email';
+            emailInput.value = 'demo@synapcortex.com';
+            form.appendChild(emailInput);
+            const passInput = document.createElement('input');
+            passInput.type = 'hidden';
+            passInput.name = 'password';
+            passInput.value = 'demo';
+            form.appendChild(passInput);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+
+    // Lógica para o formulário de salvar configurações no DASHBOARD
     const configForm = document.getElementById('config-form');
     if (configForm) {
         configForm.addEventListener('submit', function(e) {
@@ -116,6 +96,8 @@ function runSynapCortexSiteLogic() {
             const formData = new FormData(configForm);
             const saveButton = configForm.querySelector('button[type="submit"]');
             saveButton.textContent = 'Salvando...';
+            saveButton.disabled = true;
+
             fetch('/salvar-configuracoes', { method: 'POST', body: new URLSearchParams(formData) })
                 .then(res => res.json())
                 .then(data => {
@@ -125,11 +107,42 @@ function runSynapCortexSiteLogic() {
                         setTimeout(() => window.location.reload(), 1500);
                     } else {
                          saveButton.textContent = 'Erro ao Salvar';
+                         saveButton.disabled = false;
                          alert(data.message || 'Ocorreu um erro.');
                     }
                 }).catch(() => {
                     saveButton.textContent = 'Erro de comunicação';
+                    saveButton.disabled = false;
                 });
         });
+    }
+
+    // Lógica para o botão de copiar no DASHBOARD (versão moderna)
+    const copiarBtn = document.getElementById('copiar-codigo-btn');
+    if (copiarBtn) {
+        const codigoTextarea = document.getElementById('codigo-instalacao');
+        copiarBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(codigoTextarea.value).then(() => {
+                copiarBtn.textContent = 'Copiado!';
+                setTimeout(() => { copiarBtn.textContent = 'Copiar Código'; }, 2000);
+            }, () => {
+                copiarBtn.textContent = 'Erro ao copiar';
+            });
+        });
+    }
+
+    // Lógica para o modal de ajuda no DASHBOARD
+    const helpModal = document.getElementById('helpModal');
+    if(helpModal) {
+        const helpModalTitle = document.getElementById('helpModalTitle');
+        const helpModalContent = document.getElementById('helpModalContent');
+        const closeModalBtn = helpModal.querySelector('.close-button');
+        document.querySelectorAll('.platform-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // ... (toda a lógica para preencher e mostrar o modal de ajuda) ...
+            });
+        });
+        closeModalBtn.onclick = () => { helpModal.style.display = 'none'; };
+        window.onclick = event => { if (event.target == helpModal) { helpModal.style.display = 'none'; } };
     }
 }

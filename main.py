@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.8 - Correção Estrutural na entrega de arquivos estáticos (WhiteNoise)
+# Versão 3.0 - Versão de Correção Completa
 # =================================================================================
 import os
 import json
@@ -10,14 +10,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from whitenoise import WhiteNoise
 from flask_cors import CORS
 
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+# --- CONFIGURAÇÃO DO BANCO DE DADOS (RENDER) ---
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -25,11 +25,6 @@ if db_url and db_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
-# [A CORREÇÃO DEFINITIVA ESTÁ AQUI]
-# Simplificamos a configuração do WhiteNoise para usar o padrão do Flask.
-app.wsgi_app = WhiteNoise(app.wsgi_app)
-
 
 # --- MODELOS DO BANCO DE DADOS ---
 class AppUser(db.Model):
@@ -54,16 +49,28 @@ class AnalyticsEvent(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-# --- LÓGICA DE INICIALIZAÇÃO ---
-try:
-    with app.app_context():
-        db.create_all()
-        if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
-            demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456', configuracoes=json.dumps({'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore nosso painel.'}))
-            db.session.add(demo_user)
-            db.session.commit()
-except Exception as e:
-    print(f"!!!!!! ERRO CRÍTICO DURANTE A INICIALIZAÇÃO: {e} !!!!!!")
+# --- INICIALIZAÇÃO DO BANCO DE DADOS E USUÁRIO DEMO ---
+with app.app_context():
+    db.create_all()
+    if not AppUser.query.filter_by(email='demo@synapcortex.com').first():
+        demo_user = AppUser(
+            email='demo@synapcortex.com',
+            senha_hash=generate_password_hash('demo'),
+            nome_empresa='Loja de Demonstração',
+            cnpj='00000000000000',
+            api_key='chave_api_demo_123456',
+            configuracoes=json.dumps({
+                'ativar_abandono': True,
+                'popup_titulo': 'Bem-vindo ao Test Drive!',
+                'popup_mensagem': 'Este é um exemplo de como o pop-up funciona.',
+                'ativar_quarto_bem_vindo': True,
+                'msg_bem_vindo': 'Que bom te ver de novo!',
+                'ativar_quarto_interessado': False,
+                'msg_interessado': 'Parece que você encontrou algo interessante!'
+            })
+        )
+        db.session.add(demo_user)
+        db.session.commit()
 
 # --- ROTAS PRINCIPAIS E DE AUTENTICAÇÃO ---
 @app.route('/')
@@ -77,9 +84,8 @@ def login():
         session['logged_in'] = True
         session['email'] = user.email
         return redirect(url_for('dashboard'))
-    else:
-        flash('E-mail ou senha inválidos.', 'error')
-        return redirect(url_for('index'))
+    flash('E-mail ou senha inválidos.', 'error')
+    return redirect(url_for('index'))
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
@@ -94,7 +100,10 @@ def registrar():
         nome_empresa=request.form.get('nome_empresa'),
         cnpj=request.form.get('cnpj'),
         api_key=secrets.token_hex(16),
-        configuracoes=json.dumps({'popup_titulo': 'Não vá embora!', 'popup_mensagem': 'Temos uma oferta especial.'})
+        configuracoes=json.dumps({
+            'popup_titulo': 'Não vá embora!',
+            'popup_mensagem': 'Temos uma oferta especial para você.'
+        })
     )
     db.session.add(new_user)
     db.session.commit()
@@ -140,8 +149,12 @@ def dashboard():
     for page in top_pages_query:
         try:
             page_data = json.loads(page.event_data)
+            title = page_data.get('title')
+            if not title or title.isspace():
+                title = page_data.get('url', 'Página sem título')
+            
             top_pages.append({
-                'title': page_data.get('title', page_data.get('url', 'Página sem título')),
+                'title': title,
                 'url': page_data.get('url', '/'),
                 'views': page.view_count
             })
@@ -162,20 +175,25 @@ def salvar_configuracoes():
         return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
     
     if session['email'] == 'demo@synapcortex.com':
-        return jsonify({'status': 'info', 'message': 'Na conta de demonstração, as alterações não são salvas.'}), 200
+        return jsonify({'status': 'info', 'message': 'Na conta de demonstração, as alterações não são salvas.'})
     
     user = AppUser.query.filter_by(email=session['email']).first()
     if user:
         config_atual = json.loads(user.configuracoes)
         checkboxes = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+        
         for chave, valor in request.form.items():
-            config_atual[chave] = True if valor == 'on' else valor
+            config_atual[chave] = valor
+        
         for check in checkboxes:
             if check not in request.form:
                 config_atual[check] = False
+            else:
+                config_atual[check] = True
+                
         user.configuracoes = json.dumps(config_atual)
         db.session.commit()
-        return jsonify({'status': 'success', 'message': 'Configurações salvas!'}), 200
+        return jsonify({'status': 'success', 'message': 'Configurações salvas!'})
     return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
 
 @app.route('/api/track', methods=['POST'])
@@ -191,7 +209,12 @@ def track_event():
     user = AppUser.query.filter_by(api_key=api_key).first()
     if not user: return jsonify({'error': 'API Key inválida.'}), 403
     
-    new_event = AnalyticsEvent(owner_id=user.id, visitor_id=visitor_id, event_name=event_name, event_data=json.dumps(data.get('eventData', {})))
+    new_event = AnalyticsEvent(
+        owner_id=user.id, 
+        visitor_id=visitor_id, 
+        event_name=event_name, 
+        event_data=json.dumps(data.get('eventData', {}))
+    )
     db.session.add(new_event)
     db.session.commit()
     return jsonify({'status': 'ok'}), 200
@@ -206,7 +229,6 @@ def get_client_config():
     
     return jsonify({'error': 'API Key inválida'}), 404
 
-# --- EXECUÇÃO DA APLICAÇÃO ---
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)

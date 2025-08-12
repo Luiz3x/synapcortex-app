@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
@@ -27,7 +27,8 @@
         </div>
 
         <div class="dashboard-grid">
-            <div class="secao-painel">
+            
+            <div class="secao-painel" id="detetive-section">
                 <h3>🕵️ Quarto do Detetive</h3>
                 <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes nos últimos 30 dias.</p>
                 {% if top_pages %}
@@ -43,26 +44,34 @@
                     <p class="status-message">Ainda não há dados de visitas para analisar.</p>
                 {% endif %}
             </div>
-            <div class="secao-painel">
-                <form id="config-form">
-                    <h3>🚀 Arsenal de Gatilhos</h3>
-                    <p class="quarto-description">Ative e configure os gatilhos.</p>
-                    <div class="quarto-card">
-                        <div class="quarto-header"><h4>⭐ Abandono de Site</h4><label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label></div>
-                        <div class="quarto-content"><div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div><div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div></div>
-                    </div>
-                    <div class="quarto-card">
-                        <div class="quarto-header"><h4>👋 Bem-vindo de Volta</h4><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label></div>
-                        <div class="quarto-content"><div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo', '') }}</textarea></div></div>
-                    </div>
-                    <button type="submit" class="cta-button" style="width: 100%; margin-top: 1.5rem;">Salvar Todas as Configurações</button>
-                </form>
-            </div>
+
+            <form id="config-form" class="secao-painel">
+                <h3>🚀 Arsenal de Gatilhos</h3>
+                <p class="quarto-description">Ative e configure os gatilhos.</p>
+
+                <div class="quarto-card" style="border: 2px solid var(--accent-blue);">
+                    <div class="quarto-header"><h4>⭐ Abandono de Site</h4><label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label></div>
+                    <div class="quarto-content"><div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div><div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div></div>
+                </div>
+
+                <div class="quarto-card">
+                    <div class="quarto-header"><h4>👋 Bem-vindo de Volta</h4><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label></div>
+                    <div class="quarto-content"><div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo', '') }}</textarea></div></div>
+                </div>
+
+                 <div class="quarto-card">
+                    <div class="quarto-header"><h4>🎯 Interessado</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div>
+                    <div class="quarto-content"><div class="input-group"><label>Mensagem para inatividade:</label><textarea name="msg_interessado" rows="3">{{ config.get('msg_interessado', '') }}</textarea></div></div>
+                </div>
+
+                <button type="submit" class="cta-button" style="width: 100%; margin-top: 1.5rem;">Salvar Todas as Configurações</button>
+            </form>
+
         </div>
 
         <div class="secao-painel">
             <h3><span class="icon">💡</span> Central de Ajuda Interativa</h3>
-            <p class="quarto-description">Não sabe como instalar o código? Clique na sua plataforma abaixo para ver um guia passo a passo.</p>
+            <p class="quarto-description">Clique na sua plataforma para ver o guia de instalação.</p>
             <div class="help-center-grid">
                 <button class="platform-button" data-platform="shopify"><span>🛒</span><span>Shopify</span></button>
                 <button class="platform-button" data-platform="woocommerce"><span>🎨</span><span>WooCommerce</span></button>
@@ -76,7 +85,7 @@
             <p class="quarto-description">Copie e cole este código no seu site, antes do fechamento da tag &lt;/body&gt;.</p>
             <div class="input-group" style="margin-top: 1.5rem;">
                 <label for="codigo-instalacao">Seu código de instalação:</label>
-                <textarea id="codigo-instalacao" rows="6" readonly class="code-box">&lt;script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js', _external=True) }}?key={{ usuario.api_key }}" data-backend-url="{{ url_for('index', _external=True) }}" defer&gt;&lt;/script&gt;</textarea>
+                <textarea id="codigo-instalacao" rows="6" readonly>&lt;script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js', _external=True) }}?key={{ usuario.api_key }}" data-backend-url="{{ url_for('index', _external=True) }}" defer&gt;&lt;/script&gt;</textarea>
             </div>
             <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
         </div>
@@ -85,6 +94,6 @@
 
     <div id="helpModal" class="modal"><div class="modal-content"><span class="close-button">&times;</span><h2 id="helpModalTitle"></h2><div id="helpModalContent"></div></div></div>
 
-    <script src="{{ url_for('static', filename='js/spy.js') }}?v=3.1"></script>
+    <script src="{{ url_for('static', filename='js/spy.js') }}"></script>
 </body>
 </html>

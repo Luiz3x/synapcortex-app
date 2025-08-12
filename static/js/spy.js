@@ -1,6 +1,6 @@
 // =================================================================================
-// SYNAPCORTEX - SCRIPT MESTRE (AGENTE SYNAPSE)
-// Versão 2.3 - Relatório de Page View enriquecido com o título da página.
+// SYNAPCORTEX - SCRIPT MESTRE (AGENTE SYNAPSE + LÓGICA DO SITE)
+// Versão 2.4 - Reintroduzida a lógica do modal de login/cadastro do site principal.
 // =================================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -8,10 +8,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // -----------------------------------------------------------------------------
     // PARTE 1: LÓGICA DO NOSSO SITE (PÁGINA PRINCIPAL E DASHBOARD)
     // -----------------------------------------------------------------------------
-    // (Esta seção contém o código para os botões da página inicial, o gráfico,
-    // o formulário de salvar configurações, etc. Ela não é executada no site do cliente)
-    if (document.getElementById('openLoginRegisterModal')) {
-        // ... (toda a lógica que já temos para o nosso site, como os modais e botões)
+    // Esta seção garante que os botões e modais do nosso próprio site funcionem.
+    
+    const loginRegisterModal = document.getElementById('loginRegisterModal');
+    const openModalBtn = document.getElementById('openLoginRegisterModal');
+    
+    if (loginRegisterModal && openModalBtn) {
+        const closeModalBtn = loginRegisterModal.querySelector('.close-button');
+        const tabs = loginRegisterModal.querySelectorAll('.tab-button');
+        const tabContents = loginRegisterModal.querySelectorAll('.tab-content');
+
+        openModalBtn.addEventListener('click', () => {
+            loginRegisterModal.style.display = 'flex';
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            loginRegisterModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == loginRegisterModal) {
+                loginRegisterModal.style.display = 'none';
+            }
+        });
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                tabContents.forEach(c => c.classList.remove('active'));
+                document.getElementById(target + 'Tab').classList.add('active');
+            });
+        });
     }
 
 
@@ -78,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- BLOCO DE EXECUÇÃO PRINCIPAL DO AGENTE ---
     if (synapseAgent.init()) {
         
-        // [ALTERAÇÃO] O Agente envia seu primeiro relatório de vigilância enriquecido com o título da página.
+        // O Agente envia seu primeiro relatório de vigilância enriquecido com o título da página.
         synapseAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
 
         // O Agente busca as ordens na central para os gatilhos de pop-up

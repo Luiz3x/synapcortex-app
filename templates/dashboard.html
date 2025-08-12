@@ -4,48 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
 </head>
 <body>
     <header>
         <nav>
-            <a href="{{ url_for('index') }}" class="logo">
-                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" style="height: 40px;">
-            </a>
+            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" style="height: 40px;"></a>
             <span style="color: var(--text-fade);">Painel de: {{ usuario.nome_empresa }}</span>
             <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
         </nav>
     </header>
 
     <div class="dashboard-container">
-
         <div class="secao-painel">
             <h3>Visão Geral (O Cérebro da Operação)</h3>
             <div class="metric-grid">
-                <div>
-                    <h4 class="metric-title">Pop-ups Exibidos</h4>
-                    <p class="metric-value">{{ popups_exibidos }}</p>
-                    <small>(Últimos 30 dias)</small>
-                </div>
-                <div>
-                    <h4 class="metric-title">Clientes Recuperados</h4>
-                    <p class="metric-value">0</p>
-                    <small>(Em breve)</small>
-                </div>
-                <div>
-                    <h4 class="metric-title">Taxa de Conversão</h4>
-                    <p class="metric-value">0.00%</p>
-                    <small>(Em breve)</small>
-                </div>
+                <div><h4 class="metric-title">Pop-ups Exibidos</h4><p class="metric-value">{{ popups_exibidos }}</p><small>(Últimos 30 dias)</small></div>
+                <div><h4 class="metric-title">Clientes Recuperados</h4><p class="metric-value">0</p><small>(Em breve)</small></div>
+                <div><h4 class="metric-title">Taxa de Conversão</h4><p class="metric-value">0.00%</p><small>(Em breve)</small></div>
             </div>
         </div>
 
         <div class="dashboard-grid">
-            
             <div class="secao-painel">
                 <h3>🕵️ Quarto do Detetive</h3>
                 <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes nos últimos 30 dias.</p>
-                
                 {% if top_pages %}
                     <ul class="detetive-list">
                         {% for page in top_pages %}
@@ -56,7 +39,7 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="status-message" style="margin-top: 1rem;">Ainda não há dados de visitas. Assim que seus clientes navegarem no site, as informações aparecerão aqui.</p>
+                    <p class="status-message" style="margin-top: 1rem;">Ainda não há dados de visitas para analisar.</p>
                 {% endif %}
             </div>
 
@@ -64,33 +47,30 @@
                 <form id="config-form">
                     <h3>🚀 Arsenal de Gatilhos</h3>
                     <p class="quarto-description">Ative e configure os gatilhos para recuperar seus clientes.</p>
-
                     <div class="quarto-card">
                         <div class="quarto-header">
                             <h4>⭐ Gatilho Principal: Abandono de Site</h4>
                             <label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label>
                         </div>
                         <div class="quarto-content">
-                            <div class="input-group"><label for="popup_titulo">Título do Pop-up:</label><input type="text" id="popup_titulo" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
-                            <div class="input-group"><label for="popup_mensagem">Mensagem:</label><textarea id="popup_mensagem" name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
+                            <div class="input-group"><label>Título do Pop-up:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
+                            <div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
                         </div>
                     </div>
-
-                     <div class="quarto-card">
+                    <div class="quarto-card">
                         <div class="quarto-header">
                             <h4>👋 Quarto "Bem-vindo de Volta"</h4>
                             <label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label>
                         </div>
                         <div class="quarto-content">
-                            <div class="input-group"><label for="msg_bem_vindo">Mensagem para o visitante que retorna:</label><textarea id="msg_bem_vindo" name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo', '') }}</textarea></div>
+                            <div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo', '') }}</textarea></div>
                         </div>
                     </div>
                     <button type="submit" class="cta-button" style="width: 100%; margin-top: 1.5rem;">Salvar Todas as Configurações</button>
                 </form>
             </div>
-
-        </div> </div>
-
-    <script src="{{ url_for('static', filename='js/spy.js') }}?v=1.2"></script>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/spy.js') }}?v=1.3"></script>
 </body>
 </html>

@@ -1,74 +1,91 @@
-/* =================================================================================
-   SYNAPCORTEX - FOLHA DE ESTILO MESTRA
-   Versão 1.1 - Adicionado Grid do Dashboard e Estilos do Detetive
-   ================================================================================= */
-:root {
-    --primary-blue-dark: #050a14; --secondary-blue-dark: #101c2c; --accent-blue: #00bfff;
-    --text-color: #f0f0f0; --text-fade: #a0a0a0; --error-red: #ff4d4d; --success-green: #28a745;
-    --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: var(--font-family); background-color: var(--primary-blue-dark); color: var(--text-color); line-height: 1.6; }
-a { color: var(--accent-blue); text-decoration: none; }
-a:hover { text-decoration: underline; }
-header { background-color: var(--secondary-blue-dark); padding: 1rem 5%; border-bottom: 1px solid #1f2d3d; }
-nav { display: flex; justify-content: space-between; align-items: center; }
-nav .logo img { height: 40px; vertical-align: middle; }
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.3">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo" style="height: 40px;">
+            </a>
+            <span style="color: var(--text-fade);">Painel de: {{ usuario.nome_empresa }}</span>
+            <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
+        </nav>
+    </header>
 
-/* ... (Todo o resto do seu CSS continua aqui, sem alterações) ... */
+    <div class="dashboard-container">
 
-.quarto-header h4 { margin: 0; display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 600; color: var(--text-color); }
-.quarto-description { color: var(--text-fade); margin-top: 0.5rem; font-size: 0.9rem; margin-bottom: 1rem; }
-.quarto-content { margin-top: 1.5rem; border-top: 1px solid #2a3b4c; padding-top: 1.5rem; }
-.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
-.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: var(--accent-blue); }
-input:checked + .slider:before { transform: translateX(26px); }
+        <div class="secao-painel">
+            <h3>Visão Geral (O Cérebro da Operação)</h3>
+            <div class="metric-grid">
+                <div>
+                    <h4 class="metric-title">Pop-ups Exibidos</h4>
+                    <p class="metric-value">{{ popups_exibidos }}</p>
+                    <small>(Últimos 30 dias)</small>
+                </div>
+                <div>
+                    <h4 class="metric-title">Clientes Recuperados</h4>
+                    <p class="metric-value">0</p>
+                    <small>(Em breve)</small>
+                </div>
+                <div>
+                    <h4 class="metric-title">Taxa de Conversão</h4>
+                    <p class="metric-value">0.00%</p>
+                    <small>(Em breve)</small>
+                </div>
+            </div>
+        </div>
 
-/* [NOVO] Estilos do Grid do Dashboard */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Duas colunas de tamanho igual */
-    gap: 2rem; /* Espaçamento entre elas */
-    align-items: start; /* Alinha os itens no topo do grid */
-}
+        <div class="dashboard-grid">
+            <div class="secao-painel">
+                <h3>🕵️ Quarto do Detetive</h3>
+                <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes nos últimos 30 dias.</p>
+                {% if top_pages %}
+                    <ul class="detetive-list">
+                        {% for page in top_pages %}
+                            <li class="detetive-item">
+                                <span class="page-title" title="{{ page.url }}">{{ page.title }}</span>
+                                <span class="page-views">{{ page.views }} visitas</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="status-message" style="margin-top: 1rem;">Ainda não há dados de visitas.</p>
+                {% endif %}
+            </div>
 
-/* [NOVO] Estilos para a lista do Detetive */
-.detetive-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 1rem;
-}
-.detetive-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #2a3b4c;
-}
-.detetive-item:last-child {
-    border-bottom: none;
-}
-.page-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 70%;
-}
-.page-views {
-    font-weight: bold;
-    color: var(--accent-blue);
-    background-color: var(--primary-blue-dark);
-    padding: 2px 8px;
-    border-radius: 5px;
-    font-size: 0.9em;
-}
-
-/* --- Ajuste de Responsividade para o Grid --- */
-@media (max-width: 900px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr; /* Volta para uma única coluna */
-    }
-}
+            <div class="secao-painel">
+                <form id="config-form">
+                    <h3>🚀 Arsenal de Gatilhos</h3>
+                    <p class="quarto-description">Ative e configure os gatilhos para recuperar seus clientes.</p>
+                    <div class="quarto-card">
+                        <div class="quarto-header">
+                            <h4>⭐ Gatilho Principal: Abandono de Site</h4>
+                            <label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label>
+                        </div>
+                        <div class="quarto-content">
+                            <div class="input-group"><label>Título do Pop-up:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
+                            <div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
+                        </div>
+                    </div>
+                    <div class="quarto-card">
+                        <div class="quarto-header">
+                            <h4>👋 Quarto "Bem-vindo de Volta"</h4>
+                            <label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label>
+                        </div>
+                        <div class="quarto-content">
+                            <div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo', '') }}</textarea></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="cta-button" style="width: 100%; margin-top: 1.5rem;">Salvar Todas as Configurações</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/spy.js') }}?v=1.3"></script>
+</body>
+</html>

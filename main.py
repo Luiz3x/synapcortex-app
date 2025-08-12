@@ -1,15 +1,20 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 2.6 - COMPLETA E ESTÁVEL COM ANALYTICS
+# Versão 2.7 - Com Análise de Páginas Mais Visitadas (Quarto do Detetive - Fase 2)
 # =================================================================================
-import os, json, secrets
+
+import os
+import json
+import secrets
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from whitenoise import WhiteNoise
 from flask_cors import CORS
 
+# --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = secrets.token_hex(16)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -23,6 +28,7 @@ app.config['SQLALCHEMY_POOL_PRE_PING'] = True
 db = SQLAlchemy(app)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
+# --- MODELOS DO BANCO DE DADOS ---
 class AppUser(db.Model):
     __tablename__ = 'app_user'
     id = db.Column(db.Integer, primary_key=True)
@@ -43,6 +49,8 @@ class AnalyticsEvent(db.Model):
     event_name = db.Column(db.String(50), nullable=False)
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+# --- LÓGICA DE INICIALIZAÇÃO ---
 try:
     with app.app_context():
         db.create_all()
@@ -50,8 +58,11 @@ try:
             demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456', configuracoes=json.dumps({'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore nosso painel.'}))
             db.session.add(demo_user); db.session.commit()
 except Exception as e: print(f"!!!!!! ERRO CRÍTICO DURANTE A INICIALIZAÇÃO: {e} !!!!!!")
+
+# --- ROTAS ---
 @app.route('/')
 def index(): return render_template('index.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -60,6 +71,7 @@ def login():
             session['logged_in'] = True; session['email'] = user.email; return redirect(url_for('dashboard'))
         else: flash('E-mail ou senha inválidos.', 'error'); return redirect(url_for('login'))
     return render_template('login.html')
+
 @app.route('/registrar', methods=['GET', 'POST'])
 def registrar():
     if request.method == 'POST':
@@ -70,16 +82,58 @@ def registrar():
         db.session.add(new_user); db.session.commit()
         session['logged_in'] = True; session['email'] = new_user.email; flash('Conta criada com sucesso! Bem-vindo!', 'success'); return redirect(url_for('dashboard'))
     return render_template('registrar.html')
+
 @app.route('/logout')
 def logout(): session.clear(); return redirect(url_for('index'))
+
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('login'))
     user = AppUser.query.filter_by(email=session['email']).first()
     if not user: session.clear(); return redirect(url_for('login'))
-    popups_exibidos = AnalyticsEvent.query.filter_by(owner_id=user.id, event_name='popup_exibido').count()
+
+    # --- [NOVO] LÓGICA DO QUARTO DO DETETIVE ---
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    
+    # Contagem de Pop-ups
+    popups_exibidos = db.session.query(AnalyticsEvent).filter(
+        AnalyticsEvent.owner_id == user.id,
+        AnalyticsEvent.event_name == 'popup_exibido',
+        AnalyticsEvent.timestamp >= thirty_days_ago
+    ).count()
+
+    # Análise das Páginas Mais Visitadas
+    top_pages_query = db.session.query(
+        AnalyticsEvent.event_data,
+        func.count(AnalyticsEvent.id).label('view_count')
+    ).filter(
+        AnalyticsEvent.owner_id == user.id,
+        AnalyticsEvent.event_name == 'pagina_visitada',
+        AnalyticsEvent.timestamp >= thirty_days_ago
+    ).group_by(
+        AnalyticsEvent.event_data
+    ).order_by(
+        func.count(AnalyticsEvent.id).desc()
+    ).limit(3).all()
+
+    top_pages = []
+    for page in top_pages_query:
+        page_data = json.loads(page.event_data)
+        top_pages.append({
+            'title': page_data.get('title', 'Página sem título'),
+            'url': page_data.get('url', '/'),
+            'views': page.view_count
+        })
+    # --- FIM DA LÓGICA DO DETETIVE ---
+
     user_config = json.loads(user.configuracoes)
-    return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos)
+    return render_template('dashboard.html', 
+                           usuario=user, 
+                           config=user_config, 
+                           popups_exibidos=popups_exibidos,
+                           top_pages=top_pages) # Enviamos os dados para o painel
+
+# (O resto das rotas, como /salvar-configuracoes, /api/track, etc. continuam as mesmas)
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
     email_na_sessao = session.get('email')
@@ -113,4 +167,5 @@ def get_client_config():
     user = AppUser.query.filter_by(api_key=api_key).first()
     if user: return jsonify(json.loads(user.configuracoes))
     return jsonify({'error': 'API Key inválida'}), 404
+
 if __name__ == '__main__': app.run(debug=True)

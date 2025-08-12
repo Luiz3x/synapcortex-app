@@ -233,3 +233,29 @@ form button[type="submit"] {
     cursor: pointer;
     font-weight: bold;
 }
+/* ==========================================================================
+   Correção do Vídeo de Fundo
+   ========================================================================== */
+
+.main-content {
+    position: relative; /* Garante que o vídeo se posicione dentro desta área */
+    overflow: hidden;   /* Garante que o vídeo não "vaze" para fora */
+}
+
+.cerebro-animado {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    z-index: 1; /* Posição 1: Fica atrás de todo mundo */
+    opacity: 0.1; /* Deixa o vídeo bem sutil */
+    pointer-events: none; /* Impede que o vídeo "roube" cliques do mouse */
+}
+
+/* Garante que o painel de conteúdo fique na frente do vídeo */
+.login-container {
+    position: relative; /* Necessário para o z-index funcionar */
+    z-index: 2; /* Posição 2: Fica na frente do vídeo */
+}

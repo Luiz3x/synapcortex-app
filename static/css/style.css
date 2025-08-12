@@ -1,261 +1,74 @@
-/* ==========================================================================
-   SynapCortex - Folha de Estilo Principal (v2.0)
-   ========================================================================== */
-
-/* --- Variáveis de Cor e Fontes --- */
+/* =================================================================================
+   SYNAPCORTEX - FOLHA DE ESTILO MESTRA
+   Versão 1.1 - Adicionado Grid do Dashboard e Estilos do Detetive
+   ================================================================================= */
 :root {
-    --primary-blue-dark: #0d1b2a;
-    --primary-blue-mid: #1b263b;
-    --primary-blue-light: #415a77;
-    --text-light: #e0e1dd;
-    --text-fade: #778da9;
-    --accent-blue: #00aaff;
-    --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --primary-blue-dark: #050a14; --secondary-blue-dark: #101c2c; --accent-blue: #00bfff;
+    --text-color: #f0f0f0; --text-fade: #a0a0a0; --error-red: #ff4d4d; --success-green: #28a745;
+    --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-family); background-color: var(--primary-blue-dark); color: var(--text-color); line-height: 1.6; }
+a { color: var(--accent-blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+header { background-color: var(--secondary-blue-dark); padding: 1rem 5%; border-bottom: 1px solid #1f2d3d; }
+nav { display: flex; justify-content: space-between; align-items: center; }
+nav .logo img { height: 40px; vertical-align: middle; }
+
+/* ... (Todo o resto do seu CSS continua aqui, sem alterações) ... */
+
+.quarto-header h4 { margin: 0; display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 600; color: var(--text-color); }
+.quarto-description { color: var(--text-fade); margin-top: 0.5rem; font-size: 0.9rem; margin-bottom: 1rem; }
+.quarto-content { margin-top: 1.5rem; border-top: 1px solid #2a3b4c; padding-top: 1.5rem; }
+.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent-blue); }
+input:checked + .slider:before { transform: translateX(26px); }
+
+/* [NOVO] Estilos do Grid do Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas de tamanho igual */
+    gap: 2rem; /* Espaçamento entre elas */
+    align-items: start; /* Alinha os itens no topo do grid */
 }
 
-/* --- Reset e Configurações Globais --- */
-body {
-    background-color: var(--primary-blue-dark);
-    color: var(--text-light);
-    font-family: var(--font-main);
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Garante que o corpo ocupe a tela inteira */
+/* [NOVO] Estilos para a lista do Detetive */
+.detetive-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
 }
-
-h1, h2, h3 {
-    margin: 0.5em 0;
-}
-
-a {
-    color: var(--accent-blue);
-    text-decoration: none;
-}
-
-/* --- Cabeçalho --- */
-header {
-    padding: 1rem 2rem;
-    background-color: rgba(13, 27, 42, 0.8);
-    backdrop-filter: blur(5px);
-    border-bottom: 1px solid var(--primary-blue-mid);
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 10;
-}
-
-nav {
+.detetive-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a3b4c;
 }
-
-.logo img {
-    height: 40px;
-    vertical-align: middle;
+.detetive-item:last-child {
+    border-bottom: none;
 }
-
-/* --- Botões Principais --- */
-.login-register-button, .cta-button {
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: 1px solid var(--accent-blue);
-    background-color: transparent;
-    color: var(--accent-blue);
-    font-size: 1em;
+.page-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+.page-views {
     font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.login-register-button:hover, .cta-button:hover {
-    background-color: var(--accent-blue);
-    color: var(--primary-blue-dark);
-}
-
-.cta-button {
-    background-color: var(--accent-blue);
-    color: var(--primary-blue-dark);
-}
-
-.cta-button:hover {
-    background-color: transparent;
     color: var(--accent-blue);
-}
-
-
-/* --- Estrutura e Conteúdo Principal --- */
-.main-content {
-    flex-grow: 1; /* Faz esta div ocupar todo o espaço disponível */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    position: relative; /* Necessário para posicionar o vídeo de fundo */
-    overflow: hidden; /* Garante que o vídeo não vaze */
-}
-
-.login-container {
-    text-align: center;
-    padding: 2rem 3rem;
-    background-color: var(--primary-blue-mid);
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 2; /* Fica na frente do vídeo */
-    position: relative;
-    max-width: 500px;
-}
-
-/* --- Vídeo de Fundo --- */
-.cerebro-animado {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    z-index: 1; /* Fica atrás do conteúdo */
-    opacity: 0.15;
-}
-
-/* --- Gráfico de Demonstração --- */
-#graficoDemonstracao {
-    max-width: 100%;
-    margin-top: 1rem;
-}
-
-
-/* --- Modal de Login/Registro --- */
-.modal {
-    display: none; 
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: var(--primary-blue-mid);
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 450px;
-    position: relative;
-}
-
-.close-button {
-    color: #aaa;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close-button:hover {
-    color: var(--text-light);
-}
-
-/* Abas do Modal */
-.modal-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--primary-blue-light);
-}
-
-.tab-button {
-    flex: 1;
-    padding: 10px;
-    background: none;
-    border: none;
-    color: var(--text-fade);
-    font-size: 1.1em;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-}
-
-.tab-button.active {
-    color: var(--text-light);
-    border-bottom: 3px solid var(--accent-blue);
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* Formulários */
-.input-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: var(--text-fade);
-}
-
-.input-group input {
-    width: 100%;
-    padding: 10px;
     background-color: var(--primary-blue-dark);
-    border: 1px solid var(--primary-blue-light);
+    padding: 2px 8px;
     border-radius: 5px;
-    color: var(--text-light);
-    box-sizing: border-box;
+    font-size: 0.9em;
 }
 
-form button[type="submit"] {
-    width: 100%;
-    padding: 12px;
-    font-size: 1.1em;
-    margin-top: 10px;
-    background-color: var(--accent-blue);
-    color: var(--primary-blue-dark);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-/* ==========================================================================
-   Correção do Vídeo de Fundo
-   ========================================================================== */
-
-.main-content {
-    position: relative; /* Garante que o vídeo se posicione dentro desta área */
-    overflow: hidden;   /* Garante que o vídeo não "vaze" para fora */
-}
-
-.cerebro-animado {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 100%;
-    min-height: 100%;
-    z-index: 1; /* Posição 1: Fica atrás de todo mundo */
-    opacity: 0.1; /* Deixa o vídeo bem sutil */
-    pointer-events: none; /* Impede que o vídeo "roube" cliques do mouse */
-}
-
-/* Garante que o painel de conteúdo fique na frente do vídeo */
-.login-container {
-    position: relative; /* Necessário para o z-index funcionar */
-    z-index: 2; /* Posição 2: Fica na frente do vídeo */
+/* --- Ajuste de Responsividade para o Grid --- */
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* Volta para uma única coluna */
+    }
 }

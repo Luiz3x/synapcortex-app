@@ -5,3 +5,4 @@ Flask-Cors
 stripe
 Flask-SQLAlchemy
 psycopg2-binary
+SQLAlchemy

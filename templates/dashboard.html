@@ -16,70 +16,35 @@
     </header>
 
     <div class="dashboard-container">
+        <form id="config-form" method="POST" action="{{ url_for('salvar_configuracoes') }}">
+            <div class="secao-painel">
+                <h3>Visão Geral</h3>
+                </div>
 
-        <div class="secao-painel">
-            <h3>Visão Geral (O Cérebro da Operação)</h3>
+            <div class="dashboard-grid-principal">
+                <div class="secao-painel" id="detetive-section">
+                    <h3>🕵️ Quarto do Detetive</h3>
+                    </div>
+
+                <div class="secao-painel">
+                    <h3>🚀 Arsenal de Gatilhos</h3>
+                    </div>
             </div>
 
-        <div class="dashboard-grid-principal">
+            <div class="secao-painel secao-full-width">
+                <h3>🔥 Quarto Black Friday</h3>
+                </div>
             
-            <div class="secao-painel" id="detetive-section">
-                <h3>🕵️ Quarto do Detetive</h3>
-                </div>
+            <button type="submit" class="cta-button" style="width: 100%; margin: 0 0 2rem 0;">Salvar Todas as Configurações</button>
+        </form>
 
-            <form id="config-form" class="secao-painel">
-                <h3>🚀 Arsenal de Gatilhos</h3>
-                <button type="submit" class="cta-button" style="width: 100%; margin-top: 1.5rem;">Salvar Todas as Configurações</button>
-            </form>
-
-            <div class="secao-painel secao-full-width">
-                <h3>🔥 Quarto Black Friday (Campanhas Sazonais)</h3>
-                <p class="quarto-description">Programe e ative sua campanha de alta conversão.</p>
-
-                <div class="quarto-card" style="border: 2px solid var(--accent-blue);">
-                    <div class="quarto-header">
-                        <h4>Ativar Modo Campanha</h4>
-                        <label class="switch">
-                            <input type="checkbox" name="campaign_active" form="config-form" {{ 'checked' if usuario.campaign_active }}>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="quarto-card">
-                    <div class="quarto-header"><h4>🗓️ Agendamento</h4></div>
-                    <div class="quarto-content">
-                        <div class="input-group">
-                            <label>Início da Campanha:</label>
-                            <input type="datetime-local" name="campaign_start_date" form="config-form" value="{{ usuario.campaign_start_date.strftime('%Y-%m-%dT%H:%M') if usuario.campaign_start_date else '' }}">
-                        </div>
-                        <div class="input-group">
-                            <label>Fim da Campanha:</label>
-                            <input type="datetime-local" name="campaign_end_date" form="config-form" value="{{ usuario.campaign_end_date.strftime('%Y-%m-%dT%H:%M') if usuario.campaign_end_date else '' }}">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quarto-card">
-                    <div class="quarto-header"><h4>📢 Barra de Contagem Regressiva</h4></div>
-                    <div class="quarto-content">
-                        <div class="input-group">
-                            <label>Texto da Barra:</label>
-                            <input type="text" name="countdown_bar_text" form="config-form" placeholder="Ex: A Black Friday acaba em..." value="{{ (json.loads(usuario.campaign_config)).get('countdown_bar_text', '') if usuario.campaign_config and usuario.campaign_config != '{}' else '' }}">
-                        </div>
-                    </div>
-                </div>
+        <div class="secao-painel secao-full-width">
+            <h3><span class="icon">💡</span> Central de Ajuda</h3>
             </div>
-            <div class="secao-painel secao-full-width">
-                <h3><span class="icon">💡</span> Central de Ajuda Interativa</h3>
-                </div>
 
-            <div class="secao-painel secao-full-width">
-                <h3><span class="icon">🔑</span> Sua Chave de API e Código de Instalação</h3>
-                </div>
-
-        </div>
-
+        <div class="secao-painel secao-full-width">
+            <h3><span class="icon">🔑</span> Sua Chave de API</h3>
+            </div>
     </div>
 
     <div id="helpModal" class="modal"></div>

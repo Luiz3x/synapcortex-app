@@ -1,5 +1,5 @@
 // =================================================================================
-// SYNAPCORTEX - SCRIPT ESPIÃO (v3.5 - LÓGICA DE GATILHOS RESTAURADA)
+// SYNAPCORTEX - SCRIPT ESPIÃO (v3.6 - VENDEDOR ESPECIALISTA)
 // =================================================================================
 
 const synapseAgent = {
@@ -34,7 +34,12 @@ const synapseAgent = {
 
 function inicializarMotorDeGatilhos(config) {
     let popupMostradoNestaSessao = false;
-    
+    let paginasVisitadasNaSessao = JSON.parse(sessionStorage.getItem('synapcortex_session_pages')) || {};
+
+    const urlAtual = window.location.pathname;
+    paginasVisitadasNaSessao[urlAtual] = (paginasVisitadasNaSessao[urlAtual] || 0) + 1;
+    sessionStorage.setItem('synapcortex_session_pages', JSON.stringify(paginasVisitadasNaSessao));
+
     function mostrarPopup(motivo, titulo, mensagem) {
         if (popupMostradoNestaSessao) return;
         popupMostradoNestaSessao = true;
@@ -56,6 +61,7 @@ function inicializarMotorDeGatilhos(config) {
         });
     }
 
+    // --- GATILHO 1: ABANDONO DE CARRINHO ---
     if (config.ativar_abandono) {
         document.addEventListener('mouseleave', function(e) {
             if (e.clientY <= 0) {
@@ -63,13 +69,19 @@ function inicializarMotorDeGatilhos(config) {
             }
         });
     }
+
+    // --- GATILHO 2: VENDEDOR ESPECIALISTA ---
+    if (config.ativar_quarto_bem_vindo && paginasVisitadasNaSessao[urlAtual] >= 3) {
+        setTimeout(() => {
+            mostrarPopup('vendedor_especialista', 'Um Interesse Especial?', config.msg_bem_vindo);
+        }, 2000);
+    }
 }
 
 // Auto-execução quando o script é carregado
 if (synapseAgent.init()) {
     synapseAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
     
-    // Busca as configurações do cliente para ativar os gatilhos
     fetch(`${synapseAgent.backendUrl}/api/get-client-config?key=${synapseAgent.apiKey}`)
         .then(response => response.json())
         .then(config => {

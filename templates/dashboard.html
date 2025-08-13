@@ -30,7 +30,15 @@
             
             <div class="secao-painel" id="detetive-section">
                 <h3>🕵️ Quarto do Detetive</h3>
-                <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes nos últimos 30 dias.</p>
+                <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes.</p>
+                
+                {% if insight_detetive %}
+                <div class="insight-box">
+                    <strong>Insight do Detetive:</strong><br>
+                    {{ insight_detetive }}
+                </div>
+                {% endif %}
+                
                 {% if top_pages %}
                     <ul class="detetive-list">
                         {% for page in top_pages %}
@@ -49,8 +57,8 @@
                 <h3>🚀 Arsenal de Gatilhos</h3>
                 <p class="quarto-description">Ative e configure os gatilhos.</p>
 
-                <div class="quarto-card" style="border: 2px solid var(--accent-blue);">
-                    <div class="quarto-header"><h4>⭐ Abandono de Site</h4><label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label></div>
+                <div class="quarto-card">
+                    <div class="quarto-header"><h4>⭐ Abandono de Carrinho</h4><label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label></div>
                     <div class="quarto-content"><div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div><div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div></div>
                 </div>
 
@@ -71,28 +79,15 @@
 
         <div class="secao-painel">
             <h3><span class="icon">💡</span> Central de Ajuda Interativa</h3>
-            <p class="quarto-description">Clique na sua plataforma para ver o guia de instalação.</p>
-            <div class="help-center-grid">
-                <button class="platform-button" data-platform="shopify"><span>🛒</span><span>Shopify</span></button>
-                <button class="platform-button" data-platform="woocommerce"><span>🎨</span><span>WooCommerce</span></button>
-                <button class="platform-button" data-platform="nuvemshop"><span>☁️</span><span>Nuvemshop</span></button>
-                <button class="platform-button" data-platform="universal"><span class="icon">&lt;/&gt;</span><span>Site Próprio</span></button>
             </div>
-        </div>
 
         <div class="secao-painel">
             <h3><span class="icon">🔑</span> Sua Chave de API e Código de Instalação</h3>
-            <p class="quarto-description">Copie e cole este código no seu site, antes do fechamento da tag &lt;/body&gt;.</p>
-            <div class="input-group" style="margin-top: 1.5rem;">
-                <label for="codigo-instalacao">Seu código de instalação:</label>
-                <textarea id="codigo-instalacao" rows="6" readonly>&lt;script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js', _external=True) }}?key={{ usuario.api_key }}" data-backend-url="{{ url_for('index', _external=True) }}" defer&gt;&lt;/script&gt;</textarea>
             </div>
-            <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
-        </div>
-
     </div>
 
-    <div id="helpModal" class="modal"><div class="modal-content"><span class="close-button">&times;</span><h2 id="helpModalTitle"></h2><div id="helpModalContent"></div></div></div>
+    <div id="helpModal" class="modal">
+        </div>
 
     <script src="{{ url_for('static', filename='js/main_logic.js') }}"></script>
 </body>

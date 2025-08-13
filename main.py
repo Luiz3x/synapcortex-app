@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 3.0 - Versão de Correção Completa
+# Versão 3.1 - Lógica de Insight do Detetive
 # =================================================================================
 import os
 import json
@@ -26,6 +26,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
 # --- MODELOS DO BANCO DE DADOS ---
 class AppUser(db.Model):
     __tablename__ = 'app_user'
@@ -49,6 +50,7 @@ class AnalyticsEvent(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+
 # --- INICIALIZAÇÃO DO BANCO DE DADOS E USUÁRIO DEMO ---
 with app.app_context():
     db.create_all()
@@ -71,6 +73,7 @@ with app.app_context():
         )
         db.session.add(demo_user)
         db.session.commit()
+
 
 # --- ROTAS PRINCIPAIS E DE AUTENTICAÇÃO ---
 @app.route('/')
@@ -117,6 +120,7 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+
 # --- ROTA DO PAINEL DE CONTROLE ---
 @app.route('/dashboard')
 def dashboard():
@@ -161,12 +165,19 @@ def dashboard():
         except (json.JSONDecodeError, TypeError):
             continue
 
+    insight_detetive = None
+    if top_pages:
+        pagina_campea = top_pages[0]['title']
+        insight_detetive = f"Sua página mais popular é '{pagina_campea}'. Considere criar uma oferta especial ou um gatilho de pop-up para esta página e aumentar ainda mais suas conversões!"
+
     user_config = json.loads(user.configuracoes)
     return render_template('dashboard.html', 
                            usuario=user, 
                            config=user_config, 
                            popups_exibidos=popups_exibidos,
-                           top_pages=top_pages)
+                           top_pages=top_pages,
+                           insight_detetive=insight_detetive)
+
 
 # --- ROTAS DE API E CONFIGURAÇÃO ---
 @app.route('/salvar-configuracoes', methods=['POST'])

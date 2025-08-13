@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê de Visitantes - SynapCortex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="Logo"></a>
+            <span>Painel de: {{ usuario.nome_empresa }}</span>
+            <a href="{{ url_for('logout') }}" class="login-register-button">Sair</a>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="secao-painel">
+            <h3>📖 Dossiê de Visitantes Ativos</h3>
+            <p class="quarto-description">Acompanhe a jornada de cada visitante anônimo no seu site em tempo real.</p>
+
+            {% for visitor_id, events in visitors_data.items() %}
+            <div class="visitor-card">
+                <div class="visitor-header">
+                    <h4>Visitante #{{ visitor_id[-6:] }}</h4>
+                    <span>{{ events|length }} páginas visitadas</span>
+                </div>
+                <div class="visitor-timeline">
+                    {% for event in events %}
+                    <div class="timeline-event">
+                        <span class="event-time">{{ event.timestamp }}</span>
+                        <span class="event-title">Visitou: <strong>{{ event.title }}</strong></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="status-message">Ainda não há dados de visitas para analisar.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

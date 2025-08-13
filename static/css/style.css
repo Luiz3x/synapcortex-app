@@ -154,3 +154,10 @@ input:checked + .slider:before { transform: translateX(26px); }
     .cerebro-animado { opacity: 0.2; }
     .login-register-button { padding: 10px 18px; font-size: 0.9rem; }
 }
+.dashboard-grid-pilares {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 2rem;
+}

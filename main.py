@@ -119,4 +119,4 @@ def dashboard():
     user_config = json.loads(user.configuracoes or '{}')
     return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive)
 
-# ... (outras rotas como /visitors, /salvar-configuracoes, e APIs continuam aqui)  
+# ... (outras rotas como /visitors, /salvar-configuracoes, e APIs continuam aqui)

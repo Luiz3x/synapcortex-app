@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 3.2 - VERSÃO VERDADEIRAMENTE COMPLETA
+# Versão 3.3 - Análise de Visitantes Únicos
 # =================================================================================
 import os
 import json
@@ -9,7 +9,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, distinct
 from flask_cors import CORS
 from collections import defaultdict
 
@@ -143,7 +143,8 @@ def dashboard():
 
     top_pages_query = db.session.query(
         AnalyticsEvent.event_data,
-        func.count(AnalyticsEvent.id).label('view_count')
+        func.count(AnalyticsEvent.id).label('view_count'),
+        func.count(distinct(AnalyticsEvent.visitor_id)).label('unique_visitors')
     ).filter(
         AnalyticsEvent.owner_id == user.id,
         AnalyticsEvent.event_name == 'pagina_visitada',
@@ -161,7 +162,8 @@ def dashboard():
             top_pages.append({
                 'title': title,
                 'url': page_data.get('url', '/'),
-                'views': page.view_count
+                'views': page.view_count,
+                'unique_visitors': page.unique_visitors
             })
         except (json.JSONDecodeError, TypeError):
             continue

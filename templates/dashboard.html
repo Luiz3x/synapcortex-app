@@ -50,7 +50,38 @@
                 <div class="secao-painel">
                     <h3>🚀 Arsenal de Gatilhos</h3>
                     <p class="quarto-description">Ative e configure os gatilhos.</p>
-                    <div class="quarto-card"><div class="quarto-header"><h4>⭐ Abandono de Carrinho</h4><label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label></div><div class="quarto-content"><div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo') | default('', true) }}"></div><div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem') | default('', true) }}</textarea></div></div></div>
+                    
+                    <div class="quarto-card" style="border: 2px solid var(--accent-blue);">
+                        <div class="quarto-header">
+                            <h4>⭐ Abandono de Carrinho</h4>
+                            <label class="switch"><input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}><span class="slider"></span></label>
+                        </div>
+                        <div class="quarto-content">
+                            <div class="input-group">
+                                <label>Tipo de Pop-up:</label>
+                                <select name="abandono_tipo" id="abandono-tipo-select" class="input-select">
+                                    <option value="normal" {{ "selected" if config.get('abandono_tipo', 'normal') == 'normal' }}>Pop-up Normal</option>
+                                    <option value="presente" {{ "selected" if config.get('abandono_tipo') == 'presente' }}>Presente Surpresa</option>
+                                </select>
+                            </div>
+    
+                            <div id="abandono-presente-fields" class="{{ '' if config.get('abandono_tipo') == 'presente' else 'hidden' }}">
+                                <div class="input-group">
+                                    <label>Texto do Presente (Fechado):</label>
+                                    <input type="text" name="abandono_presente_fechado" placeholder="🎁 Um presente para você! Clique para abrir." value="{{ config.get('abandono_presente_fechado', '') }}">
+                                </div>
+                                <div class="input-group">
+                                    <label>Texto do Prêmio (Aberto):</label>
+                                    <input type="text" name="abandono_presente_aberto" placeholder="Parabéns! Use o cupom ESPECIAL10" value="{{ config.get('abandono_presente_aberto', '') }}">
+                                </div>
+                            </div>
+    
+                            <div id="abandono-normal-fields" class="{{ 'hidden' if config.get('abandono_tipo') == 'presente' }}">
+                                <div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
+                                <div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="quarto-card"><div class="quarto-header"><h4>👋 Bem-vindo de Volta</h4><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label></div><div class="quarto-content"><div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo') | default('', true) }}</textarea></div></div></div>
                     <div class="quarto-card"><div class="quarto-header"><h4>🎯 Interessado</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div><div class="quarto-content"><div class="input-group"><label>Mensagem para inatividade:</label><textarea name="msg_interessado" rows="3">{{ config.get('msg_interessado') | default('', true) }}</textarea></div></div></div>
                 </div>
@@ -60,15 +91,7 @@
                 <h3>🔥 Quarto Black Friday (Campanhas Sazonais)</h3>
                 <div class="quarto-card"><div class="quarto-header"><h4>Ativar Modo Campanha</h4><label class="switch"><input type="checkbox" name="campaign_active" {{ 'checked' if usuario.campaign_active }}><span class="slider"></span></label></div></div>
                 <div class="quarto-card"><div class="quarto-header"><h4>🗓️ Agendamento</h4></div><div class="quarto-content"><div class="input-group"><label>Início:</label><input type="datetime-local" name="campaign_start_date" value="{{ usuario.campaign_start_date.strftime('%Y-%m-%dT%H:%M') if usuario.campaign_start_date else '' }}"></div><div class="input-group"><label>Fim:</label><input type="datetime-local" name="campaign_end_date" value="{{ usuario.campaign_end_date.strftime('%Y-%m-%dT%H:%M') if usuario.campaign_end_date else '' }}"></div></div></div>
-                <div class="quarto-card">
-                    <div class="quarto-header"><h4>📢 Barra de Contagem</h4></div>
-                    <div class="quarto-content">
-                        <div class="input-group">
-                            <label>Texto da Barra:</label>
-                            <input type="text" name="countdown_bar_text" value="{{ campaign_config_data.get('countdown_bar_text', '') }}">
-                        </div>
-                    </div>
-                </div>
+                <div class="quarto-card"><div class="quarto-header"><h4>📢 Barra de Contagem</h4></div><div class="quarto-content"><div class="input-group"><label>Texto da Barra:</label><input type="text" name="countdown_bar_text" value="{{ campaign_config_data.get('countdown_bar_text', '') }}"></div></div></div>
             </div>
             
             <button type="submit" class="cta-button" style="width: calc(100% - 4rem); margin: -1rem auto 2rem auto; display: block;">Salvar Todas as Configurações</button>

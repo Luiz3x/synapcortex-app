@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 3.8 - CÓDIGO FINAL COMPLETO E VERIFICADO
+# Versão 3.9 - CORREÇÃO FINAL DA LÓGICA DE SALVAR
 # =================================================================================
 import os
 import json
@@ -17,16 +17,13 @@ from collections import defaultdict
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
-
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
-
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": {"sslmode": "require"}}
 db = SQLAlchemy(app)
-
 
 # --- MODELOS DO BANCO DE DADOS ---
 class AppUser(db.Model):
@@ -55,7 +52,6 @@ class AnalyticsEvent(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-
 # --- INICIALIZAÇÃO DO BANCO DE DADOS ---
 with app.app_context():
     db.create_all()
@@ -63,7 +59,6 @@ with app.app_context():
         demo_user = AppUser(email='demo@synapcortex.com', senha_hash=generate_password_hash('demo'), nome_empresa='Loja de Demonstração', cnpj='00000000000000', api_key='chave_api_demo_123456')
         db.session.add(demo_user)
         db.session.commit()
-
 
 # --- ROTAS DE AUTENTICAÇÃO ---
 @app.route('/')
@@ -86,7 +81,6 @@ def registrar():
     if AppUser.query.filter_by(email=email).first():
         flash('Este e-mail já está cadastrado.', 'error')
         return redirect(url_for('index'))
-    
     senha_hash_corrigida = generate_password_hash(request.form.get('password'))
     new_user = AppUser(email=email, senha_hash=senha_hash_corrigida, nome_empresa=request.form.get('nome_empresa'), cnpj=request.form.get('cnpj'), api_key=secrets.token_hex(16))
     db.session.add(new_user)
@@ -107,19 +101,12 @@ def dashboard():
     if 'logged_in' not in session: return redirect(url_for('index'))
     user = AppUser.query.filter_by(email=session['email']).first()
     if not user: return redirect(url_for('index'))
-    
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     popups_exibidos = AnalyticsEvent.query.filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'popup_exibido', AnalyticsEvent.timestamp >= thirty_days_ago).count()
     top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('view_count'), func.count(distinct(AnalyticsEvent.visitor_id)).label('unique_visitors')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
     top_pages = [{'title': (json.loads(p.event_data).get('title') or json.loads(p.event_data).get('url', 'N/A')), 'views': p.view_count} for p in top_pages_query]
     insight_detetive = f"Sua página mais popular é '{top_pages[0]['title']}'. Considere criar uma oferta!" if top_pages else None
     user_config = json.loads(user.configuracoes or '{}')
-    
-    if not hasattr(user, 'campaign_active'): user.campaign_active = False
-    if not hasattr(user, 'campaign_config') or user.campaign_config is None: user.campaign_config = '{}'
-    if not hasattr(user, 'campaign_start_date'): user.campaign_start_date = None
-    if not hasattr(user, 'campaign_end_date'): user.campaign_end_date = None
-
     return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive)
 
 @app.route('/dashboard/visitors')
@@ -137,6 +124,7 @@ def visitors():
         except: continue
     return render_template('visitors.html', visitors_data=visitors_data, usuario=user)
 
+# --- ROTA DE SALVAR (COM A CORREÇÃO) ---
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
     if 'logged_in' not in session: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
@@ -145,27 +133,30 @@ def salvar_configuracoes():
     if user.email == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta demo, as alterações não são salvas.'})
 
     config_atual = json.loads(user.configuracoes or '{}')
-    checkboxes = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
-    for chave, valor in request.form.items():
-        if chave not in ['campaign_active', 'campaign_start_date', 'campaign_end_date', 'countdown_bar_text']: config_atual[chave] = valor
-    for check in checkboxes:
-        if check not in request.form: config_atual[check] = False
-        else: config_atual[check] = True
-    user.configuracoes = json.dumps(config_atual)
-
+    campaign_config_atual = json.loads(user.campaign_config or '{}')
+    checkboxes_normais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+    
+    for key, value in request.form.items():
+        if key in checkboxes_normais or key == 'campaign_active': continue
+        elif key == 'countdown_bar_text': campaign_config_atual[key] = value
+        else: config_atual[key] = value
+            
+    for check in checkboxes_normais:
+        config_atual[check] = check in request.form
+    
     user.campaign_active = 'campaign_active' in request.form
     start_date_str = request.form.get('campaign_start_date')
     user.campaign_start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
     end_date_str = request.form.get('campaign_end_date')
     user.campaign_end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
     
-    campaign_config_atual = json.loads(user.campaign_config or '{}')
-    campaign_config_atual['countdown_bar_text'] = request.form.get('countdown_bar_text', '')
+    user.configuracoes = json.dumps(config_atual)
     user.campaign_config = json.dumps(campaign_config_atual)
-
+    
     db.session.commit()
     return jsonify({'status': 'success', 'message': 'Configurações salvas!'})
 
+# --- ROTAS DE API ---
 @app.route('/api/track', methods=['POST'])
 def track_event():
     data = request.get_json()

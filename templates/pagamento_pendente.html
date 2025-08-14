@@ -28,6 +28,10 @@
         const stripe_publishable_key = "{{ stripe_publishable_key }}";
     </script>
 
-    <script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js') }}"></script>
+    <script>
+        const stripe_publishable_key = "{{ stripe_publishable_key }}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
 </body>
 </html>

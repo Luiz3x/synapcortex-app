@@ -171,3 +171,18 @@ input:checked + .slider:before { transform: translateX(26px); }
 .secao-full-width {
     grid-column: 1 / -1; /* Faz esta seção ocupar toda a largura da grade */
 }
+/* ============================================= */
+/* REGRAS PARA O PAINEL V2.0 (PRESENTE SURPRESA) */
+/* ============================================= */
+
+/* Sua regra para esconder/mostrar os campos dinâmicos. Perfeita! */
+.hidden {
+    display: none !important;
+}
+
+/* Um pequeno ajuste para o espaçamento dos radio buttons, se precisar */
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 0.5rem;
+}

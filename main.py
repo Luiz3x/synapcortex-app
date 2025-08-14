@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 10.0 - O CÓDIGO FINAL E ESTÁVEL
+# Versão 10.0 - CORREÇÃO FINAL DA LÓGICA DO DASHBOARD
 # =================================================================================
 import os
 import json
@@ -112,36 +112,58 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-# --- ROTAS DO PAINEL ---
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('index'))
     email = session['email']
+    
     if email == 'demo@synapcortex.com':
-        user_demo = {'nome_empresa': 'Loja de Demonstração', 'api_key': 'chave_demo'}
+        user_demo = {'nome_empresa': 'Loja de Demonstração', 'api_key': 'chave_demo', 'campaign_active': False, 'campaign_start_date': None, 'campaign_end_date': None, 'campaign_config': '{}'}
         config_demo = {'ativar_abandono': True, 'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore o painel.'}
-        user_demo['campaign_active'] = False
-        user_demo['campaign_start_date'] = None
-        user_demo['campaign_end_date'] = None
-        user_demo['campaign_config'] = '{}'
         return render_template('dashboard.html', usuario=user_demo, config=config_demo, popups_exibidos='N/A', top_pages=[], insight_detetive="Este é um exemplo de insight!")
+
     user = AppUser.query.filter_by(email=email).first()
     if not user: 
         flash('Usuário não encontrado.', 'error')
         return redirect(url_for('index'))
+    
     agora = datetime.utcnow()
     if hasattr(user, 'trial_end_date') and user.trial_end_date and user.trial_end_date < agora and user.status_assinatura != 'active':
         flash('Seu período de teste acabou. Por favor, realize o pagamento.', 'error')
         return redirect(url_for('index'))
+        
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     popups_exibidos = AnalyticsEvent.query.filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'popup_exibido', AnalyticsEvent.timestamp >= thirty_days_ago).count()
-    top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('view_count')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
-    top_pages = [{'title': (json.loads(p.event_data).get('title') or json.loads(p.event_data).get('url', 'N/A')), 'views': p.view_count} for p in top_pages_query]
+    
+    top_pages_query = db.session.query(
+        AnalyticsEvent.event_data,
+        func.count(AnalyticsEvent.id).label('view_count'),
+        func.count(distinct(AnalyticsEvent.visitor_id)).label('unique_visitors')
+    ).filter(
+        AnalyticsEvent.owner_id == user.id,
+        AnalyticsEvent.event_name == 'pagina_visitada',
+        AnalyticsEvent.timestamp >= thirty_days_ago
+    ).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
+    
+    top_pages = []
+    for p in top_pages_query:
+        try:
+            page_data = json.loads(p.event_data)
+            title = page_data.get('title') or page_data.get('url', 'N/A')
+            top_pages.append({
+                'title': title,
+                'views': p.view_count,
+                'unique_visitors': p.unique_visitors
+            })
+        except: continue
+    
     insight_detetive = f"Sua página mais popular é '{top_pages[0]['title']}'. Considere criar uma oferta!" if top_pages else None
+    
     try:
         user_config = json.loads(user.configuracoes) if isinstance(user.configuracoes, str) else (user.configuracoes or {})
     except (json.JSONDecodeError, TypeError):
         user_config = {}
+
     return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive)
 
 @app.route('/dashboard/visitors')
@@ -166,32 +188,22 @@ def salvar_configuracoes():
     if not user: return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
     if user.email == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta demo, as alterações não são salvas.'})
     try:
-        # Carrega as configurações existentes ou cria dicionários vazios
         config_atual = json.loads(user.configuracoes or '{}')
         campaign_config_atual = json.loads(user.campaign_config or '{}')
-
-        # Processa os gatilhos normais
         checkboxes_normais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
-        config_atual['popup_titulo'] = request.form.get('popup_titulo', '')
-        config_atual['popup_mensagem'] = request.form.get('popup_mensagem', '')
-        config_atual['msg_bem_vindo'] = request.form.get('msg_bem_vindo', '')
-        config_atual['msg_interessado'] = request.form.get('msg_interessado', '')
-        for check in checkboxes_normais:
-            config_atual[check] = check in request.form
-        
-        # Processa as configurações de campanha
+        for key, value in request.form.items():
+            if key in checkboxes_normais or key.startswith('campaign_'): continue
+            elif key == 'countdown_bar_text': campaign_config_atual[key] = value
+            else: config_atual[key] = value
+        for check in checkboxes_normais: config_atual[check] = check in request.form
         user.campaign_active = 'campaign_active' in request.form
-        campaign_config_atual['countdown_bar_text'] = request.form.get('countdown_bar_text', '')
         start_date_str = request.form.get('campaign_start_date')
         user.campaign_start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M') if start_date_str else None
         end_date_str = request.form.get('campaign_end_date')
         user.campaign_end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M') if end_date_str else None
-
-        # Salva as configurações de volta no banco de dados
         user.configuracoes = json.dumps(config_atual)
         user.campaign_config = json.dumps(campaign_config_atual)
         db.session.commit()
-        
         return jsonify({'status': 'success', 'message': 'Configurações salvas!'})
     except Exception as e:
         db.session.rollback()

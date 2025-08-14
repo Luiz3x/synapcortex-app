@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 3.9 - CORREÇÃO FINAL DA LÓGICA DE SALVAR
+# Versão 4.1 - Lógica de Teste de 30 Dias (Paywall)
 # =================================================================================
 import os
 import json
@@ -36,7 +36,7 @@ class AppUser(db.Model):
     api_key = db.Column(db.String(32), unique=True, nullable=False)
     data_registro = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     status_assinatura = db.Column(db.String(20), nullable=False, default='trial')
-    configuracoes = db.Column(db.Text, nullable=False, default='{}')
+    trial_end_date = db.Column(db.DateTime, nullable=True) # <-- NOSSO "CALENDÁRIO"
     campaign_active = db.Column(db.Boolean, nullable=False, default=False)
     campaign_start_date = db.Column(db.DateTime, nullable=True)
     campaign_end_date = db.Column(db.DateTime, nullable=True)
@@ -81,13 +81,24 @@ def registrar():
     if AppUser.query.filter_by(email=email).first():
         flash('Este e-mail já está cadastrado.', 'error')
         return redirect(url_for('index'))
+    
     senha_hash_corrigida = generate_password_hash(request.form.get('password'))
-    new_user = AppUser(email=email, senha_hash=senha_hash_corrigida, nome_empresa=request.form.get('nome_empresa'), cnpj=request.form.get('cnpj'), api_key=secrets.token_hex(16))
+    data_final_teste = datetime.utcnow() + timedelta(days=30)
+    
+    new_user = AppUser(
+        email=email,
+        senha_hash=senha_hash_corrigida,
+        nome_empresa=request.form.get('nome_empresa'),
+        cnpj=request.form.get('cnpj'),
+        api_key=secrets.token_hex(16),
+        trial_end_date=data_final_teste
+    )
     db.session.add(new_user)
     db.session.commit()
+    
     session['logged_in'] = True
     session['email'] = new_user.email
-    flash('Conta criada com sucesso! Bem-vindo!', 'success')
+    flash('Conta criada com sucesso! Você tem 30 dias de teste grátis.', 'success')
     return redirect(url_for('dashboard'))
 
 @app.route('/logout')
@@ -101,6 +112,18 @@ def dashboard():
     if 'logged_in' not in session: return redirect(url_for('index'))
     user = AppUser.query.filter_by(email=session['email']).first()
     if not user: return redirect(url_for('index'))
+
+    # --- LÓGICA DO PORTEIRO (PAYWALL) ---
+    agora = datetime.utcnow()
+    # Para usuários normais (não o demo), verifica o período de teste
+    if user.email != 'demo@synapcortex.com':
+        if hasattr(user, 'trial_end_date') and user.trial_end_date and user.trial_end_date < agora:
+            if user.status_assinatura != 'active':
+                flash('Seu período de teste acabou. Por favor, realize o pagamento para continuar.', 'error')
+                # Futuramente, redirecionaremos para a página de pagamento
+                return redirect(url_for('index'))
+    # --- FIM DA LÓGICA ---
+
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     popups_exibidos = AnalyticsEvent.query.filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'popup_exibido', AnalyticsEvent.timestamp >= thirty_days_ago).count()
     top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('view_count'), func.count(distinct(AnalyticsEvent.visitor_id)).label('unique_visitors')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
@@ -124,7 +147,7 @@ def visitors():
         except: continue
     return render_template('visitors.html', visitors_data=visitors_data, usuario=user)
 
-# --- ROTA DE SALVAR (COM A CORREÇÃO) ---
+# --- ROTAS DE API E CONFIGURAÇÃO ---
 @app.route('/salvar-configuracoes', methods=['POST'])
 def salvar_configuracoes():
     if 'logged_in' not in session: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
@@ -137,7 +160,7 @@ def salvar_configuracoes():
     checkboxes_normais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
     
     for key, value in request.form.items():
-        if key in checkboxes_normais or key == 'campaign_active': continue
+        if key in checkboxes_normais or key.startswith('campaign_'): continue
         elif key == 'countdown_bar_text': campaign_config_atual[key] = value
         else: config_atual[key] = value
             
@@ -146,9 +169,9 @@ def salvar_configuracoes():
     
     user.campaign_active = 'campaign_active' in request.form
     start_date_str = request.form.get('campaign_start_date')
-    user.campaign_start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
+    user.campaign_start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M') if start_date_str else None
     end_date_str = request.form.get('campaign_end_date')
-    user.campaign_end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
+    user.campaign_end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M') if end_date_str else None
     
     user.configuracoes = json.dumps(config_atual)
     user.campaign_config = json.dumps(campaign_config_atual)
@@ -156,7 +179,6 @@ def salvar_configuracoes():
     db.session.commit()
     return jsonify({'status': 'success', 'message': 'Configurações salvas!'})
 
-# --- ROTAS DE API ---
 @app.route('/api/track', methods=['POST'])
 def track_event():
     data = request.get_json()

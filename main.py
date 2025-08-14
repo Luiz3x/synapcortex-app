@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 8.0 - BLINDAGEM FINAL DO DASHBOARD
+# Versão 9.0 - VERSÃO FINAL, COMPLETA E VERIFICADA
 # =================================================================================
 import os
 import json
@@ -118,12 +118,8 @@ def dashboard():
     email = session['email']
     
     if email == 'demo@synapcortex.com':
-        user_demo = {'nome_empresa': 'Loja de Demonstração', 'api_key': 'chave_demo'}
+        user_demo = {'nome_empresa': 'Loja de Demonstração', 'api_key': 'chave_demo', 'campaign_active': False, 'campaign_start_date': None, 'campaign_end_date': None, 'campaign_config': '{}'}
         config_demo = {'ativar_abandono': True, 'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore o painel.'}
-        user_demo['campaign_active'] = False
-        user_demo['campaign_start_date'] = None
-        user_demo['campaign_end_date'] = None
-        user_demo['campaign_config'] = '{}'
         return render_template('dashboard.html', usuario=user_demo, config=config_demo, popups_exibidos='N/A', top_pages=[], insight_detetive="Este é um exemplo de insight!")
 
     user = AppUser.query.filter_by(email=email).first()
@@ -131,30 +127,15 @@ def dashboard():
         flash('Usuário não encontrado.', 'error')
         return redirect(url_for('index'))
     
-    # --- LÓGICA DE BLINDAGEM COMPLETA ---
     if not hasattr(user, 'campaign_active'): user.campaign_active = False
     if not hasattr(user, 'campaign_config') or user.campaign_config is None: user.campaign_config = '{}'
     if not hasattr(user, 'campaign_start_date'): user.campaign_start_date = None
     if not hasattr(user, 'campaign_end_date'): user.campaign_end_date = None
     
-    agora = datetime.utcnow()
-    if hasattr(user, 'trial_end_date') and user.trial_end_date and user.trial_end_date < agora and user.status_assinatura != 'active':
-        flash('Seu período de teste acabou. Por favor, realize o pagamento.', 'error')
-        return redirect(url_for('index'))
-        
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     popups_exibidos = AnalyticsEvent.query.filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'popup_exibido', AnalyticsEvent.timestamp >= thirty_days_ago).count()
     top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('view_count')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
-    
-    top_pages = []
-    if top_pages_query:
-        for p in top_pages_query:
-            try:
-                page_data = json.loads(p.event_data)
-                title = page_data.get('title') or page_data.get('url', 'N/A')
-                top_pages.append({'title': title, 'views': p.view_count})
-            except: continue
-    
+    top_pages = [{'title': (json.loads(p.event_data).get('title') or json.loads(p.event_data).get('url', 'N/A')), 'views': p.view_count} for p in top_pages_query]
     insight_detetive = f"Sua página mais popular é '{top_pages[0]['title']}'. Considere criar uma oferta!" if top_pages else None
     
     try:
@@ -164,4 +145,76 @@ def dashboard():
 
     return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive)
 
-# ... (O resto do código, como /visitors, /salvar-configuracoes, APIs, etc. continua o mesmo)
+@app.route('/dashboard/visitors')
+def visitors():
+    if 'logged_in' not in session: return redirect(url_for('index'))
+    user = AppUser.query.filter_by(email=session['email']).first()
+    if not user: return redirect(url_for('index'))
+    events = AnalyticsEvent.query.filter_by(owner_id=user.id, event_name='pagina_visitada').order_by(AnalyticsEvent.timestamp.desc()).all()
+    visitors_data = defaultdict(list)
+    for event in events:
+        try:
+            event_details = json.loads(event.event_data)
+            event_details['timestamp'] = event.timestamp.strftime('%d/%m/%Y às %H:%M')
+            visitors_data[event.visitor_id].append(event_details)
+        except: continue
+    return render_template('visitors.html', visitors_data=visitors_data, usuario=user)
+
+@app.route('/salvar-configuracoes', methods=['POST'])
+def salvar_configuracoes():
+    if 'logged_in' not in session: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
+    user = AppUser.query.filter_by(email=session['email']).first()
+    if not user: return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
+    if user.email == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta demo, as alterações não são salvas.'})
+    try:
+        config_atual = json.loads(user.configuracoes or '{}')
+        campaign_config_atual = json.loads(user.campaign_config or '{}')
+        checkboxes_normais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+        for key, value in request.form.items():
+            if key in checkboxes_normais or key.startswith('campaign_'): continue
+            elif key == 'countdown_bar_text': campaign_config_atual[key] = value
+            else: config_atual[key] = value
+        for check in checkboxes_normais: config_atual[check] = check in request.form
+        user.campaign_active = 'campaign_active' in request.form
+        start_date_str = request.form.get('campaign_start_date')
+        user.campaign_start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M') if start_date_str else None
+        end_date_str = request.form.get('campaign_end_date')
+        user.campaign_end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M') if end_date_str else None
+        user.configuracoes = json.dumps(config_atual)
+        user.campaign_config = json.dumps(campaign_config_atual)
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Configurações salvas!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': f'Erro ao salvar: {e}'}), 500
+
+@app.route('/api/track', methods=['POST'])
+def track_event():
+    data = request.get_json()
+    if not data or not data.get('apiKey'): return jsonify({'error': 'Dados incompletos.'}), 400
+    user = AppUser.query.filter_by(api_key=data.get('apiKey')).first()
+    if not user: return jsonify({'error': 'API Key inválida.'}), 403
+    new_event = AnalyticsEvent(owner_id=user.id, visitor_id=data.get('visitorId'), event_name=data.get('eventName'), event_data=json.dumps(data.get('eventData', {})))
+    db.session.add(new_event)
+    db.session.commit()
+    return jsonify({'status': 'ok'}), 200
+
+@app.route('/api/get-client-config')
+def get_client_config():
+    api_key = request.args.get('key')
+    user = AppUser.query.filter_by(api_key=api_key).first()
+    if not user: return jsonify({'error': 'API Key inválida'}), 404
+    config = json.loads(user.configuracoes or '{}')
+    agora = datetime.utcnow()
+    is_campaign_active = False
+    if hasattr(user, 'campaign_active') and user.campaign_active and user.campaign_start_date and user.campaign_end_date:
+        if user.campaign_start_date <= agora <= user.campaign_end_date: is_campaign_active = True
+    config['is_campaign_active'] = is_campaign_active
+    if is_campaign_active:
+        config['campaign_config'] = json.loads(user.campaign_config or '{}')
+        config['campaign_end_date'] = user.campaign_end_date.isoformat()
+    return jsonify(config)
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

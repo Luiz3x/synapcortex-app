@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 10.0 - CORREÇÃO FINAL DA LÓGICA DO DASHBOARD
+# Versão 10.1 - CORREÇÃO DA ROTA DASHBOARD (PROCESSAMENTO JSON)
 # =================================================================================
 import os
 import json
@@ -112,6 +112,9 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+# ==================================================
+# FUNÇÃO CORRIGIDA
+# ==================================================
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('index'))
@@ -120,7 +123,8 @@ def dashboard():
     if email == 'demo@synapcortex.com':
         user_demo = {'nome_empresa': 'Loja de Demonstração', 'api_key': 'chave_demo', 'campaign_active': False, 'campaign_start_date': None, 'campaign_end_date': None, 'campaign_config': '{}'}
         config_demo = {'ativar_abandono': True, 'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore o painel.'}
-        return render_template('dashboard.html', usuario=user_demo, config=config_demo, popups_exibidos='N/A', top_pages=[], insight_detetive="Este é um exemplo de insight!")
+        campaign_config_data_demo = json.loads(user_demo.get('campaign_config', '{}'))
+        return render_template('dashboard.html', usuario=user_demo, config=config_demo, popups_exibidos='N/A', top_pages=[], insight_detetive="Este é um exemplo de insight!", campaign_config_data=campaign_config_data_demo)
 
     user = AppUser.query.filter_by(email=email).first()
     if not user: 
@@ -164,7 +168,15 @@ def dashboard():
     except (json.JSONDecodeError, TypeError):
         user_config = {}
 
-    return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive)
+    campaign_config_data = {}
+    if user.campaign_config and user.campaign_config != '{}':
+        try:
+            campaign_config_data = json.loads(user.campaign_config)
+        except json.JSONDecodeError:
+            campaign_config_data = {}
+
+    return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive, campaign_config_data=campaign_config_data)
+# ==================================================
 
 @app.route('/dashboard/visitors')
 def visitors():

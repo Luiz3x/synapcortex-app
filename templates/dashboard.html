@@ -60,7 +60,15 @@
                 <h3>🔥 Quarto Black Friday (Campanhas Sazonais)</h3>
                 <div class="quarto-card"><div class="quarto-header"><h4>Ativar Modo Campanha</h4><label class="switch"><input type="checkbox" name="campaign_active" {{ 'checked' if usuario.campaign_active }}><span class="slider"></span></label></div></div>
                 <div class="quarto-card"><div class="quarto-header"><h4>🗓️ Agendamento</h4></div><div class="quarto-content"><div class="input-group"><label>Início:</label><input type="datetime-local" name="campaign_start_date" value="{{ usuario.campaign_start_date.strftime('%Y-%m-%dT%H:%M') if usuario.campaign_start_date else '' }}"></div><div class="input-group"><label>Fim:</label><input type="datetime-local" name="campaign_end_date" value="{{ usuario.campaign_end_date.strftime('%Y-%m-%dT%H:%M') if usuario.campaign_end_date else '' }}"></div></div></div>
-                <div class="quarto-card"><div class="quarto-header"><h4>📢 Barra de Contagem</h4></div><div class="quarto-content"><div class="input-group"><label>Texto da Barra:</label><input type="text" name="countdown_bar_text" value="{{ (json.loads(usuario.campaign_config)).get('countdown_bar_text', '') if usuario.campaign_config and usuario.campaign_config != '{}' else '' }}"></div></div></div>
+                <div class="quarto-card">
+                    <div class="quarto-header"><h4>📢 Barra de Contagem</h4></div>
+                    <div class="quarto-content">
+                        <div class="input-group">
+                            <label>Texto da Barra:</label>
+                            <input type="text" name="countdown_bar_text" value="{{ campaign_config_data.get('countdown_bar_text', '') }}">
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <button type="submit" class="cta-button" style="width: calc(100% - 4rem); margin: -1rem auto 2rem auto; display: block;">Salvar Todas as Configurações</button>

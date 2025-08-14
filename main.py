@@ -1,6 +1,6 @@
 # =================================================================================
 # SYNAPCORTEX - MAIN APPLICATION
-# Versão 5.0 - ESTABILIDADE FINAL
+# Versão 6.0 - MODO DE ESTABILIZAÇÃO (SQLite Fallback)
 # =================================================================================
 import os
 import json
@@ -17,15 +17,26 @@ from collections import defaultdict
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# --- LÓGICA DO BANCO DE DADOS FLEXÍVEL ---
 db_url = os.environ.get('DATABASE_URL')
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+if db_url:
+    # Configuração para PostgreSQL (Neon) quando a variável existir
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": {"sslmode": "require"}}
+else:
+    # Configuração para SQLite se a variável DATABASE_URL não existir
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    db_path = os.path.join(basedir, "synapcortex_local.db")
+    db_url = f"sqlite:///{db_path}"
+
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": {"sslmode": "require"}}
 db = SQLAlchemy(app)
 
-# --- MODELOS DO BANCO DE DADOS ---
+
+# --- MODELOS DO BANCO DE DADOS (Unificados) ---
 class AppUser(db.Model):
     __tablename__ = 'app_user'
     id = db.Column(db.Integer, primary_key=True)
@@ -53,9 +64,11 @@ class AnalyticsEvent(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+
 # --- INICIALIZAÇÃO DO BANCO DE DADOS ---
 with app.app_context():
     db.create_all()
+
 
 # --- ROTAS DE AUTENTICAÇÃO ---
 @app.route('/')
@@ -66,15 +79,18 @@ def index():
 def login():
     email_form = request.form.get('email')
     password_form = request.form.get('password')
-    if email_form == 'demo@synapcortex.com' and password_form == 'demo':
+
+    if email_form == 'demo@synapcortex.com':
         session['logged_in'] = True
         session['email'] = 'demo@synapcortex.com'
         return redirect(url_for('dashboard'))
+
     user = AppUser.query.filter_by(email=email_form).first()
     if user and check_password_hash(user.senha_hash, password_form):
         session['logged_in'] = True
         session['email'] = user.email
         return redirect(url_for('dashboard'))
+        
     flash('E-mail ou senha inválidos.', 'error')
     return redirect(url_for('index'))
 
@@ -116,5 +132,106 @@ def logout():
     return redirect(url_for('index'))
 
 # --- ROTAS DO PAINEL E API ---
-# (O restante do código, a partir de @app.route('/dashboard'), continua o mesmo)
-# ...
+@app.route('/dashboard')
+def dashboard():
+    if 'logged_in' not in session: return redirect(url_for('index'))
+    email = session['email']
+    
+    if email == 'demo@synapcortex.com':
+        user_demo = {'nome_empresa': 'Loja de Demonstração'}
+        config_demo = {'ativar_abandono': True, 'popup_titulo': 'Bem-vindo!', 'popup_mensagem': 'Explore o painel.'}
+        return render_template('dashboard.html', usuario=user_demo, config=config_demo, popups_exibidos='N/A', top_pages=[], insight_detetive="Este é um exemplo de insight!")
+
+    user = AppUser.query.filter_by(email=email).first()
+    if not user: 
+        flash('Usuário não encontrado.', 'error')
+        return redirect(url_for('index'))
+    
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    popups_exibidos = AnalyticsEvent.query.filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'popup_exibido', AnalyticsEvent.timestamp >= thirty_days_ago).count()
+    top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('view_count')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
+    top_pages = [{'title': (json.loads(p.event_data).get('title') or json.loads(p.event_data).get('url', 'N/A')), 'views': p.view_count} for p in top_pages_query]
+    insight_detetive = f"Sua página mais popular é '{top_pages[0]['title']}'. Considere criar uma oferta!" if top_pages else None
+    user_config = json.loads(user.configuracoes or '{}')
+
+    return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive)
+
+@app.route('/dashboard/visitors')
+def visitors():
+    if 'logged_in' not in session: return redirect(url_for('index'))
+    user = AppUser.query.filter_by(email=session['email']).first()
+    if not user: return redirect(url_for('index'))
+    events = AnalyticsEvent.query.filter_by(owner_id=user.id, event_name='pagina_visitada').order_by(AnalyticsEvent.timestamp.desc()).all()
+    visitors_data = defaultdict(list)
+    for event in events:
+        try:
+            event_details = json.loads(event.event_data)
+            event_details['timestamp'] = event.timestamp.strftime('%d/%m/%Y às %H:%M')
+            visitors_data[event.visitor_id].append(event_details)
+        except: continue
+    return render_template('visitors.html', visitors_data=visitors_data, usuario=user)
+
+@app.route('/salvar-configuracoes', methods=['POST'])
+def salvar_configuracoes():
+    if 'logged_in' not in session: return jsonify({'status': 'error', 'message': 'Acesso não autorizado.'}), 403
+    user = AppUser.query.filter_by(email=session['email']).first()
+    if not user: return jsonify({'status': 'error', 'message': 'Usuário não encontrado.'}), 404
+    if user.email == 'demo@synapcortex.com': return jsonify({'status': 'info', 'message': 'Na conta demo, as alterações não são salvas.'})
+
+    config_atual = json.loads(user.configuracoes or '{}')
+    campaign_config_atual = json.loads(user.campaign_config or '{}')
+    checkboxes_normais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+    
+    for key, value in request.form.items():
+        if key in checkboxes_normais or key.startswith('campaign_'): continue
+        elif key == 'countdown_bar_text': campaign_config_atual[key] = value
+        else: config_atual[key] = value
+            
+    for check in checkboxes_normais:
+        config_atual[check] = check in request.form
+    
+    user.campaign_active = 'campaign_active' in request.form
+    start_date_str = request.form.get('campaign_start_date')
+    user.campaign_start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M') if start_date_str else None
+    end_date_str = request.form.get('campaign_end_date')
+    user.campaign_end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M') if end_date_str else None
+    
+    user.configuracoes = json.dumps(config_atual)
+    user.campaign_config = json.dumps(campaign_config_atual)
+    
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'Configurações salvas!'})
+
+@app.route('/api/track', methods=['POST'])
+def track_event():
+    data = request.get_json()
+    if not data or not data.get('apiKey'): return jsonify({'error': 'Dados incompletos.'}), 400
+    user = AppUser.query.filter_by(api_key=data.get('apiKey')).first()
+    if not user: return jsonify({'error': 'API Key inválida.'}), 403
+    new_event = AnalyticsEvent(owner_id=user.id, visitor_id=data.get('visitorId'), event_name=data.get('eventName'), event_data=json.dumps(data.get('eventData', {})))
+    db.session.add(new_event)
+    db.session.commit()
+    return jsonify({'status': 'ok'}), 200
+
+@app.route('/api/get-client-config')
+def get_client_config():
+    api_key = request.args.get('key')
+    user = AppUser.query.filter_by(api_key=api_key).first()
+    if not user: return jsonify({'error': 'API Key inválida'}), 404
+    
+    config = json.loads(user.configuracoes or '{}')
+    agora = datetime.utcnow()
+    is_campaign_active = False
+    if hasattr(user, 'campaign_active') and user.campaign_active and user.campaign_start_date and user.campaign_end_date:
+        if user.campaign_start_date <= agora <= user.campaign_end_date: is_campaign_active = True
+    
+    config['is_campaign_active'] = is_campaign_active
+    if is_campaign_active:
+        config['campaign_config'] = json.loads(user.campaign_config or '{}')
+        config['campaign_end_date'] = user.campaign_end_date.isoformat()
+        
+    return jsonify(config)
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

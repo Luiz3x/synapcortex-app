@@ -1,5 +1,5 @@
 /* =================================================================================
-    SYNAPCORTEX - FOLHA DE ESTILO MESTRA (v5.0 - FLIP 3D E NOTIFICAÇÕES)
+    SYNAPCORTEX - FOLHA DE ESTILO MESTRA (v5.1 - CORREÇÃO DE SINTAXE)
    ================================================================================= */
 
 :root {
@@ -15,8 +15,7 @@
     --font-family: 'Poppins', sans-serif;
 }
 
-/* ... (Estilos base como body, h1, h2, etc. que você já tem) ... */
-
+/* ESTILOS GERAIS */
 body {
     background-color: var(--primary-blue-dark);
     color: var(--text-color);
@@ -31,21 +30,20 @@ body {
     padding: 0 2rem;
 }
 
-/* ================================================== */
-/* NOTIFICAÇÃO DE FEEDBACK (CORREÇÃO DO BUG)          */
-/* ================================================== */
+/* NOTIFICAÇÃO DE FEEDBACK */
 .notification {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     padding: 1rem 2rem;
-    border-radius: 5px;
+    border-radius: 8px;
     color: white;
     z-index: 10000;
     opacity: 0;
     transition: opacity 0.5s, bottom 0.5s;
     font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 .notification.success { background-color: var(--success-green); }
 .notification.error { background-color: var(--error-red); }
@@ -55,10 +53,7 @@ body {
     bottom: 40px;
 }
 
-
-/* ================================================== */
-/* POP-UPS V3.0 (SUA VERSÃO MELHORADA)                */
-/* ================================================== */
+/* POP-UPS V3.0 (FLIP 3D) */
 #synapcortex-popup-overlay {
     position: fixed;
     top: 0;
@@ -80,7 +75,6 @@ body {
     perspective: 1000px; /* Essencial para o efeito 3D */
 }
 
-/* Pop-up Normal */
 .normal-popup {
     transform: translate(-50%, -50%);
     background: #fff;
@@ -102,14 +96,12 @@ body {
 }
 .close-popup-btn:hover { color: #333; }
 
-
-/* Pop-up Surpresa (Flip Card) */
 .surprise-popup {
     width: 300px;
     height: 250px;
     transform-style: preserve-3d;
     transition: transform 0.6s;
-    transform: translate(-50%, -50%); /* Posição inicial */
+    transform: translate(-50%, -50%);
 }
 .surprise-popup.is-flipped {
     transform: translate(-50%, -50%) rotateY(180deg);
@@ -119,7 +111,7 @@ body {
     position: absolute;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden; /* Esconde o lado de trás */
+    backface-visibility: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -128,7 +120,6 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* Frente do Cartão */
 .surprise-content-front {
     background: #f9f9f9;
     border: 3px dashed #ccc;
@@ -139,7 +130,6 @@ body {
 .surprise-content-front p { font-size: 1.2rem; margin: 1rem 0 0.5rem; font-weight: bold; color: #333; }
 .surprise-content-front small { color: #888; }
 
-/* Verso do Cartão */
 .surprise-content-back {
     background: var(--secondary-blue-dark);
     color: var(--text-color);
@@ -148,7 +138,7 @@ body {
 .surprise-content-back p { font-size: 1.2rem; font-weight: bold; }
 .surprise-content-back .surprise-icon { animation: tada 1s ease-out; }
 
-/* Animações */
+/* ANIMAÇÕES */
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
@@ -162,7 +152,13 @@ body {
     100% {transform: scale(1) rotate(0);}
 }
 
-/* ... (O resto do seu CSS para o painel, etc.) ... */
-.hidden { display: none; }
+/* OUTROS ESTILOS DO PAINEL */
+.hidden { display: none !important; }
 .radio-group { display: flex; gap: 1.5rem; padding-top: 0.5rem; }
 .input-select { width: 100%; padding: 14px; background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 5px; color: var(--text-color); font-size: 1rem; font-family: var(--font-family); }
+
+/* LINHA CORRIGIDA - Eu tinha esquecido o "background-color:" aqui */
+.input-group {
+    margin-bottom: 1rem;
+    /* Adicione mais estilos se necessário */
+}

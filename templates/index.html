@@ -9,7 +9,7 @@
 <body>
     <header>
         <nav>
-            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo.png') }}" alt="SynapCortex Logo"></a>
+            <a href="{{ url_for('index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo_white.png') }}" alt="SynapCortex Logo"></a>
             <button id="openLoginRegisterModal" class="login-register-button">Login / Cadastre-se</button>
         </nav>
     </header>
@@ -24,12 +24,10 @@
             <div style="margin-top: 30px;">
                 <button id="demoLoginBtn" class="cta-button">Faça um Test Drive do Painel</button>
             </div>
-            <p style="margin-top: 30px; color: var(--text-fade);">Clientes recuperados em tempo real:</p>
-            <canvas id="graficoDemonstracao" width="400" height="150"></canvas>
         </div>
     </div>
 
-    <div id="loginRegisterModal" class="modal" style="display:none;">
+    <div id="loginRegisterModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
 
@@ -37,7 +35,7 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="flash-message {{ category }}" style="background-color: var(--error-red); color: white; padding: 1rem; border-radius: 5px;">
+                            <div class="notification {{ category }} show" style="position: relative; bottom: 0; margin-bottom: 1rem;">
                                 {{ message }}
                             </div>
                         {% endfor %}
@@ -54,7 +52,7 @@
                     <h2>Acesse seu Painel</h2>
                     <div class="input-group"><label>E-mail Comercial:</label><input type="email" name="email" required></div>
                     <div class="input-group"><label>Senha:</label><input type="password" name="password" required></div>
-                    <button type="submit">Entrar</button>
+                    <button type="submit" class="cta-button">Entrar</button>
                 </form>
             </div>
             <div id="registerTab" class="tab-content">
@@ -64,15 +62,12 @@
                     <div class="input-group"><label>CNPJ</label><input type="text" name="cnpj" required></div>
                     <div class="input-group"><label>E-mail Comercial</label><input type="email" name="email" required></div>
                     <div class="input-group"><label>Crie sua Senha</label><input type="password" name="password" required></div>
-                    <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
+                    <button type="submit" class="cta-button">Cadastrar e Começar Meu Mês Grátis</button>
                 </form>
             </div>
         </div>
     </div>
     
-    <script src="{{ url_for('static', filename='js/main_logic.js') }}"></script>
-    <script>
-        // ... (o script do gráfico continua aqui, igual ao anterior) ...
-    </script>
+    <script src="{{ url_for('static', filename='js/main_logic.js', v='6.2') }}"></script>
 </body>
 </html>

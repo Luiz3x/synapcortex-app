@@ -1,113 +1,119 @@
 // =================================================================================
-// SYNAPCORTEX - SCRIPT ESPIÃO (v3.7 - BARRA DE CONTAGEM REGRESSIVA)
+// SYNAPCORTEX - SPY SCRIPT (v5.0 - FLIP 3D E OVERLAY)
 // =================================================================================
+(function() {
+    const scriptTag = document.getElementById('synapcortex-spy-script');
+    if (!scriptTag) { console.error('SynapCortex: Script tag não encontrado.'); return; }
+    
+    const apiKey = scriptTag.getAttribute('src').split('key=')[1].split('&')[0];
+    const backendUrl = scriptTag.getAttribute('data-backend-url');
+    let visitorId = localStorage.getItem('synapcortex_visitor_id');
+    let config = {};
 
-const synapseAgent = {
-    apiKey: null, backendUrl: null, visitorId: null,
-    init: function() {
-        const scriptTag = document.getElementById('synapcortex-spy-script');
-        if (!scriptTag) return false;
-        try {
-            const key = new URL(scriptTag.src).searchParams.get('key');
-            if (!key) return false;
-            this.apiKey = key;
-        } catch(e) { return false; }
-        this.backendUrl = scriptTag.dataset.backendUrl || 'https://synapcortex-app.onrender.com';
-        let storedVisitorId = localStorage.getItem('synapcortex_visitor_id');
-        if (!storedVisitorId) {
-            storedVisitorId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('synapcortex_visitor_id', storedVisitorId);
-        }
-        this.visitorId = storedVisitorId;
-        return true;
-    },
-    trackEvent: function(eventName, eventData = {}) {
-        if (!this.apiKey) return;
-        const payload = { apiKey: this.apiKey, visitorId: this.visitorId, eventName, eventData };
-        try {
-            navigator.sendBeacon(`${this.backendUrl}/api/track`, JSON.stringify(payload));
-        } catch (e) {
-            fetch(`${this.backendUrl}/api/track`, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(console.error);
-        }
+    if (!visitorId) {
+        visitorId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+        localStorage.setItem('synapcortex_visitor_id', visitorId);
     }
-};
 
-function inicializarMotorDeGatilhos(config) {
-    // A lógica dos gatilhos normais (Abandono, Vendedor Especialista) vai aqui
-}
+    function track(eventName, eventData = {}) {
+        // Usa sendBeacon para envio assíncrono que não bloqueia a página
+        navigator.sendBeacon(`${backendUrl}api/track`, JSON.stringify({
+            apiKey: apiKey,
+            visitorId: visitorId,
+            eventName: eventName,
+            eventData: eventData
+        }));
+    }
 
-// --- FUNÇÃO PARA A BARRA DE CAMPANHA ---
-function mostrarBarraDeContagem(campaignConfig, endDate) {
-    // Evita criar a barra se ela já existir
-    if (document.getElementById('synapcortex-countdown-bar')) return;
+    function showPopup(popupConfig) {
+        // Previne múltiplos pop-ups
+        if (document.getElementById('synapcortex-popup-overlay')) return;
 
-    const bar = document.createElement('div');
-    bar.id = 'synapcortex-countdown-bar';
-    bar.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%;
-        background: linear-gradient(90deg, #C732D8, #00bfff);
-        color: white; text-align: center; padding: 10px;
-        font-size: 16px; font-weight: bold; z-index: 99999;
-        font-family: sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        display: flex; align-items: center; justify-content: center;
-    `;
-    
-    const textSpan = document.createElement('span');
-    textSpan.textContent = campaignConfig.countdown_bar_text || '';
+        const overlay = document.createElement('div');
+        overlay.id = 'synapcortex-popup-overlay';
 
-    const timerSpan = document.createElement('span');
-    timerSpan.id = 'synapcortex-timer';
-    timerSpan.style.marginLeft = '10px';
-    timerSpan.style.minWidth = '100px'; // Garante espaço para o timer
+        const popup = document.createElement('div');
+        popup.id = 'synapcortex-popup';
 
-    bar.appendChild(textSpan);
-    bar.appendChild(timerSpan);
-    document.body.prepend(bar);
+        const closePopup = () => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(popup);
+        };
 
-    // Empurra o conteúdo da página para baixo para a barra não cobrir nada
-    document.body.style.transform = `translateY(${bar.offsetHeight}px)`;
+        overlay.addEventListener('click', closePopup);
+        
+        if (popupConfig.abandono_tipo === 'presente') {
+            popup.className = 'surprise-popup';
+            // Monta a frente do cartão
+            popup.innerHTML = `
+                <div class="surprise-content-front">
+                    <div class="surprise-icon">🎁</div>
+                    <p>${popupConfig.abandono_presente_fechado || 'Um presente para você!'}</p>
+                    <small>Clique para revelar</small>
+                </div>
+                <div class="surprise-content-back">
+                    <div class="close-popup-btn">&times;</div>
+                    <div class="surprise-icon">🎉</div>
+                    <p>${popupConfig.abandono_presente_aberto || 'Cupom revelado!'}</p>
+                </div>`;
+            
+            // Lógica do clique para virar
+            const front = popup.querySelector('.surprise-content-front');
+            front.addEventListener('click', function() {
+                popup.classList.add('is-flipped');
+            }, { once: true });
 
+            // Lógica para fechar no verso
+            popup.querySelector('.close-popup-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); // Previne que o clique feche o overlay também
+                closePopup();
+            });
 
-    const targetDate = new Date(endDate).getTime();
-
-    const countdownInterval = setInterval(function() {
-        const now = new Date().getTime();
-        const distance = targetDate - now;
-
-        if (distance < 0) {
-            clearInterval(countdownInterval);
-            bar.textContent = "OFERTA ENCERRADA!";
-            setTimeout(() => {
-                document.body.removeChild(bar);
-                document.body.style.transform = 'translateY(0px)';
-            }, 3000);
-            return;
+        } else { // Pop-up Normal
+            popup.className = 'normal-popup';
+            popup.innerHTML = `
+                <div class="popup-content">
+                    <div class="close-popup-btn">&times;</div>
+                    <h3>${popupConfig.popup_titulo || 'Atenção!'}</h3>
+                    <p>${popupConfig.popup_mensagem || 'Temos uma oferta para você.'}</p>
+                </div>`;
+            popup.querySelector('.close-popup-btn').addEventListener('click', closePopup);
         }
 
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        document.body.appendChild(overlay);
+        document.body.appendChild(popup);
+        track('popup_exibido', { tipo: popupConfig.abandono_tipo || 'normal' });
+    }
 
-        timerSpan.textContent = `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
-    }, 1000);
-}
-
-
-// Auto-execução quando o script é carregado
-if (synapcortexAgent.init()) {
-    synapcortexAgent.trackEvent('pagina_visitada', { url: window.location.pathname, title: document.title });
-    
-    fetch(`${synapcortexAgent.backendUrl}/api/get-client-config?key=${synapcortexAgent.apiKey}`)
-        .then(response => response.json())
-        .then(config => {
-            if (config && !config.error) {
-                if (config.is_campaign_active) {
-                    console.log("MODO CAMPANHA ATIVO!", config.campaign_config);
-                    mostrarBarraDeContagem(config.campaign_config, config.campaign_end_date);
-                } else {
-                    inicializarMotorDeGatilhos(config);
-                }
+    // Lógica de Detecção de Abandono (intenção de saída)
+    let mouseLeaveTimer;
+    document.addEventListener('mouseleave', function(e) {
+        if (e.clientY < 10) { // Dispara se o mouse subir perto do topo
+            if (config.ativar_abandono && !sessionStorage.getItem('synapcortex_popup_shown')) {
+                clearTimeout(mouseLeaveTimer);
+                mouseLeaveTimer = setTimeout(() => {
+                    showPopup(config);
+                    sessionStorage.setItem('synapcortex_popup_shown', 'true'); // Mostra só uma vez por sessão
+                }, 100);
             }
-        })
-        .catch(error => console.error("SynapCortex Spy: Falha ao obter configs.", error));
-}
+        }
+    });
+
+    // Inicialização do script
+    (function init() {
+        fetch(`${backendUrl}api/get-client-config?key=${apiKey}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    config = data;
+                    console.log('SynapCortex v2.0: Configurações carregadas com sucesso.');
+                } else {
+                    console.error('SynapCortex Error:', data.error);
+                }
+            })
+            .catch(err => console.error('SynapCortex: Falha ao buscar configurações.', err));
+
+        track('pagina_visitada', { url: window.location.href, title: document.title });
+    })();
+
+})();

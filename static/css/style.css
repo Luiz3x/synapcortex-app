@@ -50,3 +50,44 @@ input:checked + .slider:before { transform: translateX(26px); }
 .notification.info { background-color: var(--dark-blue-2); }
 .notification.show { opacity: 1; bottom: 40px; }
 .hidden { display: none !important; }
+/* =================================================================================
+    SYNAPCORTEX - V6.1 (POLIMENTO FINAL PARA MOBILE)
+   ================================================================================= */
+
+/* --- 1. CORREÇÃO DEFINITiva DE SCROLL NO MODAL (IPHONE) --- */
+body.modal-open {
+    /* Esta combinação é a mais eficaz para iOS */
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+.modal {
+    /* Permite que o próprio modal role se o conteúdo for maior que a tela */
+    overflow-y: auto; 
+}
+
+
+/* --- 2. POLIMENTO DO DESIGN PARA TELAS PEQUENAS --- */
+@media (max-width: 768px) {
+    .secao-painel, .quarto-card {
+        padding: 1.5rem; /* Diminui o espaçamento interno nos cards */
+    }
+
+    .secao-painel > h3 {
+        font-size: 1.5rem; /* Diminui o tamanho dos títulos principais */
+    }
+
+    .quarto-header h4 {
+        font-size: 1.2rem; /* Diminui o tamanho dos títulos dos quartos */
+    }
+
+    .dashboard-container, .dashboard-main-content {
+        padding: 0 1rem; /* Diminui as margens laterais */
+        gap: 1.5rem;
+    }
+
+    .dashboard-grid-principal {
+        gap: 1.5rem;
+    }
+}

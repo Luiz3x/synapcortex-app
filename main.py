@@ -117,6 +117,12 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+@app.route('/demo-login')
+def demo_login():
+    session['logged_in'] = True
+    session['email'] = 'demo@synapcortex.com'
+    return redirect(url_for('dashboard'))    
+
 @app.route('/dashboard')
 def dashboard():
     # ... (código da versão anterior, já corrigido, continua o mesmo) ...

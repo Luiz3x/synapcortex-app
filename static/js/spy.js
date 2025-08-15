@@ -1,5 +1,5 @@
 // =================================================================================
-// SYNAPCORTEX - SPY SCRIPT (v5.0 - FLIP 3D E OVERLAY)
+// SYNAPCORTEX - SPY SCRIPT (v6.2 - PRESENTE SURPRESA + CRONÔMETRO)
 // =================================================================================
 (function() {
     const scriptTag = document.getElementById('synapcortex-spy-script');
@@ -16,35 +16,28 @@
     }
 
     function track(eventName, eventData = {}) {
-        // Usa sendBeacon para envio assíncrono que não bloqueia a página
         navigator.sendBeacon(`${backendUrl}api/track`, JSON.stringify({
-            apiKey: apiKey,
-            visitorId: visitorId,
-            eventName: eventName,
-            eventData: eventData
+            apiKey: apiKey, visitorId: visitorId, eventName: eventName, eventData: eventData
         }));
     }
 
     function showPopup(popupConfig) {
-        // Previne múltiplos pop-ups
         if (document.getElementById('synapcortex-popup-overlay')) return;
 
         const overlay = document.createElement('div');
         overlay.id = 'synapcortex-popup-overlay';
-
         const popup = document.createElement('div');
         popup.id = 'synapcortex-popup';
 
         const closePopup = () => {
-            document.body.removeChild(overlay);
-            document.body.removeChild(popup);
+            if (document.body.contains(overlay)) document.body.removeChild(overlay);
+            if (document.body.contains(popup)) document.body.removeChild(popup);
         };
 
         overlay.addEventListener('click', closePopup);
         
         if (popupConfig.abandono_tipo === 'presente') {
             popup.className = 'surprise-popup';
-            // Monta a frente do cartão
             popup.innerHTML = `
                 <div class="surprise-content-front">
                     <div class="surprise-icon">🎁</div>
@@ -55,28 +48,23 @@
                     <div class="close-popup-btn">&times;</div>
                     <div class="surprise-icon">🎉</div>
                     <p>${popupConfig.abandono_presente_aberto || 'Cupom revelado!'}</p>
+                    <div id="synapcortex-timer"></div>
                 </div>`;
             
-            // Lógica do clique para virar
-            const front = popup.querySelector('.surprise-content-front');
-            front.addEventListener('click', function() {
+            popup.querySelector('.surprise-content-front').addEventListener('click', function() {
                 popup.classList.add('is-flipped');
+                
+                // Inicia o cronômetro APÓS a revelação
+                const timerDuration = (parseInt(popupConfig.abandono_timer_minutos) || 5) * 60;
+                startTimer(timerDuration, document.getElementById('synapcortex-timer'));
+
             }, { once: true });
 
-            // Lógica para fechar no verso
-            popup.querySelector('.close-popup-btn').addEventListener('click', (e) => {
-                e.stopPropagation(); // Previne que o clique feche o overlay também
-                closePopup();
-            });
+            popup.querySelector('.close-popup-btn').addEventListener('click', (e) => { e.stopPropagation(); closePopup(); });
 
         } else { // Pop-up Normal
             popup.className = 'normal-popup';
-            popup.innerHTML = `
-                <div class="popup-content">
-                    <div class="close-popup-btn">&times;</div>
-                    <h3>${popupConfig.popup_titulo || 'Atenção!'}</h3>
-                    <p>${popupConfig.popup_mensagem || 'Temos uma oferta para você.'}</p>
-                </div>`;
+            popup.innerHTML = `<div class="popup-content"><div class="close-popup-btn">&times;</div><h3>${popupConfig.popup_titulo || 'Atenção!'}</h3><p>${popupConfig.popup_mensagem || 'Temos uma oferta para você.'}</p></div>`;
             popup.querySelector('.close-popup-btn').addEventListener('click', closePopup);
         }
 
@@ -85,35 +73,48 @@
         track('popup_exibido', { tipo: popupConfig.abandono_tipo || 'normal' });
     }
 
-    // Lógica de Detecção de Abandono (intenção de saída)
+    // NOVA FUNÇÃO: Lógica do Cronômetro
+    function startTimer(duration, displayElement) {
+        let timer = duration, minutes, seconds;
+        const interval = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            displayElement.innerHTML = `<span>Sua oferta expira em: <strong>${minutes}:${seconds}</strong></span>`;
+
+            if (--timer < 0) {
+                clearInterval(interval);
+                displayElement.innerHTML = "<span>Sua oferta expirou!</span>";
+            }
+        }, 1000);
+    }
+
+    // Lógica de Detecção de Abandono
     let mouseLeaveTimer;
     document.addEventListener('mouseleave', function(e) {
-        if (e.clientY < 10) { // Dispara se o mouse subir perto do topo
+        if (e.clientY < 10) {
             if (config.ativar_abandono && !sessionStorage.getItem('synapcortex_popup_shown')) {
                 clearTimeout(mouseLeaveTimer);
                 mouseLeaveTimer = setTimeout(() => {
                     showPopup(config);
-                    sessionStorage.setItem('synapcortex_popup_shown', 'true'); // Mostra só uma vez por sessão
+                    sessionStorage.setItem('synapcortex_popup_shown', 'true');
                 }, 100);
             }
         }
     });
 
-    // Inicialização do script
+    // Inicialização
     (function init() {
         fetch(`${backendUrl}api/get-client-config?key=${apiKey}`)
-            .then(response => response.json())
-            .then(data => {
+            .then(response => response.json()).then(data => {
                 if (!data.error) {
                     config = data;
-                    console.log('SynapCortex v2.0: Configurações carregadas com sucesso.');
-                } else {
-                    console.error('SynapCortex Error:', data.error);
+                    console.log('SynapCortex v2.0: Configurações carregadas.');
                 }
-            })
-            .catch(err => console.error('SynapCortex: Falha ao buscar configurações.', err));
-
+            }).catch(err => console.error('SynapCortex: Falha ao buscar configs.', err));
         track('pagina_visitada', { url: window.location.href, title: document.title });
     })();
-
 })();

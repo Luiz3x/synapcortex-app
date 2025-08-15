@@ -91,3 +91,18 @@ body.modal-open {
         gap: 1.5rem;
     }
 }
+/* =================================================================================
+    SYNAPCORTEX - V6.2 (ESTILO DO CRONÔMETRO)
+   ================================================================================= */
+#synapcortex-timer {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+#synapcortex-timer strong {
+    color: var(--text-primary);
+    letter-spacing: 1px;
+}

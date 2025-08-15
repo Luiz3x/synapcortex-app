@@ -1,5 +1,5 @@
 /* =================================================================================
-    SYNAPCORTEX - DESIGN SYSTEM "NEURAL GLOW" (v3.0)
+    SYNAPCORTEX - DESIGN SYSTEM "NEURAL GLOW" (v3.2 - CORREÇÃO FINAL DE POSICIONAMENTO)
    ================================================================================= */
 
 /* --- VARIÁVEIS GLOBAIS E RESET --- */
@@ -12,6 +12,7 @@
     --text-secondary: #a0a0c0;
     --accent-blue: #7a77ff;
     --accent-magenta: #f759e3;
+    --accent-gradient: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-magenta) 100%);
     --glow-shadow: 0 0 15px rgba(122, 119, 255, 0.2);
     --font-family: 'Poppins', sans-serif;
     --border-radius: 12px;
@@ -40,7 +41,7 @@ header .logo img { height: 40px; }
 
 /* --- BOTÕES --- */
 .login-register-button, .cta-button {
-    background-image: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-magenta) 100%);
+    background-image: var(--accent-gradient);
     color: white; padding: 12px 24px; border: none;
     border-radius: var(--border-radius); text-decoration: none;
     font-weight: bold; cursor: pointer; transition: all 0.3s ease;
@@ -70,12 +71,13 @@ header .logo img { height: 40px; }
 @media (max-width: 900px) { .dashboard-grid-principal { grid-template-columns: 1fr; } }
 
 /* --- FORMULÁRIOS E INPUTS --- */
+.input-group { margin-bottom: 1.5rem; }
 .input-group label {
     display: block; margin-bottom: 0.5rem; color: var(--text-secondary);
 }
 .input-group input[type="text"], .input-group input[type="email"],
 .input-group input[type="password"], .input-group input[type="datetime-local"],
-.input-group textarea, .input-select {
+.input-group input[type="number"], .input-group textarea, .input-select {
     width: 100%; padding: 14px; background-color: var(--secondary-dark);
     border: 1px solid var(--glass-border); border-radius: var(--border-radius);
     color: var(--text-primary); font-size: 1rem; font-family: var(--font-family);
@@ -86,9 +88,20 @@ header .logo img { height: 40px; }
     box-shadow: 0 0 10px rgba(122, 119, 255, 0.5);
 }
 
+/* --- REFINAMENTO DOS QUARTOS --- */
 .quarto-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem; padding-bottom: 1.5rem;
+    border-bottom: 1px solid;
+    border-image-source: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
+    border-image-slice: 1;
+}
+.quarto-header h4 {
+    font-size: 1.5rem;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
 /* --- NOVO INTERRUPTOR (TOGGLE SWITCH) --- */
@@ -96,7 +109,7 @@ header .logo img { height: 40px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider {
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: var(--dark-blue-2); transition: .4s; border-radius: 34px;
+    background-color: #3a3958; transition: .4s; border-radius: 34px;
 }
 .slider:before {
     position: absolute; content: ""; height: 26px; width: 26px;
@@ -104,14 +117,113 @@ header .logo img { height: 40px; }
     transition: .4s; border-radius: 50%;
 }
 input:checked + .slider {
-    background-image: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
+    background-image: var(--accent-gradient);
     box-shadow: 0 0 15px rgba(122, 119, 255, 0.6);
 }
-input:checked + .slider:before {
-    transform: translateX(26px);
+input:checked + .slider:before { transform: translateX(26px); }
+
+/* --- REFINAMENTO DA CENTRAL DE AJUDA --- */
+#help-section {
+    background: linear-gradient(160deg, var(--secondary-dark) 0%, #2a265f 100%);
+}
+#help-section h3 { text-shadow: 0 0 10px var(--accent-blue); }
+.help-center-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.platform-button {
+    background-color: var(--glass-background);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary); padding: 1.5rem;
+    border-radius: var(--border-radius); cursor: pointer;
+    transition: all 0.3s; font-size: 1rem; font-weight: bold;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+}
+.platform-button:hover {
+    transform: translateY(-5px);
+    background-color: var(--secondary-dark);
+    color: var(--text-primary);
+    box-shadow: var(--glow-shadow);
+}
+.platform-button span:first-child { font-size: 2rem; }
+
+
+/* ============================================= */
+/* REGRAS DE POSICIONAMENTO FLUTUANTE (CORRIGIDO)*/
+/* ============================================= */
+
+/* --- MODAIS (Login e Ajuda) --- */
+.modal {
+    display: none;
+    position: fixed; /* GARANTE QUE FIQUE PRESO À TELA */
+    z-index: 10000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.modal-content {
+    background-color: var(--secondary-dark);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--glass-border);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+}
+.modal .close-button {
+    color: var(--text-fade);
+    position: absolute; top: 15px; right: 25px;
+    font-size: 2rem; font-weight: bold; cursor: pointer;
+}
+
+/* --- NOTIFICAÇÃO DE FEEDBACK --- */
+.notification {
+    position: fixed; /* GARANTE QUE FIQUE PRESO À TELA */
+    bottom: -100px; /* Começa fora da tela */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    color: white;
+    z-index: 10001; /* Acima do modal */
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s ease-out;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.notification.success { background-color: var(--success-green); }
+.notification.error { background-color: var(--error-red); }
+.notification.info { background-color: var(--dark-blue-2); }
+.notification.show {
+    opacity: 1;
+    bottom: 40px; /* Desliza para dentro da tela */
 }
 
 
-/* --- O RESTO DOS ESTILOS (MODAIS, POPUPS, ETC.) --- */
-/* ... (Todo o resto do seu CSS, como a Central de Ajuda, Notificações, Pop-ups, etc., continua aqui, herdando as novas cores e estilos) ... */
+/* --- POP-UPS NO SITE DO CLIENTE --- */
+/* ... (Todo o código do pop-up do cliente continua o mesmo) ... */
+#synapcortex-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 99998; backdrop-filter: blur(5px); }
+#synapcortex-popup { position: fixed; top: 50%; left: 50%; z-index: 99999; font-family: sans-serif; color: #333; perspective: 1000px; }
+.normal-popup { transform: translate(-50%, -50%); background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.surprise-popup { width: 300px; height: 250px; transform-style: preserve-3d; transition: transform 0.6s; transform: translate(-50%, -50%); }
+.surprise-popup.is-flipped { transform: translate(-50%, -50%) rotateY(180deg); }
+.surprise-content-front, .surprise-content-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.surprise-content-front { background: #f9f9f9; border: 3px dashed #ccc; cursor: pointer; }
+.surprise-icon { font-size: 4rem; line-height: 1; }
+.surprise-content-front .surprise-icon { animation: pulse 1.5s infinite; }
+.surprise-content-front p, .surprise-content-back p { font-size: 1.2rem; margin: 1rem 0 0.5rem; font-weight: bold; color: #333; }
+.surprise-content-front small { color: #888; }
+.surprise-content-back { background: var(--secondary-dark); color: var(--text-primary); transform: rotateY(180deg); }
+.surprise-content-back .surprise-icon { animation: tada 1s ease-out; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes tada { 0% {transform: scale(1);} 10%, 20% {transform: scale(0.9) rotate(-5deg);} 30%, 50%, 70%, 90% {transform: scale(1.2) rotate(5deg);} 40%, 60%, 80% {transform: scale(1.2) rotate(-5deg);} 100% {transform: scale(1) rotate(0);} }
+
+
+/* --- UTILITÁRIOS --- */
 .hidden { display: none !important; }

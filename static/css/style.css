@@ -1,7 +1,8 @@
 /* =================================================================================
-    SYNAPCORTEX - FOLHA DE ESTILO MESTRA (v5.1 - CORREÇÃO DE SINTAXE)
+    SYNAPCORTEX - FOLHA DE ESTILO MESTRA (v2.0 - VERSÃO ESTÁVEL COMPLETA)
    ================================================================================= */
 
+/* --- VARIÁVEIS GLOBAIS E RESET --- */
 :root {
     --primary-blue-dark: #0d1b2a;
     --secondary-blue-dark: #1b263b;
@@ -13,24 +14,151 @@
     --error-red: #d90429;
     --success-green: #2a9d8f;
     --font-family: 'Poppins', sans-serif;
+    --border-radius: 8px;
 }
 
-/* ESTILOS GERAIS */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     background-color: var(--primary-blue-dark);
     color: var(--text-color);
     font-family: var(--font-family);
-    margin: 0;
     line-height: 1.6;
 }
 
-.dashboard-container, .login-container {
+/* --- CABEÇALHO E NAVEGAÇÃO --- */
+header {
+    background-color: var(--secondary-blue-dark);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+header .logo img {
+    height: 40px;
+}
+
+/* --- BOTÕES --- */
+.login-register-button, .cta-button {
+    background-color: var(--accent-blue);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.login-register-button:hover, .cta-button:hover {
+    background-color: var(--accent-blue-hover);
+}
+
+/* --- ESTRUTURA DO PAINEL --- */
+.dashboard-container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
-/* NOTIFICAÇÃO DE FEEDBACK */
+.secao-painel {
+    background-color: var(--secondary-blue-dark);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.dashboard-grid-principal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 900px) {
+    .dashboard-grid-principal {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- FORMULÁRIOS E INPUTS --- */
+.input-group {
+    margin-bottom: 1.5rem;
+}
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-fade);
+}
+.input-group input[type="text"],
+.input-group input[type="email"],
+.input-group input[type="password"],
+.input-group input[type="datetime-local"],
+.input-group textarea,
+.input-select {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary-blue-dark);
+    border: 1px solid var(--dark-blue-2);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    font-size: 1rem;
+    font-family: var(--font-family);
+}
+
+.quarto-card {
+    background-color: var(--primary-blue-dark);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.quarto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* --- CENTRAL DE AJUDA --- */
+.help-center-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.platform-button {
+    background-color: var(--dark-blue-2);
+    border: none;
+    color: var(--text-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+.platform-button:hover {
+    background-color: #526d8f;
+}
+.platform-button span:first-child {
+    font-size: 2rem;
+}
+
+/* --- NOTIFICAÇÃO DE FEEDBACK --- */
 .notification {
     position: fixed;
     bottom: 20px;
@@ -53,92 +181,59 @@ body {
     bottom: 40px;
 }
 
-/* POP-UPS V3.0 (FLIP 3D) */
+/* --- POP-UPS NO SITE DO CLIENTE --- */
 #synapcortex-popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
-    z-index: 99998;
-    backdrop-filter: blur(5px);
+    z-index: 99998; backdrop-filter: blur(5px);
 }
 
 #synapcortex-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    z-index: 99999;
-    font-family: sans-serif;
-    color: #333;
-    perspective: 1000px; /* Essencial para o efeito 3D */
+    position: fixed; top: 50%; left: 50%; z-index: 99999;
+    font-family: sans-serif; color: #333; perspective: 1000px;
 }
 
 .normal-popup {
-    transform: translate(-50%, -50%);
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transform: translate(-50%, -50%); background: #fff;
+    border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 .popup-content {
-    position: relative;
-    padding: 2rem;
-    width: 90vw;
-    max-width: 400px;
-    text-align: center;
+    position: relative; padding: 2rem; width: 90vw;
+    max-width: 400px; text-align: center;
 }
 .popup-content h3 { margin-top: 0; color: var(--primary-blue-dark); }
 .close-popup-btn {
     position: absolute; top: 10px; right: 15px;
-    font-size: 2rem; color: #aaa; cursor: pointer;
-    line-height: 1;
+    font-size: 2rem; color: #aaa; cursor: pointer; line-height: 1;
 }
-.close-popup-btn:hover { color: #333; }
 
 .surprise-popup {
-    width: 300px;
-    height: 250px;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-    transform: translate(-50%, -50%);
+    width: 300px; height: 250px; transform-style: preserve-3d;
+    transition: transform 0.6s; transform: translate(-50%, -50%);
 }
-.surprise-popup.is-flipped {
-    transform: translate(-50%, -50%) rotateY(180deg);
-}
+.surprise-popup.is-flipped { transform: translate(-50%, -50%) rotateY(180deg); }
 
 .surprise-content-front, .surprise-content-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
-
 .surprise-content-front {
-    background: #f9f9f9;
-    border: 3px dashed #ccc;
-    cursor: pointer;
+    background: #f9f9f9; border: 3px dashed #ccc; cursor: pointer;
 }
 .surprise-icon { font-size: 4rem; line-height: 1; }
 .surprise-content-front .surprise-icon { animation: pulse 1.5s infinite; }
 .surprise-content-front p { font-size: 1.2rem; margin: 1rem 0 0.5rem; font-weight: bold; color: #333; }
 .surprise-content-front small { color: #888; }
-
 .surprise-content-back {
-    background: var(--secondary-blue-dark);
-    color: var(--text-color);
+    background: var(--secondary-blue-dark); color: var(--text-color);
     transform: rotateY(180deg);
 }
 .surprise-content-back p { font-size: 1.2rem; font-weight: bold; }
 .surprise-content-back .surprise-icon { animation: tada 1s ease-out; }
 
-/* ANIMAÇÕES */
+/* --- ANIMAÇÕES --- */
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
@@ -152,13 +247,5 @@ body {
     100% {transform: scale(1) rotate(0);}
 }
 
-/* OUTROS ESTILOS DO PAINEL */
+/* --- UTILITÁRIOS --- */
 .hidden { display: none !important; }
-.radio-group { display: flex; gap: 1.5rem; padding-top: 0.5rem; }
-.input-select { width: 100%; padding: 14px; background-color: var(--primary-blue-dark); border: 1px solid #2a3b4c; border-radius: 5px; color: var(--text-color); font-size: 1rem; font-family: var(--font-family); }
-
-/* LINHA CORRIGIDA - Eu tinha esquecido o "background-color:" aqui */
-.input-group {
-    margin-bottom: 1rem;
-    /* Adicione mais estilos se necessário */
-}

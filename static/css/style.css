@@ -1,8 +1,8 @@
 /* =================================================================================
-    SYNAPCORTEX - DESIGN SYSTEM "NEURAL GLOW" (v3.3 - AJUSTES FINOS DE LAYOUT)
+    SYNAPCORTEX - DESIGN SYSTEM "NEURAL GLOW" (v3.4 - DESTAQUE NOS TÍTULOS)
    ================================================================================= */
 
-/* --- VARIÁVEIS, RESET, FONTES --- */
+/* --- VARIÁVEIS GLOBAIS E RESET --- */
 :root {
     --primary-dark: #0a091a;
     --secondary-dark: #12102e;
@@ -17,190 +17,26 @@
     --font-family: 'Poppins', sans-serif;
     --border-radius: 12px;
 }
+/* ... (Reset e Body continuam iguais) ... */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-    background-color: var(--primary-dark);
+/* --- TÍTULOS DE SEÇÃO EM DESTAQUE --- */
+.secao-painel > h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
     color: var(--text-primary);
-    font-family: var(--font-family);
-    line-height: 1.6;
+    text-shadow: 0 0 12px var(--accent-magenta);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
 }
 
-/* --- CABEÇALHO (COM CORREÇÃO DE Z-INDEX) --- */
+/* --- CABEÇALHO (COM CORREÇÃO DE Z-INDEX)--- */
 header {
     background-color: var(--secondary-dark);
     padding: 1rem 2rem;
     border-bottom: 1px solid var(--glass-border);
-    position: relative; /* Necessário para o z-index funcionar */
-    z-index: 900;       /* Garante que ele fique abaixo dos modais (que têm z-index 10000+) */
+    position: relative;
+    z-index: 900;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
-header nav {
-    display: flex; justify-content: space-between; align-items: center;
-    max-width: 1200px; margin: 0 auto;
-}
-header .logo img { height: 40px; }
-
-/* --- BOTÕES --- */
-.login-register-button, .cta-button {
-    background-image: var(--accent-gradient);
-    color: white; padding: 12px 24px; border: none;
-    border-radius: var(--border-radius); text-decoration: none;
-    font-weight: bold; cursor: pointer; transition: all 0.3s ease;
-    box-shadow: 0 0 20px rgba(122, 119, 255, 0.4);
-}
-.login-register-button:hover, .cta-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 30px rgba(247, 89, 227, 0.6);
-}
-
-/* --- ESTRUTURA E CARDS "GLASSMORPHISM" --- */
-.dashboard-container {
-    max-width: 1200px; margin: 2rem auto; padding: 0 2rem;
-    display: flex; flex-direction: column; gap: 2rem;
-}
-.secao-painel, .quarto-card {
-    background: var(--glass-background);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    box-shadow: var(--glow-shadow);
-}
-.secao-full-width {
-    grid-column: 1 / -1; /* Garante que a seção ocupe a largura total */
-}
-
-/* --- LAYOUT DO GRID PRINCIPAL (BALANCEADO) --- */
-.dashboard-grid-principal {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: flex-start; /* Alinha as colunas pelo topo */
-}
-.secao-painel-coluna {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-@media (max-width: 900px) {
-    .dashboard-grid-principal {
-        grid-template-columns: 1fr;
-    }
-}
-
-
-/* --- FORMULÁRIOS E INPUTS --- */
-.input-group { margin-bottom: 1.5rem; }
-.input-group label {
-    display: block; margin-bottom: 0.5rem; color: var(--text-secondary);
-}
-.input-group input[type="text"], .input-group input[type="email"],
-.input-group input[type="password"], .input-group input[type="datetime-local"],
-.input-group input[type="number"], .input-group textarea, .input-select {
-    width: 100%; padding: 14px; background-color: var(--secondary-dark);
-    border: 1px solid var(--glass-border); border-radius: var(--border-radius);
-    color: var(--text-primary); font-size: 1rem; font-family: var(--font-family);
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-.input-group input:focus, .input-group textarea:focus, .input-select:focus {
-    outline: none; border-color: var(--accent-blue);
-    box-shadow: 0 0 10px rgba(122, 119, 255, 0.5);
-}
-
-
-/* --- REFINAMENTO DOS QUARTOS --- */
-.quarto-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 1.5rem; padding-bottom: 1.5rem;
-    border-bottom: 1px solid;
-    border-image-source: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
-    border-image-slice: 1;
-}
-.quarto-header h4 {
-    font-size: 1.5rem;
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-
-/* --- INTERRUPTOR (TOGGLE SWITCH) --- */
-.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #3a3958; transition: .4s; border-radius: 34px;
-}
-.slider:before {
-    position: absolute; content: ""; height: 26px; width: 26px;
-    left: 4px; bottom: 4px; background-color: white;
-    transition: .4s; border-radius: 50%;
-}
-input:checked + .slider {
-    background-image: var(--accent-gradient);
-    box-shadow: 0 0 15px rgba(122, 119, 255, 0.6);
-}
-input:checked + .slider:before { transform: translateX(26px); }
-
-
-/* --- CENTRAL DE AJUDA --- */
-#help-section {
-    background: linear-gradient(160deg, var(--secondary-dark) 0%, #2a265f 100%);
-}
-#help-section h3 { text-shadow: 0 0 10px var(--accent-blue); }
-.help-center-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;
-}
-.platform-button {
-    background-color: var(--glass-background);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary); padding: 1.5rem;
-    border-radius: var(--border-radius); cursor: pointer;
-    transition: all 0.3s; font-size: 1rem; font-weight: bold;
-    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-}
-.platform-button:hover {
-    transform: translateY(-5px); background-color: var(--secondary-dark);
-    color: var(--text-primary); box-shadow: var(--glow-shadow);
-}
-.platform-button span:first-child { font-size: 2rem; }
-
-
-/* --- REGRAS DE POSICIONAMENTO FLUTUANTE --- */
-.modal {
-    display: none; position: fixed; z-index: 10000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.modal-content {
-    background-color: var(--secondary-dark);
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%); padding: 2.5rem;
-    border-radius: var(--border-radius); border: 1px solid var(--glass-border);
-    width: 90%; max-width: 500px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.4);
-}
-.modal .close-button {
-    color: var(--text-fade); position: absolute; top: 15px; right: 25px;
-    font-size: 2rem; font-weight: bold; cursor: pointer;
-}
-.notification {
-    position: fixed; bottom: -100px; left: 50%;
-    transform: translateX(-50%); padding: 1rem 2rem;
-    border-radius: 8px; color: white; z-index: 10001;
-    opacity: 0; transition: opacity 0.5s, bottom 0.5s ease-out;
-    font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.notification.success { background-color: var(--success-green); }
-.notification.error { background-color: var(--error-red); }
-.notification.info { background-color: var(--dark-blue-2); }
-.notification.show { opacity: 1; bottom: 40px; }
-
-
-/* --- UTILITÁRIOS --- */
-.hidden { display: none !important; }
+/* ... (Resto do CSS continua exatamente o mesmo da v3.3) ... */

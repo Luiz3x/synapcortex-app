@@ -188,3 +188,134 @@ body.modal-open {
 .pro-tip a:hover {
     text-decoration: underline;
 }
+/* ===================================================
+   PACOTE DE ESTILOS DO PAINEL V7.4
+   =================================================== */
+
+/* --- Estilo do Card "Prato Principal" (Abandono) --- */
+.quarto-card.prato-principal {
+    border: 1px solid var(--accent-blue);
+    background: linear-gradient(160deg, rgba(18, 16, 46, 0.5) 0%, rgba(42, 38, 95, 0.3) 100%);
+    box-shadow: 0 0 25px rgba(122, 119, 255, 0.1);
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.tactic-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.tactic-option {
+    border: 2px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tactic-option:hover {
+    background-color: var(--secondary-dark);
+    border-color: var(--accent-magenta);
+}
+
+.tactic-option.active {
+    border-color: var(--accent-blue);
+    background-color: var(--secondary-dark);
+    box-shadow: 0 0 15px rgba(122, 119, 255, 0.3);
+}
+
+.tactic-icon {
+    font-size: 2rem;
+    display: block;
+}
+
+.tactic-title {
+    font-weight: bold;
+    color: var(--text-primary);
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.tactic-option small {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.pro-tip {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: rgba(122, 119, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+}
+
+.pro-tip p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); }
+.pro-tip a { color: var(--accent-blue); text-decoration: none; font-weight: bold; }
+.pro-tip a:hover { text-decoration: underline; }
+
+
+/* --- Melhoria no Switch (Botão Ligar/Desligar) --- */
+.switch {
+    width: 60px;
+    height: 34px;
+}
+.slider {
+    background-color: #3a3958;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+}
+.slider:before {
+    height: 26px;
+    width: 26px;
+}
+input:checked + .slider {
+    background-image: var(--accent-gradient);
+    box-shadow: 0 0 15px rgba(122, 119, 255, 0.6);
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* --- Aprimoramento na Grid de Métricas (Visão Geral) --- */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    text-align: center;
+    padding-top: 1rem;
+}
+.metric-grid > div {
+    padding: 1rem;
+}
+.metric-grid .metric-title {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.metric-grid .metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+.metric-grid small {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+
+/* --- Grid Secundário para Utilidades (Ajuda e API) --- */
+.dashboard-grid-secundario {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}

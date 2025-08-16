@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='7.2') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='7.4') }}">
 </head>
 <body>
     <header>
@@ -16,8 +16,96 @@
     </header>
 
     <div class="dashboard-container">
+        <form id="config-form" method="POST" action="{{ url_for('salvar_configuracoes') }}">
+            
+            <div class="dashboard-grid-principal">
+                <div class="secao-painel-coluna-principal">
+                    <div class="secao-painel">
+                        <h3>🚀 Arsenal de Gatilhos</h3>
+                        <p class="quarto-description">Ative e configure os gatilhos.</p>
+                        
+                        <div class="quarto-card prato-principal">
+                            <div class="quarto-header">
+                                <h4>⭐ Gatilho Principal: Recuperação de Abandono</h4>
+                                <label class="switch">
+                                    <input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <p class="quarto-description">A ferramenta mais poderosa para converter visitantes que estão prestes a sair da sua loja.</p>
+                            
+                            <div class="quarto-content">
+                                <label class="input-label">Passo 1: Escolha sua Tática de Recuperação</label>
+                                <div class="tactic-selector">
+                                    <div class="tactic-option {% if config.get('abandono_tipo', 'normal') == 'normal' %}active{% endif %}" data-tactic="normal">
+                                        <span class="tactic-icon">💬</span>
+                                        <span class="tactic-title">Pop-up Direto</span>
+                                        <small>Uma mensagem clara e objetiva.</small>
+                                    </div>
+                                    <div class="tactic-option {% if config.get('abandono_tipo') == 'presente' %}active{% endif %}" data-tactic="presente">
+                                        <span class="tactic-icon">🎁</span>
+                                        <span class="tactic-title">Presente Surpresa</span>
+                                        <small>Gamificação que gera curiosidade.</small>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="abandono-tipo-input" name="abandono_tipo" value="{{ config.get('abandono_tipo', 'normal') }}">
 
-        <div class="secao-painel">
+                                <div id="abandono-config-fields">
+                                    <div id="abandono-normal-fields" class="{{ 'hidden' if config.get('abandono_tipo') == 'presente' }}">
+                                        <label class="input-label" style="margin-top: 1.5rem;">Passo 2: Configure a Mensagem</label>
+                                        <div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
+                                        <div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
+                                    </div>
+                                    <div id="abandono-presente-fields" class="{{ '' if config.get('abandono_tipo') == 'presente' else 'hidden' }}">
+                                        <label class="input-label" style="margin-top: 1.5rem;">Passo 2: Configure a Surpresa</label>
+                                        <div class="input-group"><label>Texto do Presente (Fechado):</label><input type="text" name="abandono_presente_fechado" placeholder="🎁 Um presente para você!" value="{{ config.get('abandono_presente_fechado', '') }}"></div>
+                                        <div class="input-group"><label>Texto do Prêmio (Aberto):</label><input type="text" name="abandono_presente_aberto" placeholder="Parabéns! Use o cupom ESPECIAL10" value="{{ config.get('abandono_presente_aberto', '') }}"></div>
+                                        <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
+                                        <label class="input-label">Passo 3: Adicione Urgência (Opcional)</label>
+                                        <div class="input-group"><label>Duração do Cronômetro (em minutos):</label><input type="number" name="abandono_timer_minutos" placeholder="Ex: 5" value="{{ config.get('abandono_timer_minutos', '5') }}"></div>
+                                    </div>
+                                </div>
+
+                                <div class="pro-tip">
+                                    <p><strong>Dica de Mestre:</strong> Turbine seus resultados em datas comemorativas usando o <a href="#campaign-section"><strong>Modo Campanha</strong></a> para criar pop-ups temáticos!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quarto-card">
+                            <div class="quarto-header"><h4>👋 Bem-vindo de Volta</h4><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label></div>
+                            <div class="quarto-content"><div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo') | default('', true) }}</textarea></div></div>
+                        </div>
+                        <div class="quarto-card">
+                            <div class="quarto-header"><h4>🎯 Interessado</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div>
+                            <div class="quarto-content"><div class="input-group"><label>Mensagem para inatividade:</label><textarea name="msg_interessado" rows="3">{{ config.get('msg_interessado') | default('', true) }}</textarea></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="secao-painel-coluna-secundaria">
+                    <div class="secao-painel" id="detetive-section">
+                        <h3>🕵️ Quarto do Detetive</h3>
+                        <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes.</p>
+                        {% if insight_detetive %}<div class="insight-box"><strong>Insight:</strong><br>{{ insight_detetive }}</div>{% endif %}
+                        {% if top_pages %}
+                            <ul class="detetive-list">
+                                {% for page in top_pages %}<li class="detetive-item"><span class="page-title">{{ page.title }}</span><span class="page-views">{{ page.views }} visitas</span></li>{% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="status-message">Ainda não há dados de visitas para analisar.</p>
+                        {% endif %}
+                        <a href="{{ url_for('visitors') }}" class="cta-button" style="width:100%; margin-top: 1.5rem; text-align: center;">Ver Dossiê Completo</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="campaign-section" class="secao-painel secao-full-width">
+                 </div>
+            
+            <button type="submit" class="cta-button" style="width: 100%; max-width: 500px; margin: 2rem auto 0; display: block;">Salvar Todas as Configurações</button>
+        </form>
+
+        <div class="secao-painel secao-full-width" style="margin-top: 2rem;">
             <h3>Visão Geral (O Cérebro da Operação)</h3>
             <div class="metric-grid">
                 <div><h4 class="metric-title">Pop-ups Exibidos</h4><p class="metric-value">{{ popups_exibidos }}</p><small>(Últimos 30 dias)</small></div>
@@ -26,103 +114,32 @@
             </div>
         </div>
 
-        <div class="dashboard-main-content">
-            <form id="config-form" method="POST" action="{{ url_for('salvar_configuracoes') }}">
-                
-                <div class="secao-painel">
-                    <h3>🚀 Arsenal de Gatilhos</h3>
-                    <p class="quarto-description">Ative e configure os gatilhos.</p>
-                    
-                    <div class="quarto-card prato-principal">
-                        <div class="quarto-header">
-                            <h4>⭐ Gatilho Principal: Recuperação de Abandono</h4>
-                            <label class="switch">
-                                <input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <p class="quarto-description">A ferramenta mais poderosa para converter visitantes que estão prestes a sair da sua loja.</p>
-                        
-                        <div class="quarto-content">
-                            <label class="input-label">Passo 1: Escolha sua Tática de Recuperação</label>
-                            <div class="tactic-selector">
-                                <div class="tactic-option {% if config.get('abandono_tipo', 'normal') == 'normal' %}active{% endif %}" data-tactic="normal">
-                                    <span class="tactic-icon">💬</span>
-                                    <span class="tactic-title">Pop-up Direto</span>
-                                    <small>Uma mensagem clara e objetiva.</small>
-                                </div>
-                                <div class="tactic-option {% if config.get('abandono_tipo') == 'presente' %}active{% endif %}" data-tactic="presente">
-                                    <span class="tactic-icon">🎁</span>
-                                    <span class="tactic-title">Presente Surpresa</span>
-                                    <small>Gamificação que gera curiosidade.</small>
-                                </div>
-                            </div>
-                            <input type="hidden" id="abandono-tipo-input" name="abandono_tipo" value="{{ config.get('abandono_tipo', 'normal') }}">
-
-                            <div id="abandono-config-fields">
-                                <div id="abandono-normal-fields" class="{{ 'hidden' if config.get('abandono_tipo') == 'presente' }}">
-                                    <label class="input-label" style="margin-top: 1.5rem;">Passo 2: Configure a Mensagem</label>
-                                    <div class="input-group"><label>Título:</label><input type="text" name="popup_titulo" value="{{ config.get('popup_titulo', '') }}"></div>
-                                    <div class="input-group"><label>Mensagem:</label><textarea name="popup_mensagem" rows="3">{{ config.get('popup_mensagem', '') }}</textarea></div>
-                                </div>
-
-                                <div id="abandono-presente-fields" class="{{ '' if config.get('abandono_tipo') == 'presente' else 'hidden' }}">
-                                    <label class="input-label" style="margin-top: 1.5rem;">Passo 2: Configure a Surpresa</label>
-                                    <div class="input-group"><label>Texto do Presente (Fechado):</label><input type="text" name="abandono_presente_fechado" placeholder="🎁 Um presente para você! Clique para abrir." value="{{ config.get('abandono_presente_fechado', '') }}"></div>
-                                    <div class="input-group"><label>Texto do Prêmio (Aberto):</label><input type="text" name="abandono_presente_aberto" placeholder="Parabéns! Use o cupom ESPECIAL10" value="{{ config.get('abandono_presente_aberto', '') }}"></div>
-                                    <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
-                                    <label class="input-label">Passo 3: Adicione Urgência (Opcional)</label>
-                                    <div class="input-group"><label>Duração do Cronômetro (em minutos):</label><input type="number" name="abandono_timer_minutos" placeholder="Ex: 5" value="{{ config.get('abandono_timer_minutos', '5') }}"></div>
-                                </div>
-                            </div>
-
-                            <div class="pro-tip">
-                                <p><strong>Dica de Mestre:</strong> Turbine seus resultados em datas comemorativas usando o <a href="#campaign-section"><strong>Modo Campanha</strong></a> para criar pop-ups temáticos!</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quarto-card">
-                        <div class="quarto-header"><h4>👋 Bem-vindo de Volta</h4><label class="switch"><input type="checkbox" name="ativar_quarto_bem_vindo" {{ 'checked' if config.get('ativar_quarto_bem_vindo') }}><span class="slider"></span></label></div>
-                        <div class="quarto-content"><div class="input-group"><label>Mensagem:</label><textarea name="msg_bem_vindo" rows="3">{{ config.get('msg_bem_vindo') | default('', true) }}</textarea></div></div>
-                    </div>
-                    <div class="quarto-card">
-                        <div class="quarto-header"><h4>🎯 Interessado</h4><label class="switch"><input type="checkbox" name="ativar_quarto_interessado" {{ 'checked' if config.get('ativar_quarto_interessado') }}><span class="slider"></span></label></div>
-                        <div class="quarto-content"><div class="input-group"><label>Mensagem para inatividade:</label><textarea name="msg_interessado" rows="3">{{ config.get('msg_interessado') | default('', true) }}</textarea></div></div>
-                    </div>
+        <div class="dashboard-grid-secundario">
+            <div class="secao-painel" id="help-section">
+                <h3>💡 Central de Ajuda</h3>
+                <div class="help-center-grid">
+                    <button class="platform-button" data-platform="shopify"><span>🛒</span><span>Shopify</span></button>
+                    <button class="platform-button" data-platform="woocommerce"><span>🎨</span><span>WooCommerce</span></button>
+                    <button class="platform-button" data-platform="nuvemshop"><span>☁️</span><span>Nuvemshop</span></button>
+                    <button class="platform-button" data-platform="universal"><span class="icon">&lt;/&gt;</span><span>Site Próprio</span></button>
                 </div>
-
-                <div class="secao-painel" id="detetive-section">
-                    <h3>🕵️ Quarto do Detetive</h3>
-                    <p class="quarto-description">As páginas mais "quentes" visitadas por seus clientes.</p>
-                    {% if insight_detetive %}<div class="insight-box"><strong>Insight:</strong><br>{{ insight_detetive }}</div>{% endif %}
-                    {% if top_pages %}
-                        <ul class="detetive-list">
-                            {% for page in top_pages %}<li class="detetive-item"><span class="page-title">{{ page.title }}</span><span class="page-views">{{ page.views }} visitas</span></li>{% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="status-message">Ainda não há dados de visitas para analisar.</p>
-                    {% endif %}
-                    <a href="{{ url_for('visitors') }}" class="cta-button" style="width:100%; margin-top: 1.5rem; text-align: center;">Ver Dossiê Completo</a>
-                </div>
-
-                <div id="campaign-section" class="secao-painel secao-full-width">
-                     </div>
-                
-                <button type="submit" class="cta-button" style="width: 100%; max-width: 500px; margin: 2rem auto 0; display: block;">Salvar Todas as Configurações</button>
-            </form>
-        </div>
-
-        <div id="help-section" class="secao-painel secao-full-width">
-             </div>
-
-        <div class="secao-painel secao-full-width">
             </div>
+
+            <div class="secao-painel">
+                <h3>🔑 Sua Chave de API e Código de Instalação</h3>
+                <p class="quarto-description">Copie e cole este código no seu site, antes da tag &lt;/body&gt;.</p>
+                <div class="input-group" style="margin-top: 1.5rem;">
+                    <label for="codigo-instalacao">Seu código:</label>
+                    <textarea id="codigo-instalacao" rows="6" readonly>&lt;script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js', _external=True) }}?key={{ usuario.api_key }}" data-backend-url="{{ url_for('index', _external=True) }}" defer&gt;&lt;/script&gt;</textarea>
+                </div>
+                <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
+            </div>
+        </div>
     </div>
 
     <div id="helpModal" class="modal"><div class="modal-content"><span class="close-button">&times;</span><h2 id="helpModalTitle"></h2><div id="helpModalContent"></div></div></div>
     <div id="loginRegisterModal" class="modal"></div>
 
-    <script src="{{ url_for('static', filename='js/main_logic.js', v='7.2') }}"></script>
+    <script src="{{ url_for('static', filename='js/main_logic.js', v='7.4') }}"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // =================================================================================
-// SYNAPCORTEX - LÓGICA UNIFICADA E APRIMORADA (v7.6)
+// SYNAPCORTEX - LÓGICA UNIFICADA E APRIMORADA (v7.7 - CORREÇÃO HELP MODAL)
 // Este arquivo controla toda a interatividade do site.
 // =================================================================================
 
@@ -13,26 +13,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginRegisterModal = document.getElementById('loginRegisterModal');
     const demoLoginBtn = document.getElementById('demoLoginBtn');
     const tabButtons = document.querySelectorAll('.tab-button');
-
-    function closeModal(modal) {
-        if (modal) {
+    
+    // Função genérica para fechar qualquer modal visível
+    function closeModal() {
+        document.querySelectorAll('.modal').forEach(modal => {
             modal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-        }
+        });
+        document.body.classList.remove('modal-open');
     }
 
+    // Abre o modal de Login/Registro
     if (openLoginRegisterModalBtn && loginRegisterModal) {
         openLoginRegisterModalBtn.addEventListener('click', () => {
             loginRegisterModal.style.display = 'flex';
             document.body.classList.add('modal-open');
         });
         const closeBtn = loginRegisterModal.querySelector('.close-button');
-        if (closeBtn) closeBtn.addEventListener('click', () => closeModal(loginRegisterModal));
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
         loginRegisterModal.addEventListener('click', (event) => {
-            if (event.target === loginRegisterModal) closeModal(loginRegisterModal);
+            if (event.target === loginRegisterModal) closeModal();
         });
     }
 
+    // Lógica das abas de Login e Registro
     if (tabButtons.length > 0) {
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -45,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Botão de Test Drive
     if (demoLoginBtn) {
         demoLoginBtn.addEventListener('click', () => { window.location.href = '/demo-login'; });
     }
@@ -89,27 +93,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- LÓGICA DO MODAL DA CENTRAL DE AJUDA (RESTAURADA) ---
     const helpModal = document.getElementById('helpModal');
     if (helpModal) {
-        // Lógica do Modal da Central de Ajuda (já estava ótima)
+        const helpModalTitle = document.getElementById('helpModalTitle');
+        const helpModalContent = document.getElementById('helpModalContent');
+        const helpCloseBtn = helpModal.querySelector('.close-button');
+
+        const helpData = {
+            shopify: { title: 'Instalando na Shopify', content: `<ol><li>Acesse "Loja Virtual" > "Temas".</li><li>Clique em (...) e "Editar código".</li><li>No arquivo 'theme.liquid', cole o código antes de <code>&lt;/body&gt;</code>.</li><li>Salve.</li></ol>` },
+            woocommerce: { title: 'Instalando no WooCommerce', content: `<ol><li>Vá em "Aparência" > "Editor de Arquivos de Tema".</li><li>Encontre e clique em "Rodapé do Tema (footer.php)".</li><li>Cole o código antes de <code>&lt;/body&gt;</code>.</li><li>Atualize o arquivo.</li></ol>` },
+            nuvemshop: { title: 'Instalando na Nuvemshop', content: `<ol><li>Vá em "Configurações" > "Códigos externos".</li><li>Cole o código na caixa "No corpo do site".</li><li>Salve.</li></ol>` },
+            universal: { title: 'Instalação Universal', content: `<ol><li>Encontre seu arquivo HTML principal.</li><li>Cole o código antes da tag <code>&lt;/body&gt;</code>.</li><li>Salve e publique.</li></ol>` }
+        };
+
+        document.querySelectorAll('.platform-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const platform = this.dataset.platform;
+                if (helpData[platform]) {
+                    helpModalTitle.textContent = helpData[platform].title;
+                    helpModalContent.innerHTML = helpData[platform].content;
+                }
+                helpModal.style.display = 'flex';
+                document.body.classList.add('modal-open');
+            });
+        });
+        
+        if(helpCloseBtn) helpCloseBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (event) => { if (event.target === helpModal) closeModal(helpModal); });
     }
 
-    // --- NOVA LÓGICA PARA O SELETOR VISUAL DE TÁTICAS ---
-    function setupTacticSelector(containerSelector, optionsSelector, inputSelector, fieldsConfig) {
-        const container = document.querySelector(containerSelector);
-        if (!container) return;
-
+    // Lógica para o seletor visual de táticas
+    function setupTacticSelector(container, optionsSelector, inputSelector, fieldsConfig) {
         const tacticOptions = container.querySelectorAll(optionsSelector);
         const hiddenInput = container.querySelector(inputSelector);
+        if (!tacticOptions.length || !hiddenInput) return;
 
         tacticOptions.forEach(option => {
             option.addEventListener('click', () => {
                 tacticOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
-                
                 const selectedTactic = option.dataset.tactic;
                 hiddenInput.value = selectedTactic;
-
                 for (const key in fieldsConfig) {
                     const fieldElement = document.getElementById(key);
                     if (fieldElement) {
@@ -119,29 +144,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    // Instancia o seletor para o "Prato Principal"
-    setupTacticSelector(
-        '.prato-principal', 
-        '.tactic-option', 
-        '#abandono-tipo-input', 
-        {
+    const pratoPrincipalCard = document.querySelector('.prato-principal');
+    if(pratoPrincipalCard) {
+        setupTacticSelector(pratoPrincipalCard, '.tactic-option', '#abandono-tipo-input', {
             'abandono-normal-fields': ['normal'],
             'abandono-presente-fields': ['presente']
-        }
-    );
+        });
+    }
+    const campaignPopupConfig = document.querySelector('.campaign-popup-config');
+    if(campaignPopupConfig) {
+        setupTacticSelector(campaignPopupConfig, '.campaign-tactic', '#campaign-abandono-tipo-input', {
+            /* Adicionar IDs dos campos de configuração do pop-up de campanha aqui */
+        });
+    }
 
-    // Instancia o seletor para o "Modo Campanha"
-    setupTacticSelector(
-        '.campaign-popup-config', 
-        '.campaign-tactic', 
-        '#campaign-abandono-tipo-input',
-        {
-            // Adicionar IDs dos campos de configuração do pop-up de campanha aqui
-        }
-    );
-
-    // --- NOVA LÓGICA PARA OS CARDS COMPACTOS/EXPANSÍVEIS ---
+    // Lógica para os cards compactos/expansíveis
     document.querySelectorAll('.quarto-compacto').forEach(card => {
         const header = card.querySelector('.quarto-header');
         if (header) {
@@ -151,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Lógica do botão de copiar código
     const copiarBtn = document.getElementById('copiar-codigo-btn');
     if (copiarBtn) {
         copiarBtn.addEventListener('click', function() {

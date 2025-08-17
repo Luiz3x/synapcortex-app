@@ -1,5 +1,5 @@
 // =================================================================================
-// SYNAPCORTEX - LÓGICA UNIFICADA E APRIMORADA (v7.7 - CORREÇÃO HELP MODAL)
+// SYNAPCORTEX - LÓGICA UNIFICADA E FINALIZADA (v7.7)
 // Este arquivo controla toda a interatividade do site.
 // =================================================================================
 
@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const demoLoginBtn = document.getElementById('demoLoginBtn');
     const tabButtons = document.querySelectorAll('.tab-button');
     
-    // Função genérica para fechar qualquer modal visível
     function closeModal() {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.style.display = 'none';
@@ -22,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('modal-open');
     }
 
-    // Abre o modal de Login/Registro
     if (openLoginRegisterModalBtn && loginRegisterModal) {
         openLoginRegisterModalBtn.addEventListener('click', () => {
             loginRegisterModal.style.display = 'flex';
@@ -35,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Lógica das abas de Login e Registro
     if (tabButtons.length > 0) {
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -48,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Botão de Test Drive
     if (demoLoginBtn) {
         demoLoginBtn.addEventListener('click', () => { window.location.href = '/demo-login'; });
     }
@@ -93,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- LÓGICA DO MODAL DA CENTRAL DE AJUDA (RESTAURADA) ---
+    // --- LÓGICA DO MODAL DA CENTRAL DE AJUDA (RESTAURADA E VERIFICADA) ---
     const helpModal = document.getElementById('helpModal');
     if (helpModal) {
         const helpModalTitle = document.getElementById('helpModalTitle');
@@ -119,11 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         
-        if(helpCloseBtn) helpCloseBtn.addEventListener('click', () => closeModal(helpModal));
-        helpModal.addEventListener('click', (event) => { if (event.target === helpModal) closeModal(helpModal); });
+        if(helpCloseBtn) helpCloseBtn.addEventListener('click', closeModal);
+        helpModal.addEventListener('click', (event) => { if (event.target === helpModal) closeModal(); });
     }
 
-    // Lógica para o seletor visual de táticas
+    // --- NOVA LÓGICA PARA O SELETOR VISUAL DE TÁTICAS ---
     function setupTacticSelector(container, optionsSelector, inputSelector, fieldsConfig) {
         const tacticOptions = container.querySelectorAll(optionsSelector);
         const hiddenInput = container.querySelector(inputSelector);
@@ -151,24 +147,20 @@ document.addEventListener('DOMContentLoaded', () => {
             'abandono-presente-fields': ['presente']
         });
     }
-    const campaignPopupConfig = document.querySelector('.campaign-popup-config');
-    if(campaignPopupConfig) {
-        setupTacticSelector(campaignPopupConfig, '.campaign-tactic', '#campaign-abandono-tipo-input', {
-            /* Adicionar IDs dos campos de configuração do pop-up de campanha aqui */
-        });
-    }
-
-    // Lógica para os cards compactos/expansíveis
+    
+    // --- NOVA LÓGICA PARA OS CARDS COMPACTOS/EXPANSÍVEIS ---
     document.querySelectorAll('.quarto-compacto').forEach(card => {
         const header = card.querySelector('.quarto-header');
         if (header) {
-            header.addEventListener('click', () => {
+            header.addEventListener('click', (e) => {
+                // Impede que o clique no switch ative a animação
+                if (e.target.closest('.switch')) return;
                 card.classList.toggle('active');
             });
         }
     });
 
-    // Lógica do botão de copiar código
+    // --- LÓGICA DO BOTÃO DE COPIAR CÓDIGO ---
     const copiarBtn = document.getElementById('copiar-codigo-btn');
     if (copiarBtn) {
         copiarBtn.addEventListener('click', function() {

@@ -1,75 +1,97 @@
-// static/js/checkout.js
-
+// =================================================================================
+// SYNAPCORTEX - LÓGICA DO CHECKOUT (v1.0)
+// =================================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // A chave publicável é injetada do template HTML
-    const stripe = Stripe(stripe_publishable_key);
-    
-    // Configurações visuais do campo do cartão
-    const elements = stripe.elements({
+    // A chave publicável é passada para a variável 'stripePublicKey' pelo template HTML
+    if (typeof stripePublicKey === 'undefined') {
+        console.error('Chave publicável do Stripe não encontrada.');
+        return;
+    }
+
+    const stripe = Stripe(stripePublicKey);
+
+    const elements = stripe.elements();
+    const cardElement = elements.create('card', {
         style: {
             base: {
-                color: '#f0f0f0',
+                color: '#f0f0f5',
                 fontFamily: '"Poppins", sans-serif',
+                fontSmoothing: 'antialiased',
                 fontSize: '16px',
                 '::placeholder': {
-                    color: '#a0a0a0'
+                    color: '#a0a0c0'
                 }
             },
             invalid: {
-                color: '#ff4d4d',
-                iconColor: '#ff4d4d'
+                color: '#dc3545',
+                iconColor: '#dc3545'
             }
         }
     });
-
-    const cardElement = elements.create('card');
     cardElement.mount('#card-element');
 
     const form = document.getElementById('payment-form');
     const submitButton = document.getElementById('submit-button');
+    const spinner = document.getElementById('spinner');
+    const buttonText = document.getElementById('button-text');
     const cardErrors = document.getElementById('card-errors');
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        // Desabilita o botão e mostra o spinner
         submitButton.disabled = true;
-        submitButton.textContent = 'Processando...';
+        spinner.classList.remove('hidden');
+        buttonText.classList.add('hidden');
         cardErrors.textContent = '';
 
-        // Pede ao nosso backend para criar uma intenção de pagamento
-        const response = await fetch('/create-payment-intent', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ amount: 9990 }) // R$ 99,90 em centavos
-        });
-        const { clientSecret, error: backendError } = await response.json();
+        try {
+            // Passo 2 (Backend): Buscar o 'clientSecret' do nosso servidor
+            // Esta rota ainda vamos construir no main.py
+            const response = await fetch('/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const { clientSecret, error: backendError } = await response.json();
 
-        if (backendError) {
-            cardErrors.textContent = backendError.message;
-            submitButton.disabled = false;
-            submitButton.textContent = 'Pagar Assinatura (R$ 99,90/mês)';
-            return;
-        }
+            if (backendError) {
+                cardErrors.textContent = backendError;
+                revertButtonState();
+                return;
+            }
 
-        // Confirma o pagamento no Stripe usando o clientSecret
-        const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(
-            clientSecret, {
+            // Passo 3 (Frontend -> Stripe): Confirmar o pagamento
+            const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
                     card: cardElement
                 }
-            }
-        );
+            });
 
-        if (stripeError) {
-            cardErrors.textContent = stripeError.message;
-            submitButton.disabled = false;
-            submitButton.textContent = 'Pagar Assinatura (R$ 99,90/mês)';
-        } else if (paymentIntent.status === 'succeeded') {
-            // Pagamento bem-sucedido!
-            // Avisa o backend que o pagamento foi um sucesso
-            fetch('/payment-success', { method: 'POST' })
-                .then(() => {
-                    window.location.href = '/dashboard';
-                });
+            if (stripeError) {
+                cardErrors.textContent = stripeError.message;
+                revertButtonState();
+                return;
+            }
+
+            // Sucesso! O pagamento foi processado.
+            console.log('Pagamento bem-sucedido:', paymentIntent);
+            buttonText.textContent = 'Pagamento Aprovado!';
+            spinner.classList.add('hidden');
+            buttonText.classList.remove('hidden');
+            
+            // Redireciona para o dashboard com uma mensagem de boas-vindas
+            window.location.href = '/dashboard?payment=success';
+
+        } catch (error) {
+            console.error('Erro inesperado no checkout:', error);
+            cardErrors.textContent = 'Ocorreu um erro inesperado. Por favor, tente novamente.';
+            revertButtonState();
         }
     });
+
+    function revertButtonState() {
+        submitButton.disabled = false;
+        spinner.classList.add('hidden');
+        buttonText.classList.remove('hidden');
+    }
 });

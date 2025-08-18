@@ -1,5 +1,5 @@
 // =================================================================================
-// SYNAPCORTEX - LÓGICA UNIFICADA E FINALIZADA (v7.7)
+// SYNAPCORTEX - LÓGICA UNIFICADA E FINALIZADA (v7.8)
 // Este arquivo controla toda a interatividade do site.
 // =================================================================================
 
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const demoLoginBtn = document.getElementById('demoLoginBtn');
     const tabButtons = document.querySelectorAll('.tab-button');
     
+    // Função genérica para fechar qualquer modal visível
     function closeModal() {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.style.display = 'none';
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('modal-open');
     }
 
+    // Abre o modal de Login/Registro
     if (openLoginRegisterModalBtn && loginRegisterModal) {
         openLoginRegisterModalBtn.addEventListener('click', () => {
             loginRegisterModal.style.display = 'flex';
@@ -33,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Lógica das abas de Login e Registro
     if (tabButtons.length > 0) {
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -45,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Botão de Test Drive
     if (demoLoginBtn) {
         demoLoginBtn.addEventListener('click', () => { window.location.href = '/demo-login'; });
     }
@@ -89,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- LÓGICA DO MODAL DA CENTRAL DE AJUDA (RESTAURADA E VERIFICADA) ---
+    // Lógica do Modal da Central de Ajuda
     const helpModal = document.getElementById('helpModal');
     if (helpModal) {
         const helpModalTitle = document.getElementById('helpModalTitle');
@@ -115,12 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         
-        if(helpCloseBtn) helpCloseBtn.addEventListener('click', closeModal);
-        helpModal.addEventListener('click', (event) => { if (event.target === helpModal) closeModal(); });
+        if(helpCloseBtn) helpCloseBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (event) => { if (event.target === helpModal) closeModal(helpModal); });
     }
 
-    // --- NOVA LÓGICA PARA O SELETOR VISUAL DE TÁTICAS ---
+    // Função genérica para controlar os seletores visuais de táticas
     function setupTacticSelector(container, optionsSelector, inputSelector, fieldsConfig) {
+        if (!container) return;
         const tacticOptions = container.querySelectorAll(optionsSelector);
         const hiddenInput = container.querySelector(inputSelector);
         if (!tacticOptions.length || !hiddenInput) return;
@@ -129,17 +134,23 @@ document.addEventListener('DOMContentLoaded', () => {
             option.addEventListener('click', () => {
                 tacticOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
-                const selectedTactic = option.dataset.tactic;
+                
+                const selectedTacticRaw = option.dataset.tactic;
+                // Remove o prefixo 'campaign-' para salvar um valor limpo ('normal' ou 'presente')
+                const selectedTactic = selectedTacticRaw.replace('campaign-', '');
                 hiddenInput.value = selectedTactic;
+
                 for (const key in fieldsConfig) {
                     const fieldElement = document.getElementById(key);
                     if (fieldElement) {
-                        fieldElement.classList.toggle('hidden', !fieldsConfig[key].includes(selectedTactic));
+                        fieldElement.classList.toggle('hidden', !fieldsConfig[key].includes(selectedTacticRaw));
                     }
                 }
             });
         });
     }
+
+    // Instancia o seletor para o "Prato Principal"
     const pratoPrincipalCard = document.querySelector('.prato-principal');
     if(pratoPrincipalCard) {
         setupTacticSelector(pratoPrincipalCard, '.tactic-option', '#abandono-tipo-input', {
@@ -147,20 +158,28 @@ document.addEventListener('DOMContentLoaded', () => {
             'abandono-presente-fields': ['presente']
         });
     }
-    
-    // --- NOVA LÓGICA PARA OS CARDS COMPACTOS/EXPANSÍVEIS ---
+
+    // Instancia o seletor para o "Modo Campanha"
+    const campaignPopupConfig = document.querySelector('.campaign-popup-config');
+    if(campaignPopupConfig) {
+        setupTacticSelector(campaignPopupConfig, '.campaign-tactic', '#campaign-abandono-tipo-input', {
+            'campaign-normal-fields': ['campaign-normal'],
+            'campaign-presente-fields': ['campaign-presente']
+        });
+    }
+
+    // Lógica para os cards compactos/expansíveis
     document.querySelectorAll('.quarto-compacto').forEach(card => {
         const header = card.querySelector('.quarto-header');
         if (header) {
             header.addEventListener('click', (e) => {
-                // Impede que o clique no switch ative a animação
                 if (e.target.closest('.switch')) return;
                 card.classList.toggle('active');
             });
         }
     });
 
-    // --- LÓGICA DO BOTÃO DE COPIAR CÓDIGO ---
+    // Lógica do botão de copiar código
     const copiarBtn = document.getElementById('copiar-codigo-btn');
     if (copiarBtn) {
         copiarBtn.addEventListener('click', function() {

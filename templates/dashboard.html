@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='7.6') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='7.5') }}">
 </head>
 <body>
     <header>
@@ -104,7 +104,7 @@
                     <a href="{{ url_for('visitors') }}" class="cta-button" style="width:100%; margin-top: 1.5rem; text-align: center;">Ver Dossiê Completo</a>
                 </div>
 
-                <div id="campaign-section" class="secao-painel secao-full-width">
+                <div id="campaign-section" class="secao-painel">
                     <h3>🔥 Modo Campanha (Ex: Black Friday, Natal)</h3>
                     <div class="quarto-card">
                         <div class="quarto-header">
@@ -134,7 +134,7 @@
                                  <p class="quarto-description" style="margin-bottom: 1.5rem;">Configure um pop-up temático que substituirá o de abandono padrão enquanto a campanha estiver ativa.</p>
                                  <label class="input-label">Tática do Pop-up da Campanha</label>
                                  <div class="tactic-selector">
-                                    <div class="tactic-option campaign-tactic {% if campaign_config_data.get('campaign_abandono_tipo', 'normal') == 'normal' %}active{% endif %}" data-tactic="campaign-normal">
+                                     <div class="tactic-option campaign-tactic {% if campaign_config_data.get('campaign_abandono_tipo', 'normal') == 'normal' %}active{% endif %}" data-tactic="campaign-normal">
                                          <span class="tactic-icon">💬</span><span class="tactic-title">Pop-up Direto</span>
                                      </div>
                                      <div class="tactic-option campaign-tactic {% if campaign_config_data.get('campaign_abandono_tipo') == 'presente' %}active{% endif %}" data-tactic="campaign-presente">
@@ -142,7 +142,17 @@
                                      </div>
                                  </div>
                                  <input type="hidden" id="campaign-abandono-tipo-input" name="campaign_abandono_tipo" value="{{ campaign_config_data.get('campaign_abandono_tipo', 'normal') }}">
+                                 <div id="campaign-normal-fields" class="{{ 'hidden' if campaign_config_data.get('campaign_abandono_tipo') == 'presente' }}">
+                                     <div class="input-group" style="margin-top: 1.5rem;"><label>Título do Pop-up da Campanha:</label><input type="text" name="campaign_popup_titulo" value="{{ campaign_config_data.get('campaign_popup_titulo', '') }}"></div>
+                                     <div class="input-group"><label>Mensagem da Campanha:</label><textarea name="campaign_popup_mensagem" rows="3">{{ campaign_config_data.get('campaign_popup_mensagem', '') }}</textarea></div>
                                  </div>
+                                 <div id="campaign-presente-fields" class="{{ '' if campaign_config_data.get('campaign_abandono_tipo') == 'presente' else 'hidden' }}">
+                                    <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
+                                    <label class="input-label">Configure a Surpresa da Campanha</label>
+                                    <div class="input-group"><label>Texto do Presente (Fechado):</label><input type="text" name="campaign_presente_fechado" placeholder="🎁 Uma oferta de Black Friday para você!" value="{{ campaign_config_data.get('campaign_presente_fechado', '') }}"></div>
+                                    <div class="input-group"><label>Texto do Prêmio (Aberto):</label><input type="text" name="campaign_presente_aberto" placeholder="Use o cupom BLACKFRIDAY50" value="{{ campaign_config_data.get('campaign_presente_aberto', '') }}"></div>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>

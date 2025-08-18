@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - SynapCortex</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='7.5') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='7.7') }}">
 </head>
 <body>
     <header>
@@ -16,7 +16,7 @@
     </header>
 
     <div class="dashboard-container">
-
+        
         <div class="secao-painel">
             <h3 class="titulo-centralizado">Visão Geral (O Cérebro da Operação)</h3>
             <div class="metric-grid">
@@ -182,11 +182,48 @@
             <button id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
         </div>
 
+        <div class="secao-painel">
+            <h3>⚙️ Gerenciar Conta e Assinatura</h3>
+            <div class="quarto-card" style="margin-top: 1.5rem;">
+                <h4 class="sub-section-title">Alterar E-mail de Login</h4>
+                <form id="change-email-form">
+                    <div class="input-group"><label>E-mail de login atual: <strong>{{ usuario.email }}</strong></label></div>
+                    <div class="input-group"><label for="new_email">Novo e-mail de login:</label><input type="email" id="new_email" name="new_email" required></div>
+                    <div class="input-group"><label for="current_password">Sua senha atual (para confirmação):</label><input type="password" id="current_password" name="current_password" required></div>
+                    <button type="submit" class="cta-button">Salvar Novo E-mail</button>
+                </form>
+            </div>
+            <div class="quarto-card" style="margin-top: 1.5rem;">
+                <h4 class="sub-section-title">Status da Conta</h4>
+                 {% if usuario.status_assinatura == 'trial' and dias_restantes is not none %}
+                    <p>Status: <strong>Teste Gratuito</strong> (expira em {{ dias_restantes }} dias).</p>
+                 {% elif usuario.status_assinatura == 'active' %}
+                    <p>Status da sua conta: <strong>Assinatura Ativa</strong>.</p>
+                 {% elif usuario.status_assinatura == 'demo' %}
+                    <p>Status da sua conta: <strong>Modo de Demonstração</strong>.</p>
+                 {% else %}
+                    <p>Status da sua conta: <strong>Assinatura Pendente</strong>.</p>
+                 {% endif %}
+                <p class="quarto-description" style="margin-top: 1rem;">Se não estiver satisfeito, você pode encerrar sua conta a qualquer momento, sem burocracia.</p>
+                <button type="button" id="cancelar-conta-btn" class="cta-button danger" style="margin-top: 1.5rem;">Encerrar minha conta</button>
+            </div>
+        </div>
     </div>
 
     <div id="helpModal" class="modal"><div class="modal-content"><span class="close-button">&times;</span><h2 id="helpModalTitle"></h2><div id="helpModalContent"></div></div></div>
     <div id="loginRegisterModal" class="modal"></div>
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-close-modal="cancelModal">&times;</span>
+            <h3 style="text-align: center;">Confirmação</h3>
+            <p style="text-align: center; margin-top: 1rem;">Tem certeza que realmente quer encerrar o vínculo com a SynapCortex?</p>
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="cta-button" data-close-modal="cancelModal">Continuar com SynapCortex</button>
+                <button type="button" id="confirmar-cancelamento-btn" class="cta-button danger">Sim, encerrar</button>
+            </div>
+        </div>
+    </div>
 
-    <script src="{{ url_for('static', filename='js/main_logic.js', v='7.6') }}"></script>
+    <script src="{{ url_for('static', filename='js/main_logic.js', v='8.1') }}"></script>
 </body>
 </html>

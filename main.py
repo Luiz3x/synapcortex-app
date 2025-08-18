@@ -1,5 +1,5 @@
 # =================================================================================
-# SYNAPCORTEX - MAIN APPLICATION (v15.0 - BILHETERIA (STRIPE) PASSO 1)
+# SYNAPCORTEX - MAIN APPLICATION (v15.1 - CORREÇÃO DE RENDERIZAÇÃO DO PAINEL)
 # =================================================================================
 import os
 import json
@@ -190,11 +190,25 @@ def dashboard(user):
     top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('views')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
     top_pages = [{'title': (json.loads(p.event_data).get('title') or json.loads(p.event_data).get('url', 'N/A')), 'views': p.views} for p in top_pages_query]
     insight_detetive = f"Sua página mais popular é '{top_pages[0]['title']}'. Considere criar uma oferta!" if top_pages else None
+    
+    dias_restantes = None
+    if user.status_assinatura == 'trial' and user.trial_end_date:
+        delta = user.trial_end_date - datetime.utcnow()
+        dias_restantes = max(0, delta.days)
+
     try: user_config = json.loads(user.configuracoes)
     except: user_config = {}
     try: campaign_config_data = json.loads(user.campaign_config or '{}')
     except: campaign_config_data = {}
-    return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive, campaign_config_data=campaign_config_data, utcnow=datetime.utcnow)
+    
+    return render_template('dashboard.html', 
+                           usuario=user, 
+                           config=user_config, 
+                           popups_exibidos=popups_exibidos, 
+                           top_pages=top_pages, 
+                           insight_detetive=insight_detetive, 
+                           campaign_config_data=campaign_config_data,
+                           dias_restantes=dias_restantes)
 
 @app.route('/dashboard/visitors')
 @subscription_required
@@ -228,4 +242,117 @@ def create_payment():
     except Exception as e:
         return jsonify(error=str(e)), 403
 
-# ... (outras rotas como /salvar-configuracoes, /encerrar-conta, /mudar-email, etc. continuam aqui) ...
+@app.route('/salvar-configuracoes', methods=['POST'])
+@subscription_required
+def salvar_configuracoes(user):
+    try:
+        config_atual = json.loads(user.configuracoes or '{}')
+        campaign_config_atual = json.loads(user.campaign_config or '{}')
+        checkboxes_gerais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+        for check in checkboxes_gerais:
+            config_atual[check] = check in request.form
+        campos_texto_gerais = ['popup_titulo', 'popup_mensagem', 'msg_bem_vindo', 'msg_interessado', 'abandono_tipo', 'abandono_presente_fechado', 'abandono_presente_aberto', 'abandono_timer_minutos']
+        for campo in campos_texto_gerais:
+            if request.form.get(campo) is not None:
+                config_atual[campo] = request.form.get(campo)
+        user.configuracoes = json.dumps(config_atual)
+        user.campaign_active = 'campaign_active' in request.form
+        start_date_str = request.form.get('campaign_start_date')
+        user.campaign_start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M') if start_date_str else None
+        end_date_str = request.form.get('campaign_end_date')
+        user.campaign_end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M') if end_date_str else None
+        campaign_config_atual['campaign_bar_active'] = 'campaign_bar_active' in request.form
+        campos_texto_campanha = ['campaign_bar_text', 'campaign_bar_position', 'campaign_abandono_tipo', 'campaign_popup_titulo', 'campaign_popup_mensagem', 'campaign_presente_fechado', 'campaign_presente_aberto']
+        for campo in campos_texto_campanha:
+            if request.form.get(campo) is not None:
+                campaign_config_atual[campo] = request.form.get(campo)
+        user.campaign_config = json.dumps(campaign_config_atual)
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Configurações salvas com sucesso!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': f'Erro ao salvar: {e}'}), 500
+
+@app.route('/encerrar-conta', methods=['POST'])
+@subscription_required
+def encerrar_conta(user):
+    try:
+        user.status_assinatura = 'canceled'
+        db.session.commit()
+        session.clear()
+        flash('Sua conta foi encerrada. Agradecemos por testar a SynapCortex.', 'success')
+        return jsonify({'status': 'success', 'redirect_url': url_for('index')})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': f'Erro ao encerrar a conta: {e}'}), 500
+
+@app.route('/mudar-email', methods=['POST'])
+@subscription_required
+def mudar_email(user):
+    try:
+        novo_email = request.form.get('new_email')
+        senha_atual = request.form.get('current_password')
+        if not novo_email or not senha_atual:
+            return jsonify({'status': 'error', 'message': 'Por favor, preencha todos os campos.'}), 400
+        if not check_password_hash(user.senha_hash, senha_atual):
+            return jsonify({'status': 'error', 'message': 'Senha atual incorreta.'}), 403
+        user.email = novo_email
+        db.session.commit()
+        session['email'] = novo_email
+        return jsonify({'status': 'success', 'message': 'E-mail alterado com sucesso!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': f'Erro ao alterar o e-mail: {e}'}), 500
+
+# --- ROTAS DA API ---
+@app.route('/api/track', methods=['POST'])
+def track_event():
+    data = request.get_json(silent=True)
+    if not data or not data.get('apiKey'):
+        return jsonify({'error': 'Dados incompletos ou malformados.'}), 400
+    user = AppUser.query.filter_by(api_key=data.get('apiKey')).first()
+    if not user:
+        return jsonify({'error': 'API Key inválida.'}), 403
+    try:
+        new_event = AnalyticsEvent(
+            owner_id=user.id,
+            visitor_id=data.get('visitorId'),
+            event_name=data.get('eventName'),
+            event_data=json.dumps(data.get('eventData', {}))
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({'status': 'ok'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Erro ao salvar evento: {e}'}), 500
+
+@app.route('/api/get-client-config')
+def get_client_config():
+    api_key = request.args.get('key')
+    if not api_key:
+        return jsonify({'error': 'API Key não fornecida'}), 400
+    user = AppUser.query.filter_by(api_key=api_key).first()
+    if not user:
+        return jsonify({'error': 'API Key inválida'}), 404
+    try:
+        config = json.loads(user.configuracoes or '{}')
+        campaign_config = json.loads(user.campaign_config or '{}')
+    except json.JSONDecodeError:
+        config = {}
+        campaign_config = {}
+    config.update(campaign_config)
+    agora = datetime.utcnow()
+    is_campaign_active = False
+    if user.campaign_active and user.campaign_start_date and user.campaign_end_date:
+        if user.campaign_start_date <= agora <= user.campaign_end_date:
+            is_campaign_active = True
+    config['is_campaign_active'] = is_campaign_active
+    if is_campaign_active:
+        config['campaign_end_date'] = user.campaign_end_date.isoformat()
+    return jsonify(config)
+
+# --- INICIALIZAÇÃO DO SERVIDOR ---
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

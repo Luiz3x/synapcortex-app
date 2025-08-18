@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SynapCortex - Inteligência para seu E-commerce</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='6.2') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='8.0') }}">
 </head>
 <body>
     <header>
@@ -13,6 +13,16 @@
             <button id="openLoginRegisterModal" class="login-register-button">Login / Cadastre-se</button>
         </nav>
     </header>
+
+    <div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </div>
 
     <div class="main-content">
         <video class="cerebro-animado" autoplay loop muted playsinline>
@@ -27,47 +37,48 @@
         </div>
     </div>
 
-    <div id="loginRegisterModal" class="modal">
+    <div id="loginRegisterModal" class="modal" style="display:none;">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-
-            <div class="flash-container" style="margin-bottom: 1rem;">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="notification {{ category }} show" style="position: relative; bottom: 0; margin-bottom: 1rem;">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-            </div>
-
             <div class="modal-tabs">
                 <button class="tab-button active" data-tab="login">Login</button>
                 <button class="tab-button" data-tab="register">Cadastre-se</button>
             </div>
+            
             <div id="loginTab" class="tab-content active">
                 <form id="loginForm" method="POST" action="{{ url_for('login') }}">
                     <h2>Acesse seu Painel</h2>
                     <div class="input-group"><label>E-mail Comercial:</label><input type="email" name="email" required></div>
                     <div class="input-group"><label>Senha:</label><input type="password" name="password" required></div>
-                    <button type="submit" class="cta-button">Entrar</button>
+                    <button type="submit">Entrar</button>
                 </form>
             </div>
+
             <div id="registerTab" class="tab-content">
                 <form id="registerForm" method="POST" action="{{ url_for('registrar') }}">
                     <h2>Crie sua Conta</h2>
-                    <div class="input-group"><label>Nome da Empresa</label><input type="text" name="nome_empresa" required></div>
-                    <div class="input-group"><label>CNPJ</label><input type="text" name="cnpj" required></div>
-                    <div class="input-group"><label>E-mail Comercial</label><input type="email" name="email" required></div>
-                    <div class="input-group"><label>Crie sua Senha</label><input type="password" name="password" required></div>
-                    <button type="submit" class="cta-button">Cadastrar e Começar Meu Mês Grátis</button>
+                    <div class="input-group">
+                        <label for="country_select">País da sua Empresa:</label>
+                        <select name="country" id="country_select" class="input-select" required>
+                            <option value="Brasil" selected>Brasil</option>
+                            <option value="Estados Unidos">Estados Unidos</option>
+                            <option value="Portugal">Portugal</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label id="company_id_label" for="company_id_input">CNPJ:</label>
+                        <input type="text" id="company_id_input" name="company_id" placeholder="00.000.000/0000-00" required>
+                    </div>
+                    <div class="input-group"><label>Nome da Empresa:</label><input type="text" name="nome_empresa" required></div>
+                    <div class="input-group"><label>E-mail Comercial (seu login):</label><input type="email" name="email" required></div>
+                    <div class="input-group"><label>Crie sua Senha:</label><input type="password" name="password" required></div>
+                    <button type="submit">Cadastrar e Começar Meu Mês Grátis</button>
                 </form>
             </div>
         </div>
     </div>
     
-    <script src="{{ url_for('static', filename='js/main_logic.js', v='6.2') }}"></script>
+    <script src="{{ url_for('static', filename='js/main_logic.js', v='8.1') }}"></script>
 </body>
 </html>

@@ -58,7 +58,7 @@ class AnalyticsEvent(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-# APRIMORAMENTO 1: Comando para inicializar o DB e criar o usuário demo
+# Comando para inicializar o DB e criar o usuário demo
 @app.cli.command("init-db")
 def init_db_command():
     """Cria as tabelas do banco e o usuário de demonstração."""
@@ -89,10 +89,8 @@ def subscription_required(f):
         user = AppUser.query.filter_by(email=session['email']).first()
         if not user or user.status_assinatura == 'canceled':
             session.clear(); flash('Usuário não encontrado ou conta encerrada.', 'error'); return redirect(url_for('index'))
-        
-        if user.status_assinatura in ['active', 'demo']: # Adicionado 'demo' aqui
+        if user.status_assinatura in ['active', 'demo']:
             return f(user=user, *args, **kwargs)
-
         if user.status_assinatura == 'trial':
             if user.trial_end_date and datetime.utcnow() < user.trial_end_date:
                 return f(user=user, *args, **kwargs)
@@ -101,7 +99,6 @@ def subscription_required(f):
                 db.session.commit()
                 flash('Seu período de teste acabou. Por favor, realize sua assinatura.', 'info')
                 return redirect(url_for('pagamento'))
-        
         flash('Sua assinatura não está ativa. Por favor, regularize para ter acesso.', 'info')
         return redirect(url_for('pagamento'))
     return decorated_function
@@ -109,87 +106,166 @@ def subscription_required(f):
 # --- ROTAS DE AUTENTICAÇÃO E PÁGINAS ---
 @app.route('/')
 def index():
-    # ... (código inalterado) ...
+    return render_template('index.html')
 
 @app.route('/login', methods=['POST'])
 def login():
-    # ... (código inalterado) ...
+    email_form = request.form.get('email')
+    password_form = request.form.get('password')
+    user = AppUser.query.filter_by(email=email_form).first()
+    if user and user.status_assinatura != 'canceled' and check_password_hash(user.senha_hash, password_form):
+        session['logged_in'] = True; session['email'] = user.email
+        return redirect(url_for('dashboard'))
+    flash('E-mail ou senha inválidos, ou conta encerrada.', 'error')
+    return redirect(url_for('index'))
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
-    # ... (Sua excelente lógica de registro com validação continua aqui) ...
+    try:
+        email = request.form.get('email'); country = request.form.get('country'); company_id = request.form.get('company_id')
+        nome_empresa = request.form.get('nome_empresa'); password = request.form.get('password')
+        campos_obrigatorios = {'País': country, 'ID da Empresa (CNPJ)': company_id, 'Nome da Empresa': nome_empresa, 'E-mail Comercial': email, 'Senha': password}
+        for nome_campo, valor in campos_obrigatorios.items():
+            if not valor:
+                flash(f'O campo "{nome_campo}" é obrigatório.', 'error'); return redirect(url_for('index'))
+        user_existente = AppUser.query.filter_by(country=country, company_id=company_id).first()
+        if user_existente:
+            if user_existente.status_assinatura in ['canceled', 'expired_trial']:
+                user_existente.nome_empresa = nome_empresa; user_existente.email = email; user_existente.senha_hash = generate_password_hash(password)
+                user_existente.status_assinatura = 'trial'; user_existente.trial_end_date = datetime.utcnow() + timedelta(days=7)
+                db.session.commit()
+                session['logged_in'] = True; session['email'] = user_existente.email
+                flash('Que bom te ver de volta! Reativamos sua conta com mais 7 dias de teste.', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Uma conta com este ID de empresa já existe para o país selecionado.', 'error'); return redirect(url_for('index'))
+        senha_hash = generate_password_hash(password)
+        data_final_teste = datetime.utcnow() + timedelta(days=30)
+        new_user = AppUser(country=country, company_id=company_id, email=email, senha_hash=senha_hash, nome_empresa=nome_empresa, api_key=secrets.token_hex(16), trial_end_date=data_final_teste)
+        db.session.add(new_user); db.session.commit()
+        session['logged_in'] = True; session['email'] = new_user.email
+        flash('Conta criada com sucesso! Você tem 30 dias de teste grátis.', 'success')
+        return redirect(url_for('dashboard'))
+    except Exception as e:
+        db.session.rollback(); flash(f'Ocorreu um erro ao registrar: {e}', 'error'); return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
-    # ... (código inalterado) ...
+    session.clear(); return redirect(url_for('index'))
 
 @app.route('/demo-login')
 def demo_login():
-    # ... (código inalterado) ...
+    session['logged_in'] = True; session['email'] = 'demo@synapcortex.com'; return redirect(url_for('dashboard'))
 
 # --- ROTAS DO PAINEL E GERENCIAMENTO ---
 @app.route('/dashboard')
 @subscription_required
 def dashboard(user):
-    # ... (código inalterado) ...
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    popups_exibidos = AnalyticsEvent.query.filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'popup_exibido', AnalyticsEvent.timestamp >= thirty_days_ago).count()
+    top_pages_query = db.session.query(AnalyticsEvent.event_data, func.count(AnalyticsEvent.id).label('views')).filter(AnalyticsEvent.owner_id == user.id, AnalyticsEvent.event_name == 'pagina_visitada', AnalyticsEvent.timestamp >= thirty_days_ago).group_by(AnalyticsEvent.event_data).order_by(func.count(AnalyticsEvent.id).desc()).limit(5).all()
+    top_pages = [{'title': (json.loads(p.event_data).get('title') or json.loads(p.event_data).get('url', 'N/A')), 'views': p.views} for p in top_pages_query]
+    insight_detetive = f"Sua página mais popular é '{top_pages[0]['title']}'. Considere criar uma oferta!" if top_pages else None
+    dias_restantes = None
+    if user.status_assinatura == 'trial' and user.trial_end_date:
+        delta = user.trial_end_date - datetime.utcnow(); dias_restantes = max(0, delta.days)
+    try: user_config = json.loads(user.configuracoes); campaign_config_data = json.loads(user.campaign_config or '{}')
+    except: user_config = {}; campaign_config_data = {}
+    return render_template('dashboard.html', usuario=user, config=user_config, popups_exibidos=popups_exibidos, top_pages=top_pages, insight_detetive=insight_detetive, campaign_config_data=campaign_config_data, dias_restantes=dias_restantes)
 
 @app.route('/dashboard/visitors')
 @subscription_required
 def visitors(user):
-    # ... (código inalterado) ...
+    events = AnalyticsEvent.query.filter_by(owner_id=user.id, event_name='pagina_visitada').order_by(AnalyticsEvent.timestamp.desc()).limit(200).all()
+    visitors_data = defaultdict(list)
+    for event in events:
+        try: event_details = json.loads(event.event_data); event_details['timestamp'] = event.timestamp.strftime('%d/%m/%Y às %H:%M'); visitors_data[event.visitor_id].append(event_details)
+        except: continue
+    return render_template('visitors.html', visitors_data=visitors_data, usuario=user)
 
 @app.route('/pagamento')
 def pagamento():
-    # ... (código inalterado) ...
+    stripe_public_key = os.environ.get('STRIPE_PUBLIC_KEY'); return render_template('pagamento_pendente.html', stripe_public_key=stripe_public_key)
 
 @app.route('/salvar-configuracoes', methods=['POST'])
 @subscription_required
 def salvar_configuracoes(user):
-    # ... (código inalterado) ...
+    try:
+        config_atual = json.loads(user.configuracoes or '{}'); campaign_config_atual = json.loads(user.campaign_config or '{}')
+        checkboxes_gerais = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
+        for check in checkboxes_gerais: config_atual[check] = check in request.form
+        campos_texto_gerais = ['popup_titulo', 'popup_mensagem', 'msg_bem_vindo', 'msg_interessado', 'abandono_tipo', 'abandono_presente_fechado', 'abandono_presente_aberto', 'abandono_timer_minutos']
+        for campo in campos_texto_gerais:
+            if request.form.get(campo) is not None: config_atual[campo] = request.form.get(campo)
+        user.configuracoes = json.dumps(config_atual)
+        user.campaign_active = 'campaign_active' in request.form
+        start_date_str = request.form.get('campaign_start_date'); user.campaign_start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M') if start_date_str else None
+        end_date_str = request.form.get('campaign_end_date'); user.campaign_end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M') if end_date_str else None
+        campaign_config_atual['campaign_bar_active'] = 'campaign_bar_active' in request.form
+        campos_texto_campanha = ['campaign_bar_text', 'campaign_bar_position', 'campaign_abandono_tipo', 'campaign_popup_titulo', 'campaign_popup_mensagem', 'campaign_presente_fechado', 'campaign_presente_aberto']
+        for campo in campos_texto_campanha:
+            if request.form.get(campo) is not None: campaign_config_atual[campo] = request.form.get(campo)
+        user.campaign_config = json.dumps(campaign_config_atual)
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Configurações salvas com sucesso!'})
+    except Exception as e:
+        db.session.rollback(); return jsonify({'status': 'error', 'message': f'Erro ao salvar: {e}'}), 500
 
 @app.route('/encerrar-conta', methods=['POST'])
 @subscription_required
 def encerrar_conta(user):
-    # ... (código inalterado) ...
+    try:
+        user.status_assinatura = 'canceled'; db.session.commit(); session.clear()
+        flash('Sua conta foi encerrada. Agradecemos por testar a SynapCortex.', 'success')
+        return jsonify({'status': 'success', 'redirect_url': url_for('index')})
+    except Exception as e:
+        db.session.rollback(); return jsonify({'status': 'error', 'message': f'Erro ao encerrar a conta: {e}'}), 500
 
 @app.route('/mudar-email', methods=['POST'])
 @subscription_required
 def mudar_email(user):
-    # ... (código inalterado) ...
+    try:
+        novo_email = request.form.get('new_email'); senha_atual = request.form.get('current_password')
+        if not novo_email or not senha_atual: return jsonify({'status': 'error', 'message': 'Por favor, preencha todos os campos.'}), 400
+        if not check_password_hash(user.senha_hash, senha_atual): return jsonify({'status': 'error', 'message': 'Senha atual incorreta.'}), 403
+        user.email = novo_email; db.session.commit(); session['email'] = novo_email
+        return jsonify({'status': 'success', 'message': 'E-mail alterado com sucesso!'})
+    except Exception as e:
+        db.session.rollback(); return jsonify({'status': 'error', 'message': f'Erro ao alterar o e-mail: {e}'}), 500
 
 # --- ROTAS DA API ---
 @app.route('/api/track', methods=['POST'])
 def track_event():
-    # ... (código inalterado) ...
+    data = request.get_json(silent=True)
+    if not data or not data.get('apiKey'): return jsonify({'error': 'Dados incompletos ou malformados.'}), 400
+    user = AppUser.query.filter_by(api_key=data.get('apiKey')).first()
+    if not user: return jsonify({'error': 'API Key inválida.'}), 403
+    try:
+        new_event = AnalyticsEvent(owner_id=user.id, visitor_id=data.get('visitorId'), event_name=data.get('eventName'), event_data=json.dumps(data.get('eventData', {})))
+        db.session.add(new_event); db.session.commit()
+        return jsonify({'status': 'ok'}), 200
+    except Exception as e:
+        db.session.rollback(); return jsonify({'error': f'Erro ao salvar evento: {e}'}), 500
 
-# APRIMORAMENTO 2: Resposta da API mais clara e organizada
 @app.route('/api/get-client-config')
 def get_client_config():
     api_key = request.args.get('key')
     if not api_key: return jsonify({'error': 'API Key não fornecida'}), 400
     user = AppUser.query.filter_by(api_key=api_key).first()
     if not user: return jsonify({'error': 'API Key inválida'}), 404
-    
     try:
         config_geral = json.loads(user.configuracoes or '{}')
-    except json.JSONDecodeError:
-        config_geral = {}
-
+    except json.JSONDecodeError: config_geral = {}
     agora = datetime.utcnow()
     is_campaign_active = False
     if user.campaign_active and user.campaign_start_date and user.campaign_end_date:
-        if user.campaign_start_date <= agora <= user.campaign_end_date:
-            is_campaign_active = True
-    
+        if user.campaign_start_date <= agora <= user.campaign_end_date: is_campaign_active = True
     config_geral['is_campaign_active'] = is_campaign_active
-
     if is_campaign_active:
         try:
             config_geral['campaign_config'] = json.loads(user.campaign_config or '{}')
             config_geral['campaign_end_date'] = user.campaign_end_date.isoformat()
-        except json.JSONDecodeError:
-            config_geral['campaign_config'] = {}
-            
+        except json.JSONDecodeError: config_geral['campaign_config'] = {}
     return jsonify(config_geral)
 
 # --- INICIALIZAÇÃO DO SERVIDOR ---

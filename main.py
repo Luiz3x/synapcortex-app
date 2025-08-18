@@ -1,5 +1,5 @@
 # =================================================================================
-# SYNAPCORTEX - MAIN APPLICATION (v14.1 - FUNDAÇÃO GLOBAL + API COMPLETA)
+# SYNAPCORTEX - MAIN APPLICATION (v14.3 - CORREÇÃO DE REGISTRO E TEST DRIVE)
 # =================================================================================
 import os
 import json
@@ -61,6 +61,26 @@ class AnalyticsEvent(db.Model):
 with app.app_context():
     db.create_all()
 
+# --- FUNÇÃO PARA CRIAR USUÁRIO DEMO (AUTO-CORREÇÃO) ---
+@app.before_request
+def create_demo_user():
+    if not hasattr(app, 'demo_user_created'):
+        with app.app_context():
+            demo_user = AppUser.query.filter_by(email='demo@synapcortex.com').first()
+            if not demo_user:
+                demo_user = AppUser(
+                    country='Brasil',
+                    company_id='00000000000000',
+                    email='demo@synapcortex.com',
+                    senha_hash=generate_password_hash('demo_password'),
+                    nome_empresa='Loja de Demonstração',
+                    api_key=secrets.token_hex(16),
+                    status_assinatura='demo'
+                )
+                db.session.add(demo_user)
+                db.session.commit()
+            app.demo_user_created = True
+
 # --- DECORADOR DE VERIFICAÇÃO DE ASSINATURA (O "PORTEIRO") ---
 def subscription_required(f):
     @wraps(f)
@@ -73,7 +93,7 @@ def subscription_required(f):
             session.clear()
             flash('Usuário não encontrado ou conta encerrada.', 'error')
             return redirect(url_for('index'))
-        if user.status_assinatura == 'active':
+        if user.status_assinatura in ['active', 'demo']:
             return f(user=user, *args, **kwargs)
         if user.status_assinatura == 'trial':
             if user.trial_end_date and datetime.utcnow() < user.trial_end_date:
@@ -110,12 +130,19 @@ def registrar():
         email = request.form.get('email')
         country = request.form.get('country')
         company_id = request.form.get('company_id')
+        nome_empresa = request.form.get('nome_empresa')
+        password = request.form.get('password')
+
+        if not all([email, country, company_id, nome_empresa, password]):
+            flash('Por favor, preencha todos os campos do cadastro.', 'error')
+            return redirect(url_for('index'))
+        
         user_existente = AppUser.query.filter_by(country=country, company_id=company_id).first()
         if user_existente:
             if user_existente.status_assinatura in ['canceled', 'expired_trial']:
-                user_existente.nome_empresa = request.form.get('nome_empresa')
+                user_existente.nome_empresa = nome_empresa
                 user_existente.email = email
-                user_existente.senha_hash = generate_password_hash(request.form.get('password'))
+                user_existente.senha_hash = generate_password_hash(password)
                 user_existente.status_assinatura = 'trial'
                 user_existente.trial_end_date = datetime.utcnow() + timedelta(days=7)
                 db.session.commit()
@@ -126,11 +153,12 @@ def registrar():
             else:
                 flash('Uma conta com este ID de empresa já existe para o país selecionado.', 'error')
                 return redirect(url_for('index'))
-        senha_hash = generate_password_hash(request.form.get('password'))
+        
+        senha_hash = generate_password_hash(password)
         data_final_teste = datetime.utcnow() + timedelta(days=30)
         new_user = AppUser(
             country=country, company_id=company_id, email=email, senha_hash=senha_hash, 
-            nome_empresa=request.form.get('nome_empresa'), api_key=secrets.token_hex(16), 
+            nome_empresa=nome_empresa, api_key=secrets.token_hex(16), 
             trial_end_date=data_final_teste
         )
         db.session.add(new_user)

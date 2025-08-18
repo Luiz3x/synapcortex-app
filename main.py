@@ -1,5 +1,5 @@
 # =================================================================================
-# SYNAPCORTEX - MAIN APPLICATION (v14.3 - CORREÇÃO DE REGISTRO E TEST DRIVE)
+# SYNAPCORTEX - MAIN APPLICATION (v14.4 - DIAGNÓSTICO DE REGISTRO APRIMORADO)
 # =================================================================================
 import os
 import json
@@ -133,9 +133,18 @@ def registrar():
         nome_empresa = request.form.get('nome_empresa')
         password = request.form.get('password')
 
-        if not all([email, country, company_id, nome_empresa, password]):
-            flash('Por favor, preencha todos os campos do cadastro.', 'error')
-            return redirect(url_for('index'))
+        # PENTE FINO: VALIDAÇÃO INTELIGENTE COM "LUPA"
+        campos_obrigatorios = {
+            'País': country,
+            'ID da Empresa (CNPJ)': company_id,
+            'Nome da Empresa': nome_empresa,
+            'E-mail Comercial': email,
+            'Senha': password
+        }
+        for nome_campo, valor in campos_obrigatorios.items():
+            if not valor:
+                flash(f'O campo "{nome_campo}" é obrigatório. Por favor, preencha todos os campos.', 'error')
+                return redirect(url_for('index'))
         
         user_existente = AppUser.query.filter_by(country=country, company_id=company_id).first()
         if user_existente:
@@ -163,10 +172,12 @@ def registrar():
         )
         db.session.add(new_user)
         db.session.commit()
+        
         session['logged_in'] = True
         session['email'] = new_user.email
         flash('Conta criada com sucesso! Você tem 30 dias de teste grátis.', 'success')
         return redirect(url_for('dashboard'))
+
     except Exception as e:
         db.session.rollback()
         flash(f'Ocorreu um erro ao registrar: {e}', 'error')

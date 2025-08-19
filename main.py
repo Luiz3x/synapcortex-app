@@ -1,8 +1,8 @@
 # =================================================================================
-# SYNAPCORTEX - MAIN APPLICATION (v15.3 - ARQUITETURA OTIMIZADA + MIGRAÇÃO)
+# SYNAPCORTEX - MAIN APPLICATION (v15.4 - CORREÇÃO DE IMPORT E MIGRAÇÃO)
 # =================================================================================
 
-# --- MÓDULOS NATIVOS E DE TERCEIROS ---
+# --- MÓDulos NATIVOS E DE TERCEIROS ---
 import os
 import json
 import secrets
@@ -11,15 +11,14 @@ from collections import defaultdict
 from functools import wraps
 import logging
 
-# --- MÓDULOS DO FRAMEWORK E EXTENSÕES ---
+# --- MÓDulos DO FRAMEWORK E EXTENSÕES ---
 import stripe
 from flask import (Flask, render_template, request, jsonify, redirect,
                    url_for, session, flash, g)
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import exc as sqlalchemy_exc # Import para capturar exceções do SQLAlchemy
-from sqlalchemy import text # Import para executar SQL raw de forma segura
-from sqlalchemy import inspect # Import para inspecionar o banco de dados
+# --- LINHA CORRIGIDA ABAIXO ---
+from sqlalchemy import func, UniqueConstraint, text, inspect, exc as sqlalchemy_exc
 from sqlalchemy.dialects.postgresql import JSONB
 from flask_cors import CORS
 
@@ -101,7 +100,6 @@ class AnalyticsEvent(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
 
 # --- FUNÇÕES HELPER E DECORATORS ---
-# (As funções 'get_current_user' e 'subscription_required' continuam as mesmas da versão anterior)
 def get_current_user():
     if 'user' not in g and 'email' in session:
         g.user = AppUser.query.filter_by(email=session['email']).first()
@@ -134,10 +132,7 @@ def subscription_required(f):
         return redirect(url_for('pagamento'))
     return decorated_function
 
-# --- ROTAS ---
-# (Todas as rotas, de / a /api/get-client-config, continuam as mesmas da versão anterior)
 # --- ROTAS PRINCIPAIS E DE AUTENTICAÇÃO ---
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -225,6 +220,7 @@ def demo_login():
     session['email'] = 'demo@synapcortex.com'
     return redirect(url_for('dashboard'))
 
+# --- ROTAS DO PAINEL (PROTEGIDAS) ---
 @app.route('/dashboard')
 @subscription_required
 def dashboard(user):
@@ -270,6 +266,7 @@ def visitors(user):
 
     return render_template('visitors.html', visitors_data=dict(visitors_data), usuario=user)
 
+# --- ROTAS DE PAGAMENTO ---
 @app.route('/pagamento')
 def pagamento():
     if not STRIPE_PUBLIC_KEY:
@@ -293,6 +290,7 @@ def create_payment():
         app.logger.error(f"Erro ao criar PaymentIntent no Stripe: {e}")
         return jsonify(error={'message': "Não foi possível iniciar o pagamento."}), 500
 
+# --- ROTAS DE GERENCIAMENTO (PROTEGIDAS) ---
 @app.route('/salvar-configuracoes', methods=['POST'])
 @subscription_required
 def salvar_configuracoes(user):
@@ -344,6 +342,7 @@ def encerrar_conta(user):
         app.logger.error(f"Erro ao encerrar conta para o usuário {user.email}: {e}")
         return jsonify({'status': 'error', 'message': 'Erro ao encerrar a conta.'}), 500
 
+# --- ROTAS DA API (PARA O spy.js) ---
 @app.route('/api/track', methods=['POST'])
 def track_event():
     data = request.get_json()
@@ -391,8 +390,8 @@ def get_client_config():
         config_geral['campaign_end_date'] = user.campaign_end_date.isoformat()
         
     return jsonify(config_geral)
-# --- COMANDOS CLI E INICIALIZAÇÃO DO SERVIDOR ---
 
+# --- COMANDOS CLI E INICIALIZAÇÃO DO SERVIDOR ---
 @app.cli.command("init-db")
 def init_db_command():
     """Cria/Atualiza as tabelas e o usuário demo."""
@@ -411,8 +410,6 @@ def init_db_command():
         print("Usuário de demonstração criado.")
     print("Banco de dados inicializado.")
 
-
-# <<< --- NOVA FERRAMENTA DE MIGRAÇÃO --- >>>
 @app.cli.command('migrate-db')
 def migrate_db_command():
     """Verifica e aplica alterações pendentes no schema do banco de dados."""
@@ -424,7 +421,6 @@ def migrate_db_command():
         print(f"Tabela '{table_name}' não encontrada. O comando 'init-db' deve criá-la.")
         return
 
-    # Mapeia as colunas do modelo (código) e do banco de dados (real)
     model_columns = {c.name for c in AppUser.__table__.columns}
     db_columns = {c['name'] for c in inspector.get_columns(table_name)}
     
@@ -438,9 +434,7 @@ def migrate_db_command():
     
     for col_name in missing_columns:
         try:
-            # Encontra a definição da coluna no modelo SQLAlchemy
             column_to_add = next(c for c in AppUser.__table__.columns if c.name == col_name)
-            # Monta o comando SQL de forma segura
             col_type = column_to_add.type.compile(db.engine.dialect)
             sql_command = text(f'ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}')
             
@@ -451,7 +445,6 @@ def migrate_db_command():
             print(f"  - ERRO ao adicionar a coluna '{col_name}': {e}")
 
     print("Migração do banco de dados concluída.")
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))

@@ -1,5 +1,5 @@
 # =================================================================================
-# SYNAPCORTEX - MAIN APPLICATION (v15.2 - ARQUITETURA OTIMIZADA)
+# SYNAPCORTEX - MAIN APPLICATION (v15.3 - ARQUITETURA OTIMIZADA + MIGRAÇÃO)
 # =================================================================================
 
 # --- MÓDULOS NATIVOS E DE TERCEIROS ---
@@ -17,8 +17,10 @@ from flask import (Flask, render_template, request, jsonify, redirect,
                    url_for, session, flash, g)
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB # Mais eficiente para PostgreSQL
+from sqlalchemy import exc as sqlalchemy_exc # Import para capturar exceções do SQLAlchemy
+from sqlalchemy import text # Import para executar SQL raw de forma segura
+from sqlalchemy import inspect # Import para inspecionar o banco de dados
+from sqlalchemy.dialects.postgresql import JSONB
 from flask_cors import CORS
 
 # --- CONSTANTES GLOBAIS ---
@@ -36,16 +38,11 @@ class SubscriptionStatus:
 
 # --- INICIALIZAÇÃO E CONFIGURAÇÃO DA APLICAÇÃO ---
 app = Flask(__name__)
-
-# Configuração de logging para facilitar o debug em produção
 logging.basicConfig(level=logging.INFO)
-
-# Configuração de Chaves e Segredos
-app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(24)) # Aumentado para 24 bytes
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(24))
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
 
-# Configuração do Banco de Dados (com otimizações)
 db_url = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(os.path.abspath(os.path.dirname(__file__)), 'synapcortex_local.db')}")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -59,23 +56,21 @@ app.config.update(
 db = SQLAlchemy(app)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-
 # --- MODELOS DO BANCO DE DADOS (COM MELHORIAS) ---
 class AppUser(db.Model):
     __tablename__ = 'app_user'
     id = db.Column(db.Integer, primary_key=True)
     country = db.Column(db.String(80), nullable=False)
     company_id = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True) # Adicionado unique e index
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     senha_hash = db.Column(db.String(256), nullable=False)
     nome_empresa = db.Column(db.String(120), nullable=False)
-    api_key = db.Column(db.String(32), unique=True, nullable=False, index=True) # Adicionado index
+    api_key = db.Column(db.String(32), unique=True, nullable=False, index=True)
     data_registro = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     status_assinatura = db.Column(db.String(20), nullable=False, default=SubscriptionStatus.TRIAL)
     trial_end_date = db.Column(db.DateTime, nullable=True)
     stripe_customer_id = db.Column(db.String(120), unique=True, nullable=True)
     
-    # Usando JSON/JSONB para melhor performance e manipulação de dados estruturados
     db_json_type = JSONB if 'postgresql' in db_url else db.JSON
     configuracoes = db.Column(db_json_type, nullable=False, default=lambda: {})
     campaign_config = db.Column(db_json_type, nullable=True, default=lambda: {})
@@ -84,39 +79,35 @@ class AppUser(db.Model):
     campaign_start_date = db.Column(db.DateTime, nullable=True)
     campaign_end_date = db.Column(db.DateTime, nullable=True)
     
-    events = db.relationship('AnalyticsEvent', backref='owner', lazy='dynamic') # lazy='dynamic' para queries
+    events = db.relationship('AnalyticsEvent', backref='owner', lazy='dynamic')
     __table_args__ = (UniqueConstraint('company_id', 'country', name='_company_id_country_uc'),)
     
     @property
     def is_trial_active(self):
-        """Verifica se o período de teste do usuário ainda está ativo."""
         return self.status_assinatura == SubscriptionStatus.TRIAL and \
                self.trial_end_date and datetime.utcnow() < self.trial_end_date
 
     @property
     def is_subscription_valid(self):
-        """Centraliza a lógica de validação de acesso."""
         return self.status_assinatura in SubscriptionStatus.VALID_STATUSES or self.is_trial_active
 
 class AnalyticsEvent(db.Model):
     __tablename__ = 'analytics_event'
     id = db.Column(db.Integer, primary_key=True)
-    owner_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False, index=True) # Adicionado index
-    visitor_id = db.Column(db.String(100), nullable=False, index=True) # Adicionado index
+    owner_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False, index=True)
+    visitor_id = db.Column(db.String(100), nullable=False, index=True)
     event_name = db.Column(db.String(50), nullable=False)
-    event_data = db.Column(db.JSON, nullable=True) # JSON é mais apropriado
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True) # Adicionado index
+    event_data = db.Column(db.JSON, nullable=True)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
 
 # --- FUNÇÕES HELPER E DECORATORS ---
-
+# (As funções 'get_current_user' e 'subscription_required' continuam as mesmas da versão anterior)
 def get_current_user():
-    """Busca o usuário logado e armazena no contexto da requisição para evitar queries repetidas."""
     if 'user' not in g and 'email' in session:
         g.user = AppUser.query.filter_by(email=session['email']).first()
     return g.get('user')
 
 def subscription_required(f):
-    """Decorator "Porteiro" refatorado para maior clareza e eficiência."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
@@ -143,6 +134,8 @@ def subscription_required(f):
         return redirect(url_for('pagamento'))
     return decorated_function
 
+# --- ROTAS ---
+# (Todas as rotas, de / a /api/get-client-config, continuam as mesmas da versão anterior)
 # --- ROTAS PRINCIPAIS E DE AUTENTICAÇÃO ---
 
 @app.route('/')
@@ -161,7 +154,7 @@ def login():
     user = AppUser.query.filter_by(email=email).first()
 
     if user and user.status_assinatura != SubscriptionStatus.CANCELED and check_password_hash(user.senha_hash, password):
-        session.permanent = True  # Torna a sessão mais duradoura
+        session.permanent = True
         session['logged_in'] = True
         session['email'] = user.email
         app.logger.info(f"Login bem-sucedido para o usuário {email}")
@@ -178,7 +171,6 @@ def registrar():
         'Nome da Empresa': 'nome_empresa', 'E-mail Comercial': 'email', 'Senha': 'password'
     }
 
-    # Validação de campos
     for field_name, key in required_fields.items():
         if not form_data.get(key):
             flash(f'O campo "{field_name}" é obrigatório.', 'error')
@@ -188,19 +180,17 @@ def registrar():
         user = AppUser.query.filter_by(country=form_data['country'], company_id=form_data['company_id']).first()
 
         if user:
-            # Reativação de conta
             if user.status_assinatura in [SubscriptionStatus.CANCELED, SubscriptionStatus.EXPIRED_TRIAL]:
                 user.nome_empresa = form_data['nome_empresa']
                 user.email = form_data['email']
                 user.senha_hash = generate_password_hash(form_data['password'])
                 user.status_assinatura = SubscriptionStatus.TRIAL
-                user.trial_end_date = datetime.utcnow() + timedelta(days=7) # Reativação com 7 dias
+                user.trial_end_date = datetime.utcnow() + timedelta(days=7)
                 message = 'Que bom te ver de volta! Reativamos sua conta com mais 7 dias de teste.'
             else:
                 flash('Uma conta com este ID de empresa já existe para o país selecionado.', 'error')
                 return redirect(url_for('index'))
         else:
-            # Novo usuário
             new_user = AppUser(
                 country=form_data['country'], company_id=form_data['company_id'], email=form_data['email'],
                 senha_hash=generate_password_hash(form_data['password']), nome_empresa=form_data['nome_empresa'],
@@ -235,14 +225,11 @@ def demo_login():
     session['email'] = 'demo@synapcortex.com'
     return redirect(url_for('dashboard'))
 
-# --- ROTAS DO PAINEL (PROTEGIDAS) ---
-
 @app.route('/dashboard')
 @subscription_required
 def dashboard(user):
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     
-    # Usando lazy='dynamic' no modelo para poder adicionar filtros
     popups_exibidos = user.events.filter(
         AnalyticsEvent.event_name == 'popup_exibido',
         AnalyticsEvent.timestamp >= thirty_days_ago
@@ -283,8 +270,6 @@ def visitors(user):
 
     return render_template('visitors.html', visitors_data=dict(visitors_data), usuario=user)
 
-# --- ROTAS DE PAGAMENTO ---
-
 @app.route('/pagamento')
 def pagamento():
     if not STRIPE_PUBLIC_KEY:
@@ -308,21 +293,17 @@ def create_payment():
         app.logger.error(f"Erro ao criar PaymentIntent no Stripe: {e}")
         return jsonify(error={'message': "Não foi possível iniciar o pagamento."}), 500
 
-# --- ROTAS DE GERENCIAMENTO (PROTEGIDAS) ---
-
 @app.route('/salvar-configuracoes', methods=['POST'])
 @subscription_required
 def salvar_configuracoes(user):
     try:
         form = request.form
         
-        # Agrupando campos para facilitar a manutenção
         general_checkboxes = ['ativar_abandono', 'ativar_quarto_bem_vindo', 'ativar_quarto_interessado']
         general_fields = ['popup_titulo', 'popup_mensagem', 'msg_bem_vindo', 'msg_interessado', 'abandono_tipo', 'abandono_presente_fechado', 'abandono_presente_aberto', 'abandono_timer_minutos']
         campaign_checkboxes = ['campaign_bar_active']
         campaign_fields = ['campaign_bar_text', 'campaign_bar_position', 'campaign_abandono_tipo', 'campaign_popup_titulo', 'campaign_popup_mensagem', 'campaign_presente_fechado', 'campaign_presente_aberto']
 
-        # Atualiza dicionários de configuração de forma mais limpa
         config_geral = user.configuracoes or {}
         for key in general_checkboxes: config_geral[key] = key in form
         for key in general_fields: config_geral[key] = form.get(key)
@@ -334,7 +315,6 @@ def salvar_configuracoes(user):
         user.configuracoes = config_geral
         user.campaign_config = config_campanha
 
-        # Atualiza status e datas da campanha
         user.campaign_active = 'campaign_active' in form
         
         def parse_datetime(date_str):
@@ -364,8 +344,6 @@ def encerrar_conta(user):
         app.logger.error(f"Erro ao encerrar conta para o usuário {user.email}: {e}")
         return jsonify({'status': 'error', 'message': 'Erro ao encerrar a conta.'}), 500
 
-# --- ROTAS DA API (PARA O spy.js) ---
-
 @app.route('/api/track', methods=['POST'])
 def track_event():
     data = request.get_json()
@@ -373,7 +351,7 @@ def track_event():
     if not api_key:
         return jsonify({'error': 'API Key é obrigatória.'}), 400
 
-    user = AppUser.query.filter_by(api_key=api_key).options(db.defer('configuracoes')).first() # Otimização
+    user = AppUser.query.filter_by(api_key=api_key).options(db.defer('configuracoes')).first()
     if not user:
         return jsonify({'error': 'API Key inválida.'}), 403
     
@@ -413,7 +391,6 @@ def get_client_config():
         config_geral['campaign_end_date'] = user.campaign_end_date.isoformat()
         
     return jsonify(config_geral)
-
 # --- COMANDOS CLI E INICIALIZAÇÃO DO SERVIDOR ---
 
 @app.cli.command("init-db")
@@ -433,6 +410,48 @@ def init_db_command():
         db.session.commit()
         print("Usuário de demonstração criado.")
     print("Banco de dados inicializado.")
+
+
+# <<< --- NOVA FERRAMENTA DE MIGRAÇÃO --- >>>
+@app.cli.command('migrate-db')
+def migrate_db_command():
+    """Verifica e aplica alterações pendentes no schema do banco de dados."""
+    print("Iniciando verificação do banco de dados...")
+    inspector = inspect(db.engine)
+    table_name = AppUser.__tablename__
+    
+    if not inspector.has_table(table_name):
+        print(f"Tabela '{table_name}' não encontrada. O comando 'init-db' deve criá-la.")
+        return
+
+    # Mapeia as colunas do modelo (código) e do banco de dados (real)
+    model_columns = {c.name for c in AppUser.__table__.columns}
+    db_columns = {c['name'] for c in inspector.get_columns(table_name)}
+    
+    missing_columns = model_columns - db_columns
+    
+    if not missing_columns:
+        print("Schema do banco de dados está sincronizado com o modelo. Nenhuma ação necessária.")
+        return
+        
+    print(f"Colunas faltando na tabela '{table_name}': {', '.join(missing_columns)}")
+    
+    for col_name in missing_columns:
+        try:
+            # Encontra a definição da coluna no modelo SQLAlchemy
+            column_to_add = next(c for c in AppUser.__table__.columns if c.name == col_name)
+            # Monta o comando SQL de forma segura
+            col_type = column_to_add.type.compile(db.engine.dialect)
+            sql_command = text(f'ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}')
+            
+            with db.engine.connect() as connection:
+                connection.execute(sql_command)
+            print(f"  - Coluna '{col_name}' adicionada com sucesso.")
+        except Exception as e:
+            print(f"  - ERRO ao adicionar a coluna '{col_name}': {e}")
+
+    print("Migração do banco de dados concluída.")
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))

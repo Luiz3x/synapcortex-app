@@ -1,35 +1,35 @@
+# run.py (v5.0 - Arquitetura Final)
 # =================================================================================
-# SYNAPCORTEX - A CHAVE DE IGNIÇÃO (v3.0 - Unificado e Inteligente)
-# Ponto de entrada único, otimizado para desenvolvimento e produção.
-# Carrega as variáveis de ambiente do arquivo .env antes de qualquer outra operação.
+# SYNAPCORTEX - A CHAVE DE IGNIÇÃO
+# Ponto de entrada único e definitivo para a aplicação. Otimizado para
+# desenvolvimento local e para produção (Render/Gunicorn).
 # =================================================================================
 
 import os
 from dotenv import load_dotenv
 
-# APRIMORAMENTO: Garante que o carregamento do .env seja a primeira coisa a acontecer.
-# Isso torna as configurações (FLASK_CONFIG, DATABASE_URL, etc.) disponíveis
-# para a nossa fábrica de aplicação desde o início.
+# PASSO 1: Carrega as variáveis de ambiente do arquivo .env.
+# Esta é a PRIMEIRA coisa a ser feita, para que todas as chaves
+# (FLASK_CONFIG, DATABASE_URL, etc.) estejam prontas para a aplicação.
 load_dotenv()
 
-# Importa a nossa função "fábrica" do coração da aplicação.
+# PASSO 2: Importa a nossa fábrica de aplicação.
 from synapcortex import create_app
 
-# Cria a instância da aplicação. A fábrica `create_app` é inteligente e busca
-# a configuração correta a partir das variáveis de ambiente.
-# É esta variável 'app' que o Gunicorn (em produção) irá procurar.
+# PASSO 3: Cria a instância da aplicação.
+# A fábrica `create_app` é inteligente e busca a configuração correta
+# (development/production) a partir das variáveis de ambiente.
+# É esta variável 'app' que o Gunicorn procura em produção.
 app = create_app()
 
 # --- Bloco de Execução Apenas para Desenvolvimento Local ---
 # Este trecho só é executado ao rodar o comando "python run.py".
-# Em produção, o servidor WSGI (Gunicorn) chama a variável 'app' diretamente.
+# O Gunicorn na Render ignora este bloco completamente.
 if __name__ == '__main__':
-    # APRIMORAMENTO: Obtém host e porta das variáveis de ambiente,
-    # tornando o ambiente de desenvolvimento muito mais flexível.
-    # O padrão para 'host' foi alterado para '127.0.0.1' por ser mais seguro.
+    # Obtém host e porta das variáveis de ambiente para maior flexibilidade.
     host = os.getenv('FLASK_RUN_HOST', '127.0.0.1')
     port = int(os.getenv('FLASK_RUN_PORT', 5000))
     
-    # O modo debug é ativado ou desativado pela configuração que a `create_app`
-    # carrega, tornando este comando seguro e adaptável.
+    # Inicia o servidor de desenvolvimento do Flask.
+    # O modo debug é controlado pela configuração carregada pela `create_app`.
     app.run(host=host, port=port)

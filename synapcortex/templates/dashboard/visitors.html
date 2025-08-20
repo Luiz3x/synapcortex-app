@@ -1,0 +1,77 @@
+{# templates/dashboard/visitors.html (v3.0 - Arquitetura Inteligente) #}
+{% extends "base.html" %}
+
+{% block title %}Dossiê de Visitantes - SynapCortex{% endblock %}
+
+{% block header %}
+<nav>
+    <a href="{{ url_for('dashboard.home') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo_white.png') }}" alt="Logo SynapCortex"></a>
+    <span>Painel de: {{ g.user.company_name }}</span>
+    <a href="{{ url_for('auth.logout') }}" class="login-register-button">Sair</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <section class="secao-painel" aria-labelledby="visitors-title">
+        <div class="quarto-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 id="visitors-title">📖 Dossiê de Visitantes Ativos</h3>
+                <p class="quarto-description" style="margin-top: 0.5rem;">Acompanhe a jornada de cada visitante anônimo em tempo real.</p>
+            </div>
+            <a href="{{ url_for('dashboard.home') }}" class="cta-button" style="padding: 8px 16px;">Voltar ao Painel</a>
+        </div>
+
+        {% if visitors_data %}
+            <ul class="visitor-dossier-list">
+                {% for visitor in visitors_data %}
+                <li class="visitor-card">
+                    <article>
+                        <header class="visitor-header">
+                            <div class="visitor-info">
+                                <h4>Visitante #{{ visitor.id[-6:] }}</h4>
+                                {# APRIMORAMENTO: Informações contextuais como localização e dispositivo #}
+                                <span class="visitor-context">
+                                    <i class="fas fa-map-marker-alt"></i> {{ visitor.location }} | <i class="{{ visitor.device_icon }}"></i> {{ visitor.device_type }}
+                                </span>
+                            </div>
+                            <div class="visitor-stats">
+                                <span>{{ visitor.events|length }} PÁGINAS</span>
+                                {# APRIMORAMENTO: Tempo da sessão para entender o engajamento #}
+                                <span>{{ visitor.session_duration }}</span>
+                            </div>
+                        </header>
+
+                        <div class="visitor-timeline">
+                            {% for event in visitor.events %}
+                            <div class="timeline-event">
+                                <span class="event-time" title="{{ event.full_timestamp }}">
+                                    <i class="far fa-clock"></i> {{ event.timestamp }}
+                                </span>
+                                <span class="event-title">
+                                    <i class="fas fa-shoe-prints"></i> Visitou: <strong>{{ event.title }}</strong>
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <footer class="visitor-footer">
+                            {# APRIMORAMENTO: Links para ações ou análises futuras #}
+                            <a href="#" class="action-link">Ver Detalhes</a>
+                            <a href="#" class="action-link">Iniciar Chat (Beta)</a>
+                        </footer>
+                    </article>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            {# APRIMORAMENTO: Mensagem de "estado vazio" mais informativa e visualmente agradável #}
+            <div class="empty-state">
+                <i class="fas fa-eye-slash fa-3x"></i>
+                <h4>Nenhuma visita ativa no momento.</h4>
+                <p>Assim que um novo visitante acessar seu site, seus dados aparecerão aqui em tempo real.</p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,8 +1,10 @@
 Flask
-gunicorn
-whitenoise
-Flask-Cors
-stripe
 Flask-SQLAlchemy
+Flask-Migrate
+Flask-Bcrypt
+Flask-Cors
+gunicorn
 psycopg2-binary
-SQLAlchemy
+python-dotenv
+stripe
+pydantic

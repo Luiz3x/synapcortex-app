@@ -1,0 +1,28 @@
+{# templates/dashboard/_cancel_modal.html (v2.0 - Acessibilidade Aprimorada) #}
+{# APRIMORAMENTO: Atributos para acessibilidade (a11y) #}
+<div id="cancelModal" class="modal" role="dialog" aria-labelledby="cancelModalTitle" aria-modal="true" hidden>
+    <div class="modal-content">
+        <button class="close-button" data-close-modal="cancelModal" aria-label="Fechar modal">&times;</button>
+        <h3 id="cancelModalTitle" style="text-align: center;">Confirmação</h3>
+        <p style="text-align: center; margin-top: 1rem;">Tem certeza que deseja encerrar sua conta na SynapCortex?</p>
+        <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+            <button type="button" class="cta-button" data-close-modal="cancelModal">Continuar com SynapCortex</button>
+            <button type="button" id="confirmar-cancelamento-btn" class="cta-button danger">Sim, encerrar</button>
+        </div>
+    </div>
+</div>
+{# templates/dashboard/_cancel_modal.html (v2.1 - Conectado ao JS moderno) #}
+
+{# ... (código do seu modal de cancelamento) ... #}
+<div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+    <button type="button" class="cta-button" data-close-modal="cancelModal">Continuar com SynapCortex</button>
+    
+    {# APRIMORAMENTO: Adicionado o data-endpoint para desacoplar o JS #}
+    <button type="button" 
+            id="confirmar-cancelamento-btn" 
+            class="cta-button danger"
+            data-endpoint="{{ url_for('dashboard.cancel_account') }}">
+        Sim, encerrar
+    </button>
+</div>
+{# ... (resto do código do modal) ... #}

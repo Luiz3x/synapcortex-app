@@ -1,0 +1,48 @@
+{# Sua versão perfeita, sem alterações #}
+{% extends "base.html" %}
+{% block title %}Finalize sua Assinatura - SynapCortex{% endblock %}
+{% block header %}
+<nav>
+    <a href="{{ url_for('auth.index') }}" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo_white.png') }}" alt="SynapCortex Logo"></a>
+    {% if g.user and g.user.company_name %}
+        <span>Painel de: {{ g.user.company_name }}</span>
+    {% endif %}
+</nav>
+{% endblock %}
+{% block content %}
+<div class="checkout-container">
+    <section class="secao-painel checkout-card">
+        <h3>Quase lá! Finalize sua assinatura.</h3>
+        <p class="quarto-description" style="margin-bottom: 2rem; margin-top: 1rem;">
+            Seu acesso ao painel está pausado. Ative sua assinatura para continuar a transformar suas vendas com a SynapCortex.
+        </p>
+        <div class="plan-summary">
+            <h4>Resumo do Plano</h4>
+            <div class="plan-details">
+                <span>Plano SynapCortex Pro</span>
+                <span>R$ 49,90<small>/mês</small></span>
+            </div>
+            <p>Acesso completo a todos os recursos.</p>
+        </div>
+        <form id="payment-form">
+            <div id="payment-element"></div>
+            <div id="payment-message" class="hidden" role="alert"></div>
+            <button id="submit-button" class="cta-button" style="width: 100%; height: 50px; display: flex; align-items: center; justify-content: center; margin-top: 2rem;">
+                <div class="spinner hidden" id="spinner"></div>
+                <span id="button-text">Assinar e Ativar Agora</span>
+            </button>
+        </form>
+        <div class="secure-payment-notice">
+            <p>🔒 Pagamento seguro processado pela Stripe. Cancele quando quiser.</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    window.stripePublicKey = "{{ stripe_public_key }}";
+    window.clientSecret = "{{ client_secret }}";
+</script>
+<script src="https://js.stripe.com/v3/"></script>
+<script src="{{ url_for('static', filename='js/main_logic.js', v='10.0') }}" type="module"></script>
+{% endblock %}

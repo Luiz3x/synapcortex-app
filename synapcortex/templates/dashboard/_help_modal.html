@@ -1,0 +1,10 @@
+{# templates/dashboard/_help_modal.html (v2.0 - Acessibilidade Aprimorada) #}
+{# APRIMORAMENTO: Atributos para acessibilidade (a11y) #}
+<div id="helpModal" class="modal" role="dialog" aria-labelledby="helpModalTitle" aria-modal="true" hidden>
+    <div class="modal-content">
+        {# APRIMORAMENTO: `aria-label` para leitores de tela #}
+        <button class="close-button" aria-label="Fechar modal">&times;</button>
+        <h2 id="helpModalTitle"></h2>
+        <div id="helpModalContent"></div>
+    </div>
+</div>

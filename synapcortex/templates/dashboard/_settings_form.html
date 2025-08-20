@@ -1,0 +1,71 @@
+{# templates/dashboard/_settings_form.html (v1.0 - Componente de Configurações) #}
+<form id="config-form" method="POST" action="{{ url_for('dashboard.save_settings') }}">
+            
+    {# --- SEÇÃO ARSENAL DE GATILHOS --- #}
+    <section class="secao-painel" aria-labelledby="triggers-title">
+        <h3 id="triggers-title">🚀 Arsenal de Gatilhos</h3>
+        <p class="quarto-description">Ative e configure os gatilhos para recuperar clientes.</p>
+        {# O conteúdo detalhado dos gatilhos (Abandono, Campanha, etc.) virá aqui. #}
+        {# Exemplo de um gatilho simplificado: #}
+        <div class="quarto-card prato-principal">
+            <div class="quarto-header">
+                <h4>Abandono de Site 🛒</h4>
+                <label class="switch">
+                    <input type="checkbox" name="ativar_abandono" {{ 'checked' if config.get('ativar_abandono') }}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <p class="quarto-description">A ferramenta mais poderosa para converter visitantes que estão prestes a sair.</p>
+        </div>
+    </section>
+
+    {# --- SEÇÃO CENTRAL DE AJUDA --- #}
+    <section class="secao-painel" id="help-section" aria-labelledby="help-title">
+        <h3 id="help-title">💡 Central de Ajuda</h3>
+        <p class="quarto-description" style="margin-bottom: 1.5rem;">Não sabe como instalar o código? Clique na sua plataforma.</p>
+        <div class="help-center-grid">
+            {# APRIMORAMENTO: type="button" explícito para evitar submeter o formulário acidentalmente. #}
+            <button type="button" class="platform-button" data-platform="shopify"><span>🛒</span><span>Shopify</span></button>
+            <button type="button" class="platform-button" data-platform="woocommerce"><span>🎨</span><span>WooCommerce</span></button>
+            <button type="button" class="platform-button" data-platform="nuvemshop"><span>☁️</span><span>Nuvemshop</span></button>
+            <button type="button" class="platform-button" data-platform="universal"><span class="icon">&lt;/&gt;</span><span>Site Próprio</span></button>
+        </div>
+    </section>
+
+    {# --- SEÇÃO CHAVE DE API E CONTA --- #}
+    <section class="secao-painel" aria-labelledby="account-title">
+        <h3 id="account-title">🔑 Gestão da Conta e API</h3>
+        
+        <div class="quarto-card" style="margin-top: 1.5rem;">
+            <h4 class="sub-section-title">Código de Instalação</h4>
+            <p class="quarto-description">Copie e cole este código no seu site, antes do fechamento da tag `&lt;/body&gt;`.</p>
+            <div class="input-group" style="margin-top: 1.5rem;">
+                <label for="codigo-instalacao">Seu código:</label>
+                <textarea id="codigo-instalacao" rows="4" readonly>&lt;script id="synapcortex-spy-script" src="{{ url_for('static', filename='js/spy.js', _external=True) }}?key={{ g.user.api_key }}" defer&gt;&lt;/script&gt;</textarea>
+            </div>
+            <button type="button" id="copiar-codigo-btn" class="cta-button" style="margin-top: 1rem;">Copiar Código</button>
+        </div>
+
+        <div class="quarto-card" style="margin-top: 1.5rem;">
+            <h4 class="sub-section-title">Status da Assinatura</h4>
+            
+            {# APRIMORAMENTO: Bloco 'if/elif/else' mais robusto para cobrir todos os status. #}
+            {% if g.user.subscription_status == 'trial' and dias_restantes is not none %}
+                <p>Status: <strong>Teste Gratuito</strong> (expira em {{ dias_restantes }} {% if dias_restantes > 1 %}dias{% else %}dia{% endif %}).</p>
+                <a href="{{ url_for('payments.checkout') }}" class="cta-button" style="margin-top: 1rem;">Ativar Assinatura Agora</a>
+            {% elif g.user.subscription_status == 'active' %}
+                <p>Status: <strong style="color: #28a745;">Assinatura Ativa</strong>.</p>
+            {% elif g.user.subscription_status == 'demo' %}
+                <p>Status: <strong>Modo de Demonstração</strong>.</p>
+            {% else %}
+                <p>Status: <strong style="color: #ffc107;">Assinatura Pendente</strong>.</p>
+                <a href="{{ url_for('payments.checkout') }}" class="cta-button" style="margin-top: 1rem;">Finalizar Assinatura</a>
+            {% endif %}
+            
+            <p class="quarto-description" style="margin-top: 1.5rem;">Você pode encerrar sua conta a qualquer momento.</p>
+            <button type="button" id="cancelar-conta-btn" class="cta-button danger" style="margin-top: 1rem;">Encerrar minha conta</button>
+        </div>
+
+    </section>
+    
+</form>

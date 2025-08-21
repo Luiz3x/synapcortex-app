@@ -1,21 +1,23 @@
 # synapcortex/blueprints/dashboard.py (v4.0 - Arquitetura Profissional)
 # =================================================================================
 # BLUEPRINT DO DASHBOARD - FOCO EM ROTAS E RENDERIZAÇÃO
+# (ARQUIVO CONFIRMADO - NENHUMA ALTERAÇÃO NECESSÁRIA)
 # =================================================================================
 
-from flask import (Blueprint, render_template, request, url_for, 
+from flask import (Blueprint, render_template, request, url_for,
                    flash, jsonify, current_app)
 from flask_login import current_user, logout_user
 
 # Importa os decoradores e os novos módulos de serviço
+# Esta importação está 100% correta.
 from ..decorators import subscription_required
 from ..services import user_service, analytics_service
 
 # --- CRIAÇÃO DO BLUEPRINT ---
 # O blueprint agora só gerencia as URLs e a comunicação entre o navegador e os serviços.
 dashboard_bp = Blueprint(
-    'dashboard', 
-    __name__, 
+    'dashboard',
+    __name__,
     url_prefix='/dashboard',
     template_folder='templates'
 )

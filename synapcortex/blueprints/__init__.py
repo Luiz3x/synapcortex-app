@@ -8,7 +8,7 @@
 
 from .auth import auth_bp
 from .dashboard import dashboard_bp
-from .payments import payments_bp
+# from .payments import payments_bp  # <-- AJUSTE AQUI: Comente esta linha por enquanto
 from .routes_api import api_bp
 
 # NADA MAIS. O ARQUIVO DEVE TERMINAR AQUI.

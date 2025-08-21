@@ -1,4 +1,4 @@
-# synapcortex/__init__.py (v6.0 - Arquitetura Definitiva)
+# synapcortex/__init__.py (v6.1 - Arquitetura Definitiva Ajustada)
 # =================================================================================
 # SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO
 # Versão final com Application Factory modularizada e aprimoramentos profissionais.
@@ -43,13 +43,15 @@ def register_blueprints(app: Flask) -> None:
     Detecta e registra todas as "alas" (Blueprints) da aplicação.
     """
     with app.app_context():
-        from .blueprints import auth, dashboard, payments, routes_api
+        # AJUSTE 1: A palavra 'payments' foi removida da linha de importação abaixo
+        from .blueprints import auth, dashboard, routes_api
         
         # APRIMORAMENTO: Lista de blueprints para registro escalável
         blueprints: list[Blueprint] = [
             auth.auth_bp,
             dashboard.dashboard_bp,
-            payments.payments_bp,
+            # AJUSTE 2: A linha do blueprint de pagamentos foi comentada
+            # payments.payments_bp,
             routes_api.api_bp
         ]
         

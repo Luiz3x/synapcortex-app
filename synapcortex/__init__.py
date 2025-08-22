@@ -1,7 +1,6 @@
-# synapcortex/__init__.py (v6.2 - Com Flask-Login Integrado)
 # =================================================================================
 # SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO
-# Versão final com Application Factory e sistema de login configurado.
+# Versão final com Application Factory, login e proteção CSRF.
 # =================================================================================
 
 import os
@@ -10,8 +9,8 @@ from flask import Flask, Blueprint
 
 # 1. Importações do projeto (Configuração e Extensões)
 from .config import config_by_name
-# A importação agora inclui o novo login_manager
-from .extensions import db, bcrypt, cors, migrate, login_manager
+# A importação agora inclui a extensão 'csrf'
+from .extensions import db, bcrypt, cors, migrate, login_manager, csrf # <--- CORREÇÃO AQUI
 # Importa o modelo de usuário para o user_loader
 from .models import AppUser
 
@@ -33,22 +32,22 @@ def create_app(config_name: str = None) -> Flask:
     return app
 
 def register_extensions(app: Flask) -> None:
-    """Conecta as extensões Flask e configura o LoginManager."""
+    """Conecta as extensões Flask, incluindo a proteção CSRF."""
     db.init_app(app)
     bcrypt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     migrate.init_app(app, db)
-    
-    # --- LIGA E CONFIGURA O SISTEMA DE LOGIN ---
     login_manager.init_app(app)
-    
+    csrf.init_app(app) # <--- CORREÇÃO AQUI
+
+    # --- Configuração do Sistema de Login ---
     @login_manager.user_loader
     def load_user(user_id):
         # Esta função diz ao Flask-Login como encontrar um usuário a partir do ID na sessão
         return AppUser.query.get(int(user_id))
     
     # Se um usuário não logado tentar acessar uma página protegida, ele será
-    # redirecionado para a rota 'auth.index' (sua página de login).
+    # redirecionado para a rota 'auth.index' (nossa landing page com o modal).
     login_manager.login_view = 'auth.index'
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
@@ -57,6 +56,7 @@ def register_extensions(app: Flask) -> None:
 def register_blueprints(app: Flask) -> None:
     """Detecta e registra todas as "alas" (Blueprints) da aplicação."""
     with app.app_context():
+        # Supondo que seus arquivos de rotas estão em uma pasta 'blueprints'
         from .blueprints import auth, dashboard, routes_api
         
         blueprints: list[Blueprint] = [
@@ -70,8 +70,9 @@ def register_blueprints(app: Flask) -> None:
 
 def register_commands_and_shell(app: Flask) -> None:
     """Registra os comandos CLI customizados e o contexto do shell."""
-    from . import commands
-    commands.register(app)
+    # Supondo que você tenha um arquivo commands.py
+    # from . import commands
+    # commands.register(app)
     
     @app.shell_context_processor
     def make_shell_context():

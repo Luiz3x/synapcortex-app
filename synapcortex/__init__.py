@@ -1,17 +1,15 @@
 # =================================================================================
-# SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO
-# Versão final com Application Factory, login e proteção CSRF.
+# SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v7.0 - Final)
+# Versão final com Application Factory, login, CSRF, Sockets e todos os blueprints.
 # =================================================================================
 
 import os
 import logging
-from flask import Flask, Blueprint
+from flask import Flask
 
-# 1. Importações do projeto (Configuração e Extensões)
+# 1. Importações do projeto
 from .config import config_by_name
-# A importação agora inclui a extensão 'csrf'
-from .extensions import db, bcrypt, cors, migrate, login_manager, csrf # <--- CORREÇÃO AQUI
-# Importa o modelo de usuário para o user_loader
+from .extensions import db, bcrypt, cors, migrate, login_manager, csrf, socketio
 from .models import AppUser
 
 def create_app(config_name: str = None) -> Flask:
@@ -21,9 +19,11 @@ def create_app(config_name: str = None) -> Flask:
     """
     app = Flask(__name__)
     
+    # Carrega a configuração a partir do ambiente (development/production)
     config_name = os.getenv('FLASK_CONFIG', 'development')
     app.config.from_object(config_by_name[config_name])
 
+    # Registra todos os componentes da aplicação
     register_extensions(app)
     register_blueprints(app)
     register_commands_and_shell(app)
@@ -32,51 +32,50 @@ def create_app(config_name: str = None) -> Flask:
     return app
 
 def register_extensions(app: Flask) -> None:
-    """Conecta as extensões Flask, incluindo a proteção CSRF."""
+    """Conecta e configura todas as extensões Flask."""
     db.init_app(app)
     bcrypt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    csrf.init_app(app) # <--- CORREÇÃO AQUI
+    csrf.init_app(app)
+    socketio.init_app(app) # <-- SocketIO ativado aqui
 
     # --- Configuração do Sistema de Login ---
     @login_manager.user_loader
     def load_user(user_id):
-        # Esta função diz ao Flask-Login como encontrar um usuário a partir do ID na sessão
         return AppUser.query.get(int(user_id))
     
-    # Se um usuário não logado tentar acessar uma página protegida, ele será
-    # redirecionado para a rota 'auth.index' (nossa landing page com o modal).
-    login_manager.login_view = 'auth.index'
+    login_manager.login_view = 'auth.index' # Rota para redirecionar não-logados
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
 
-
 def register_blueprints(app: Flask) -> None:
-    """Detecta e registra todas as "alas" (Blueprints) da aplicação."""
+    """Detecta e registra todos os Blueprints da aplicação."""
     with app.app_context():
-        # Supondo que seus arquivos de rotas estão em uma pasta 'blueprints'
-        from .blueprints import auth, dashboard, routes_api
+        from .blueprints.auth.routes import auth_bp
+        from .blueprints.dashboard.routes import dashboard_bp, dashboard_api_bp
+        from .blueprints.api.routes import api_bp
         
-        blueprints: list[Blueprint] = [
-            auth.auth_bp,
-            dashboard.dashboard_bp,
-            routes_api.api_bp
+        # Lista central de todos os blueprints a serem registrados
+        blueprints = [
+            auth_bp,
+            dashboard_bp,
+            dashboard_api_bp,
+            api_bp
         ]
         
         for bp in blueprints:
             app.register_blueprint(bp)
 
 def register_commands_and_shell(app: Flask) -> None:
-    """Registra os comandos CLI customizados e o contexto do shell."""
-    # Supondo que você tenha um arquivo commands.py
+    """Registra comandos CLI e o contexto do `flask shell`."""
     # from . import commands
     # commands.register(app)
     
     @app.shell_context_processor
     def make_shell_context():
-        """Pré-importa pacotes para o comando `flask shell` para facilitar o debug."""
+        """Pré-importa pacotes para facilitar o debug via `flask shell`."""
         from .models import AppUser, AnalyticsEvent
         return {'db': db, 'AppUser': AppUser, 'AnalyticsEvent': AnalyticsEvent}
 

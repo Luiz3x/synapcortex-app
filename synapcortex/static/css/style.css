@@ -1,107 +1,257 @@
 /* =================================================================================
-   SYNAPCORTEX - DESIGN SYSTEM "NEURAL GLOW" (V7.6 FINAL)
+   SYNAPCORTEX - DESIGN SYSTEM "NEURON" (V8.0)
+   - Arquitetura: CSS Layers (@layer)
+   - Cores: OKLCH para gama de cores estendida e consistência.
+   - Tipografia: Fluida com clamp().
+   - Layout: Container Queries (@container) para componentes modulares.
+   - Animações: Aprimoradas para uma experiência premium.
+   - Acessibilidade: Foco aprimorado com :focus-visible.
    ================================================================================= */
-:root {
-    --primary-dark: #0a091a;
-    --secondary-dark: #12102e;
-    --glass-background: rgba(27, 22, 70, 0.5);
-    --glass-border: rgba(122, 119, 255, 0.2);
-    --text-primary: #f0f0f5;
-    --text-secondary: #a0a0c0;
-    --accent-blue: #7a77ff;
-    --accent-magenta: #f759e3;
-    --accent-gradient: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-magenta) 100%);
-    --glow-shadow: 0 0 15px rgba(122, 119, 255, 0.2);
-    --font-family: 'Poppins', sans-serif;
-    --border-radius: 12px;
+
+/* Define a ordem das camadas, controlando a especificidade. */
+@layer reset, base, components, utilities;
+
+/* =================================================================================
+   1. CAMADA DE RESET - Uma base sólida e previsível.
+   ================================================================================= */
+@layer reset {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        /* Rolagem suave para âncoras internas. */
+        scroll-behavior: smooth;
+    }
+
+    body {
+        min-height: 100vh;
+    }
+
+    img, picture, video, canvas, svg {
+        display: block;
+        max-width: 100%;
+    }
+
+    input, button, textarea, select {
+        font: inherit;
+    }
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: var(--primary-dark); color: var(--text-primary); font-family: var(--font-family); line-height: 1.6; }
-body.modal-open { position: fixed; width: 100%; height: 100%; overflow: hidden; }
 
 /* =================================================================================
-   COMPONENTES GERAIS
+   2. CAMADA BASE - Variáveis e estilos globais.
    ================================================================================= */
-header { background-color: var(--secondary-dark); padding: 1rem 2rem; border-bottom: 1px solid var(--glass-border); position: relative; z-index: 900; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-header nav { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto; }
-header .logo img { height: 40px; }
-.login-register-button, .cta-button { background-image: var(--accent-gradient); color: white; padding: 12px 24px; border: none; border-radius: var(--border-radius); text-decoration: none; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(122, 119, 255, 0.4); }
-.login-register-button:hover, .cta-button:hover { transform: translateY(-3px); box-shadow: 0 0 30px rgba(247, 89, 227, 0.6); }
-.dashboard-container { max-width: 900px; margin: 2rem auto; padding: 0 2rem; display: flex; flex-direction: column; gap: 2rem; }
-.dashboard-main-content { display: flex; flex-direction: column; gap: 2rem; }
-.secao-painel { background: var(--glass-background); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: var(--border-radius); padding: 2rem; box-shadow: var(--glow-shadow); }
-.secao-painel > h3 { font-size: 1.8rem; font-weight: bold; color: var(--text-primary); text-shadow: 0 0 10px var(--accent-magenta); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border); }
-.quarto-card { background: var(--glass-background); border: 1px solid var(--glass-border); border-radius: var(--border-radius); padding: 1.5rem; margin-top: 1.5rem; }
-.quarto-header { display: flex; justify-content: space-between; align-items: center; }
-.quarto-header h4 { font-size: 1.5rem; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.input-group { margin-bottom: 1.5rem; }
-.input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); }
-.input-group input[type="text"], .input-group input[type="email"], .input-group input[type="password"], .input-group input[type="datetime-local"], .input-group input[type="number"], .input-group textarea, .input-select { width: 100%; padding: 14px; background-color: var(--secondary-dark); border: 1px solid var(--glass-border); border-radius: var(--border-radius); color: var(--text-primary); font-size: 1rem; font-family: var(--font-family); transition: border-color 0.3s, box-shadow 0.3s; }
-.input-group input:focus, .input-group textarea:focus, .input-select:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 10px rgba(122, 119, 255, 0.5); }
-.modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); overflow-y: auto; }
-.modal-content { background-color: var(--secondary-dark); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2.5rem; border-radius: var(--border-radius); border: 1px solid var(--glass-border); width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); }
-.modal .close-button { color: var(--text-secondary); position: absolute; top: 15px; right: 25px; font-size: 2rem; font-weight: bold; cursor: pointer; }
-.notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 8px; color: white; z-index: 10001; opacity: 0; transition: opacity 0.5s, bottom 0.5s ease-out; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-.notification.success { background-color: #28a745; }
-.notification.error { background-color: #dc3545; }
-.notification.show { opacity: 1; bottom: 40px; }
-.hidden { display: none !important; }
+@layer base {
+    :root {
+        /* Paleta de Cores - Usando OKLCH para cores mais vibrantes e consistentes */
+        --primary-dark: #0a091a;
+        --secondary-dark: #12102e;
+        --glass-background: oklch(21.18% 0.05 278.55 / 50%); /* rgba(27, 22, 70, 0.5) */
+        --glass-border: oklch(51.99% 0.14 270.21 / 20%); /* rgba(122, 119, 255, 0.2) */
+
+        --text-primary: #f0f0f5;
+        --text-secondary: #a0a0c0;
+
+        /* Cores de destaque em OKLCH: mais vivas e modernas */
+        --accent-blue: oklch(60% 0.2 270);
+        --accent-magenta: oklch(65% 0.25 330);
+        
+        --accent-gradient: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-magenta) 100%);
+
+        /* Efeitos e Sombras */
+        --glow-shadow: 0 0 25px oklch(60% 0.2 270 / 0.25);
+        --hard-shadow: 0 4px 15px oklch(0% 0 0 / 20%);
+
+        /* Tipografia */
+        --font-family: 'Poppins', sans-serif;
+        /* Tipografia fluida: se ajusta perfeitamente ao tamanho da tela */
+        --font-size-h3: clamp(1.5rem, 1.25rem + 1vw, 1.8rem);
+        --font-size-h4: clamp(1.2rem, 1.05rem + 0.75vw, 1.5rem);
+        --font-size-metric: clamp(2rem, 1.5rem + 2.5vw, 2.5rem);
+
+        /* Outros */
+        --border-radius: 12px;
+        --transition-speed: 0.3s;
+        --transition-ease: ease;
+    }
+
+    body {
+        background-color: var(--primary-dark);
+        color: var(--text-primary);
+        font-family: var(--font-family);
+        line-height: 1.6;
+        /* Adiciona um anti-aliasing mais suave para as fontes */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Melhora a acessibilidade, mostrando o anel de foco apenas na navegação por teclado */
+    :focus-visible {
+        outline: 2px solid var(--accent-blue);
+        outline-offset: 2px;
+    }
+
+    /* Remove o outline padrão quando :focus-visible não corresponde */
+    *:focus:not(:focus-visible) {
+      outline: none;
+    }
+}
 
 /* =================================================================================
-   APRIMORAMENTOS DO PAINEL (V7.6)
+   3. CAMADA DE COMPONENTES - O coração do nosso Design System.
    ================================================================================= */
+@layer components {
+    /* --- Header --- */
+    header {
+        background-color: var(--secondary-dark);
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--glass-border);
+        position: sticky; /* Melhor que relative para headers */
+        top: 0;
+        z-index: 900;
+        box-shadow: var(--hard-shadow);
+    }
+    header nav { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin-inline: auto; }
+    header .logo img { height: 40px; }
 
-/* --- Título Centralizado --- */
-.titulo-centralizado { text-align: center; }
+    /* --- Botões --- */
+    .cta-button {
+        background-image: var(--accent-gradient);
+        background-size: 200% 100%;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform var(--transition-speed) var(--transition-ease),
+                    box-shadow var(--transition-speed) var(--transition-ease),
+                    background-position var(--transition-speed) var(--transition-ease);
+        box-shadow: 0 0 20px oklch(60% 0.2 270 / 0.4);
+    }
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 30px oklch(65% 0.25 330 / 0.6);
+        background-position: -100% 0; /* Animação sutil no gradiente */
+    }
 
-/* --- Estilo do Card "Prato Principal" e Pop-up de Campanha --- */
-.quarto-card.prato-principal, .campaign-popup-config { border: 1px solid var(--accent-blue); background: linear-gradient(160deg, rgba(18, 16, 46, 0.5) 0%, rgba(42, 38, 95, 0.3) 100%); box-shadow: 0 0 25px rgba(122, 119, 255, 0.1); }
-.input-label { display: block; margin-bottom: 1rem; color: var(--text-secondary); font-weight: 500; }
-.tactic-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.tactic-option { border: 2px solid var(--glass-border); border-radius: var(--border-radius); padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease; }
-.tactic-option:hover { background-color: var(--secondary-dark); border-color: var(--accent-magenta); }
-.tactic-option.active { border-color: var(--accent-blue); background-color: var(--secondary-dark); box-shadow: 0 0 15px rgba(122, 119, 255, 0.3); }
-.tactic-icon { font-size: 2rem; display: block; }
-.tactic-title { font-weight: bold; color: var(--text-primary); display: block; margin-top: 0.5rem; }
-.tactic-option small { font-size: 0.8rem; color: var(--text-secondary); }
-.pro-tip { margin-top: 2rem; padding: 1rem; background-color: rgba(122, 119, 255, 0.05); border: 1px solid var(--glass-border); border-radius: var(--border-radius); }
-.pro-tip p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); }
-.pro-tip a { color: var(--accent-blue); text-decoration: none; font-weight: bold; }
-.pro-tip a:hover { text-decoration: underline; }
+    /* --- Layout Principal --- */
+    .dashboard-container { max-width: 900px; margin-inline: auto; padding-inline: clamp(1rem, 5vw, 2rem); display: flex; flex-direction: column; gap: 2rem; margin-block: 2rem; }
 
-/* --- Melhoria no Switch (Botão Ligar/Desligar) --- */
-.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3958; transition: .4s; border-radius: 34px; box-shadow: inset 0 0 5px rgba(0,0,0,0.4); }
-.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-image: var(--accent-gradient); box-shadow: 0 0 15px rgba(122, 119, 255, 0.6); }
-input:checked + .slider:before { transform: translateX(26px); }
+    /* --- Seções e Cards --- */
+    .secao-painel {
+        background: var(--glass-background);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius);
+        padding: clamp(1.5rem, 5vw, 2rem);
+        box-shadow: var(--glow-shadow);
+        position: relative; /* Necessário para o pseudo-elemento da aurora */
+        overflow: hidden; /* Garante que a aurora não vaze */
+    }
 
-/* --- Aprimoramento na Grid de Métricas (Visão Geral) --- */
-.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center; padding-top: 1rem; }
-.metric-grid > div { padding: 1rem; }
-.metric-grid .metric-title { font-size: 1rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem; }
-.metric-grid .metric-value { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
-.metric-grid small { font-size: 0.85rem; color: var(--text-secondary); }
+    /* Efeito de aurora: um brilho sutil e animado que dá vida à interface */
+    .secao-painel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 150%;
+        height: 150%;
+        background: radial-gradient(circle at 50% 50%, oklch(60% 0.1 270 / 0.15), transparent 60%);
+        animation: aurora-pulse 10s infinite alternate ease-in-out;
+        z-index: -1;
+        transform-origin: center center;
+    }
 
-/* --- Aprimoramento Central de Ajuda --- */
-.help-center-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
-.platform-button { background-color: var(--glass-background); border: 1px solid var(--glass-border); color: var(--text-secondary); padding: 2rem; border-radius: var(--border-radius); cursor: pointer; transition: all 0.3s; font-size: 1.2rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; min-height: 150px; }
-.platform-button:hover { transform: translateY(-5px); background-color: var(--secondary-dark); color: var(--text-primary); box-shadow: var(--glow-shadow); }
-.platform-button span:first-child { font-size: 3rem; }
+    @keyframes aurora-pulse {
+        0% { transform: translate(-25%, -25%) rotate(0deg) scale(0.8); opacity: 0.5; }
+        100% { transform: translate(0%, 0%) rotate(180deg) scale(1.2); opacity: 1; }
+    }
 
-/* --- Aprimoramento Gatilhos Compactos --- */
-.quarto-compacto .quarto-header { cursor: pointer; }
-.quarto-content-collapsible { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out, margin-top 0.5s ease-out; margin-top: 0; }
-.quarto-compacto.active .quarto-content-collapsible { max-height: 500px; /* Altura suficiente para o conteúdo */ margin-top: 1.5rem; }
+    .secao-painel > h3 {
+        font-size: var(--font-size-h3);
+        font-weight: bold;
+        color: var(--text-primary);
+        text-shadow: 0 0 10px var(--accent-magenta);
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .quarto-card .quarto-header h4 { font-size: var(--font-size-h4); background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    /* --- Formulários --- */
+    .input-group { margin-bottom: 1.5rem; }
+    .input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); }
+    .input-group input:not([type="checkbox"]), .input-group textarea, .input-select {
+        width: 100%;
+        padding: 14px;
+        background-color: var(--secondary-dark);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius);
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-family: var(--font-family);
+        transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    }
+    /* Usando :focus-visible para acessibilidade */
+    .input-group input:not([type="checkbox"]):focus-visible, .input-group textarea:focus-visible, .input-select:focus-visible {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 10px oklch(60% 0.2 270 / 0.5);
+    }
+
+    /* --- Seletor de Tática com Container Queries --- */
+    .tactic-selector-wrapper {
+      container-type: inline-size; /* Define este elemento como um contêiner de consulta */
+    }
+    .tactic-selector { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    
+    /* Quando o contêiner tiver mais de 400px de largura, mude para 2 colunas */
+    @container (min-width: 400px) {
+      .tactic-selector {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .tactic-option { border: 2px solid var(--glass-border); border-radius: var(--border-radius); padding: 1rem; text-align: center; cursor: pointer; transition: all var(--transition-speed) var(--transition-ease); }
+    .tactic-option:hover { background-color: var(--secondary-dark); border-color: var(--accent-magenta); }
+    .tactic-option.active { border-color: var(--accent-blue); background-color: var(--secondary-dark); box-shadow: 0 0 15px oklch(60% 0.2 270 / 0.3); }
+
+    /* --- Switch (Botão Ligar/Desligar) --- */
+    .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background-color: #3a3958; transition: .4s; border-radius: 34px; box-shadow: inset 0 0 5px rgba(0,0,0,0.4); }
+    .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-image: var(--accent-gradient); box-shadow: 0 0 15px oklch(60% 0.2 270 / 0.6); }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    /* --- Grid de Métricas --- */
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center; padding-top: 1rem; }
+    .metric-grid .metric-value { font-size: var(--font-size-metric); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+    
+    /* --- Acordeão (Collapsible) Moderno --- */
+    .quarto-compacto { display: grid; grid-template-rows: auto 0fr; /* A mágica está aqui: a segunda linha (conteúdo) começa com altura zero */ transition: grid-template-rows 0.5s ease-out; }
+    .quarto-compacto .quarto-header { cursor: pointer; }
+    .quarto-compacto .quarto-content-collapsible { overflow: hidden; }
+    /* Quando ativo, a segunda linha expande para seu tamanho natural */
+    .quarto-compacto.active { grid-template-rows: auto 1fr; }
+    .quarto-compacto.active .quarto-content-collapsible { margin-top: 1.5rem; }
+
+    /* --- Modal --- */
+    .modal { display: none; position: fixed; z-index: 10000; inset: 0; background-color: oklch(0% 0 0 / 70%); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); overflow-y: auto; }
+    .modal-content { background-color: var(--secondary-dark); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2.5rem; border-radius: var(--border-radius); border: 1px solid var(--glass-border); width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); }
+}
 
 /* =================================================================================
-   AJUSTES PARA MOBILE
+   4. CAMADA DE UTILITÁRIOS - Classes auxiliares.
    ================================================================================= */
-@media (max-width: 768px) {
-    .dashboard-container { padding: 0 1rem; }
-    .secao-painel, .quarto-card { padding: 1.5rem; }
-    .secao-painel > h3 { font-size: 1.5rem; }
-    .quarto-header h4 { font-size: 1.2rem; }
-    .tactic-selector { grid-template-columns: 1fr; }
+@layer utilities {
+    .hidden { display: none !important; }
+    body.modal-open { overflow: hidden; }
 }

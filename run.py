@@ -1,4 +1,3 @@
-# run.py (v5.0 - Arquitetura Final)
 # =================================================================================
 # SYNAPCORTEX - A CHAVE DE IGNIÇÃO
 # Ponto de entrada único e definitivo para a aplicação. Otimizado para

@@ -9,9 +9,11 @@ import datetime
 from typing import Dict, Any, List, Optional
 
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin # <-- Importamos o UserMixin
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, UniqueConstraint
 
+# A instância do db é criada aqui e inicializada na factory da aplicação.
 db = SQLAlchemy()
 
 
@@ -30,9 +32,10 @@ class SubscriptionStatus:
     VALID_STATUSES = frozenset({ACTIVE, TRIAL, DEMO})
 
 
-class AppUser(db.Model):
+class AppUser(db.Model, UserMixin): # <-- Adicionamos o UserMixin aqui
     """
     Representa uma conta de cliente (uma empresa) na plataforma SynapCortex.
+    Herda de UserMixin para integração com Flask-Login.
     """
     __tablename__ = 'app_user'
 
@@ -49,7 +52,7 @@ class AppUser(db.Model):
     trial_end_date: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
     stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(120), unique=True, nullable=True)
 
-    # O tipo `db.JSON` se adapta automaticamente para o `JSONB` no PostgreSQL.
+    # O tipo `db.JSON` se adapta automaticamente para o `JSONB` no PostgreSQL para melhor performance.
     settings: Mapped[Dict[str, Any]] = mapped_column(db.JSON, default=dict)
     campaign_config: Mapped[Optional[Dict[str, Any]]] = mapped_column(db.JSON, nullable=True, default=dict)
 
@@ -58,6 +61,8 @@ class AppUser(db.Model):
     campaign_end_date: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
 
     # --- Relações ---
+    # `lazy="dynamic"` é ótimo para coleções que podem ser grandes (não carrega todos os eventos de uma vez).
+    # `cascade="all, delete-orphan"` garante que, ao deletar um usuário, todos os seus eventos sejam deletados também.
     events: Mapped[List["AnalyticsEvent"]] = relationship(
         back_populates="owner", lazy="dynamic", cascade="all, delete-orphan"
     )
@@ -84,7 +89,7 @@ class AppUser(db.Model):
 
 class AnalyticsEvent(db.Model):
     """
-    Representa um único evento de rastreamento coletado (ex: page_view).
+    Representa um único evento de rastreamento coletado (ex: page_view, add_to_cart).
     """
     __tablename__ = 'analytics_event'
 

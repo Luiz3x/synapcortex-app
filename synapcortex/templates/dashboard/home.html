@@ -1,60 +1,66 @@
-{# templates/dashboard/home.html (v2.0 - Arquitetura Modular) #}
 {% extends "base.html" %}
 
 {% block title %}Painel de Controle - SynapCortex{% endblock %}
+{% block body_attributes %}class="dashboard-background"{% endblock %}
 
 {% block header %}
 <nav>
-    {# APRIMORAMENTO: Link do logo aponta para o dashboard, que é a "casa" do usuário logado. #}
-    <a href="{{ url_for('dashboard.home') }}" class="logo"><img src="{{ url_for('static', filename='images/synapCortex_logo_white.png') }}" alt="Logo SynapCortex"></a>
-    
-    {# APRIMORAMENTO: Adicionado um ID para facilitar a seleção via JS, se necessário. #}
-    <span id="company-name-display">Painel de: {{ g.user.company_name }}</span>
-    
-    <a href="{{ url_for('auth.logout') }}" class="login-register-button">Sair</a>
+    <a href="#" class="logo"><img src="{{ url_for('static', filename='images/synapcortex_logo_white.png') }}" alt="Logo"></a>
+    <span>Painel de: {{ current_user.company_name }}</span>
+    <a href="{{ url_for('auth.logout') }}" class="cta-button">Sair</a>
 </nav>
 {% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
-    
-    {# --- SEÇÃO DE VISÃO GERAL (O Cérebro da Operação) --- #}
-    {# APRIMORAMENTO: Uso da tag <section> para melhor semântica. #}
-    <section class="secao-painel" aria-labelledby="overview-title">
-        <h3 id="overview-title" class="titulo-centralizado">Visão Geral</h3>
+
+    <section class="secao-painel">
+        <h3>Visão Geral (O Cérebro da Operação)</h3>
         <div class="metric-grid">
-            <div>
-                <h4 class="metric-title">Pop-ups Exibidos</h4>
-                <p class="metric-value">{{ popups_exibidos | default(0) }}</p>
-                <small>(Últimos 30 dias)</small>
+            <div class="metric-item">
+                <span class="metric-value">0</span>
+                <span>Pop-ups Exibidos</span>
             </div>
-            <div>
-                <h4 class="metric-title">Clientes Recuperados</h4>
-                <p class="metric-value">0</p>
-                <small>(Em breve)</small>
+            <div class="metric-item">
+                <span class="metric-value">0</span>
+                <span>Clientes Recuperados</span>
             </div>
-            <div>
-                <h4 class="metric-title">Taxa de Conversão</h4>
-                <p class="metric-value">0.00%</p>
-                <small>(Em breve)</small>
+            <div class="metric-item">
+                <span class="metric-value">0.00%</span>
+                <span>Taxa de Conversão</span>
             </div>
         </div>
     </section>
 
-    {# --- CONTEÚDO PRINCIPAL (Formulário e Configurações) --- #}
-    <div class="dashboard-main-content">
-        {# APRIMORAMENTO: A lógica do formulário foi movida para um arquivo parcial, limpando o template principal. #}
-        {% include 'dashboard/_settings_form.html' %}
-    </div>
+    <section class="secao-painel">
+        <h3>🚀 Arsenal de Gatilhos</h3>
+        
+        <article class="quarto-compacto active">
+            <div class="quarto-header">
+                <h4>Abandono de Carrinho</h4>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="quarto-content-collapsible">
+                <p>A ferramenta mais poderosa para converter visitantes que estão prestes a sair da sua loja.</p>
+                
+                <div class="tactic-selector-wrapper">
+                    <h5>Passo 1: Escolha sua Tática</h5>
+                    <div class="tactic-selector">
+                        <div class="tactic-option">Pop-up Direto</div>
+                        <div class="tactic-option active">Presente Surpresa</div>
+                    </div>
+                </div>
 
+                <div class="input-group">
+                    <label for="presente-texto">Passo 2: Texto do Presente (Fechado)</label>
+                    <input type="text" id="presente-texto" value="🎁 Um presente para você!">
+                </div>
+            </div>
+        </article>
+        
+        </section>
 </div>
-
-{# APRIMORAMENTO: Os modais são incluídos no final para não atrapalhar o fluxo principal do conteúdo. #}
-{% include 'dashboard/_help_modal.html' %}
-{% include 'dashboard/_cancel_modal.html' %}
-{% endblock %}
-
-{% block scripts %}
-{# APRIMORAMENTO: `type="module"` permite usar import/export no JS, uma prática moderna. #}
-<script src="{{ url_for('static', filename='js/main_logic.js', v='9.1') }}" type="module"></script>
 {% endblock %}

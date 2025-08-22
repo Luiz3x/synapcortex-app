@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}500 - Erro Interno{% endblock %}
+{% block body_attributes %}class="error-page"{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <h1>500</h1>
+    <h2>Erro no Servidor</h2>
+    <p>Houve uma falha em nossa sinapse central. Nossa equipe já foi notificada.</p>
+    <a href="{{ url_for('dashboard.home') }}" class="cta-button">Voltar ao Painel de Controle</a>
+</div>
+{% endblock %}

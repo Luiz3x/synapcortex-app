@@ -4,6 +4,7 @@
 # Otimizado para alta performance, segurança e validação rigorosa.
 # =================================================================================
 
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 
 from ..extensions import db

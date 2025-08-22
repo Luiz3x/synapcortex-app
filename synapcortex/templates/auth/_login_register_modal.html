@@ -1,0 +1,48 @@
+<div id="loginRegisterModal" class="modal" role="dialog" aria-modal="true" hidden>
+    <div class="modal-content">
+        <button class="close-button" aria-label="Fechar modal">&times;</button>
+        
+        <div class="modal-tabs">
+            <button class="tab-button active" data-tab="login">Login</button>
+            <button class="tab-button" data-tab="register">Cadastre-se</button>
+        </div>
+        
+        <div id="loginTab" class="tab-content active">
+            <form id="loginForm" method="POST" action="{{ url_for('auth.login') }}">
+                <h2>Acesse seu Painel</h2>
+                <div class="input-group">
+                    <label for="login-email">E-mail Comercial:</label>
+                    <input type="email" id="login-email" name="email" required autocomplete="email">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Senha:</label>
+                    <input type="password" id="login-password" name="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="cta-button">Entrar</button>
+            </form>
+        </div>
+
+        <div id="registerTab" class="tab-content">
+            <form id="registerForm" method="POST" action="{{ url_for('auth.register') }}">
+                <h2>Crie sua Conta</h2>
+                <div class="input-group">
+                    <label for="register-company-name">Nome da Empresa</label>
+                    <input type="text" id="register-company-name" name="company_name" required autocomplete="organization">
+                </div>
+                <div class="input-group">
+                    <label for="register-cnpj">CNPJ</label>
+                    <input type="text" id="register-cnpj" name="cnpj" required>
+                </div>
+                <div class="input-group">
+                    <label for="register-email">E-mail Comercial</label>
+                    <input type="email" id="register-email" name="email" required autocomplete="email">
+                </div>
+                <div class="input-group">
+                    <label for="register-password">Crie sua Senha</label>
+                    <input type="password" id="register-password" name="password" required autocomplete="new-password" minlength="8">
+                </div>
+                <button type="submit" class="cta-button">Cadastrar e Começar Meu Mês Grátis</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,48 +1,64 @@
-<div id="loginRegisterModal" class="modal" role="dialog" aria-modal="true" hidden>
-    <div class="modal-content">
-        <button class="close-button" aria-label="Fechar modal">&times;</button>
-        
-        <div class="modal-tabs">
-            <button class="tab-button active" data-tab="login">Login</button>
-            <button class="tab-button" data-tab="register">Cadastre-se</button>
-        </div>
-        
-        <div id="loginTab" class="tab-content active">
-            <form id="loginForm" method="POST" action="{{ url_for('auth.login') }}">
-                <h2>Acesse seu Painel</h2>
-                <div class="input-group">
-                    <label for="login-email">E-mail Comercial:</label>
-                    <input type="email" id="login-email" name="email" required autocomplete="email">
-                </div>
-                <div class="input-group">
-                    <label for="login-password">Senha:</label>
-                    <input type="password" id="login-password" name="password" required autocomplete="current-password">
-                </div>
-                <button type="submit" class="cta-button">Entrar</button>
-            </form>
+<div id="registerTab" class="tab-content" role="tabpanel" hidden>
+    <form id="registerForm" method="POST" action="{{ url_for('auth.register') }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <h3>Crie sua Conta Global SynapCortex</h3>
+
+        <div class="input-group">
+            <label for="register-country">País da sua Empresa</label>
+            <select id="register-country" name="country" required aria-required="true">
+                <option value="BR">Brasil</option>
+                <option value="US">United States</option>
+                <option value="PT">Portugal</option>
+                </select>
+            <div class="error-message" aria-live="polite"></div>
         </div>
 
-        <div id="registerTab" class="tab-content">
-            <form id="registerForm" method="POST" action="{{ url_for('auth.register') }}">
-                <h2>Crie sua Conta</h2>
-                <div class="input-group">
-                    <label for="register-company-name">Nome da Empresa</label>
-                    <input type="text" id="register-company-name" name="company_name" required autocomplete="organization">
-                </div>
-                <div class="input-group">
-                    <label for="register-cnpj">CNPJ</label>
-                    <input type="text" id="register-cnpj" name="cnpj" required>
-                </div>
-                <div class="input-group">
-                    <label for="register-email">E-mail Comercial</label>
-                    <input type="email" id="register-email" name="email" required autocomplete="email">
-                </div>
-                <div class="input-group">
-                    <label for="register-password">Crie sua Senha</label>
-                    <input type="password" id="register-password" name="password" required autocomplete="new-password" minlength="8">
-                </div>
-                <button type="submit" class="cta-button">Cadastrar e Começar Meu Mês Grátis</button>
-            </form>
+        <div class="input-group">
+            <label for="register-company-name">Nome da Empresa</label>
+            <input type="text" id="register-company-name" name="company_name" required autocomplete="organization" aria-required="true">
+            <div class="error-message" aria-live="polite"></div>
         </div>
-    </div>
+        
+        <div class="input-group country-specific-field" data-country="BR">
+            <label for="register-cnpj">CNPJ</label>
+            <input type="text" id="register-cnpj" name="cnpj" inputmode="numeric" pattern="\d{14}" placeholder="Apenas números" aria-describedby="cnpj-format-hint">
+            <small id="cnpj-format-hint" class="input-hint">Digite os 14 dígitos do CNPJ.</small>
+            <div class="error-message" aria-live="polite"></div>
+        </div>
+
+        <div class="input-group country-specific-field hidden" data-country="INTL">
+            <label for="register-tax-id">ID Fiscal da Empresa (Tax ID)</label>
+            <input type="text" id="register-tax-id" name="tax_id" placeholder="Opcional">
+        </div>
+
+        <div class="input-group">
+            <label for="register-email">E-mail Comercial</label>
+            <input type="email" id="register-email" name="email" required autocomplete="email" aria-required="true">
+            <div class="error-message" aria-live="polite"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="register-password">Crie sua Senha</label>
+            <div class="password-wrapper">
+                 <input type="password" id="register-password" name="password" required autocomplete="new-password" minlength="8" aria-describedby="password-rules" aria-required="true">
+                 <button type="button" class="password-toggle" aria-label="Mostrar senha"></button>
+            </div>
+            <div id="password-rules" class="password-requirements">
+                Pelo menos 8 caracteres, com letras maiúsculas, minúsculas e números.
+            </div>
+            <div class="error-message" aria-live="polite"></div>
+        </div>
+        
+        <div class="input-group-checkbox">
+            <input type="checkbox" id="terms" name="terms" required aria-required="true">
+            <label for="terms">Eu li e aceito os <a href="/termos-de-servico" target="_blank" rel="noopener noreferrer">Termos de Serviço</a>.</label>
+            <div class="error-message" aria-live="polite"></div>
+        </div>
+        
+        <button type="submit" class="cta-button">
+            <span class="button-text">Cadastrar e Começar Meu Mês Grátis</span>
+            <div class="spinner hidden"></div>
+        </button>
+    </form>
 </div>

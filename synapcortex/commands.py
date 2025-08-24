@@ -1,51 +1,46 @@
 # synapcortex/commands.py
-# =================================================================================
-# COMANDOS CLI - FERRAMENTAS DE MANUTENÇÃO
-# Contém os comandos de terminal para gerenciar a aplicação, como resetar o banco.
-# =================================================================================
-
 import click
+import secrets
 from flask.cli import with_appcontext
-from .extensions import db
-from .models import AppUser, AnalyticsEvent # Importe seus modelos aqui
+
+from .extensions import db, bcrypt
+from .models import AppUser, SubscriptionStatus
+
+@click.group(name='admin')
+def admin_cli():
+    """Comandos administrativos para o SynapCortex."""
+    pass
+
+@admin_cli.command('create-demo-user')
+@with_appcontext
+def create_demo_user():
+    """Cria ou atualiza o usuário de demonstração."""
+    demo_email = 'demo@synapcortex.com'
+    demo_password = 'demo_password' # Senha padrão para o ambiente de desenvolvimento
+
+    user = AppUser.query.filter_by(email=demo_email).first()
+    
+    hashed_password = bcrypt.generate_password_hash(demo_password).decode('utf-8')
+
+    if user:
+        click.echo(f"Usuário demo '{demo_email}' já existe. Atualizando a senha.")
+        user.password_hash = hashed_password
+    else:
+        click.echo(f"Criando novo usuário demo com o e-mail '{demo_email}'.")
+        user = AppUser(
+            email=demo_email,
+            company_name='Loja de Demonstração',
+            password_hash=hashed_password,
+            country='Brasil',
+            company_id='00.000.000/0000-00',
+            api_key=secrets.token_hex(24),
+            subscription_status=SubscriptionStatus.DEMO
+        )
+        db.session.add(user)
+    
+    db.session.commit()
+    click.echo("Usuário de demonstração processado com sucesso!")
 
 def register(app):
-    """Registra todos os comandos CLI com a aplicação Flask."""
-
-    @app.cli.command('reset-db')
-    @click.option('--with-seed/--no-seed', default=True, help='Popula o banco com dados demo após o reset.')
-    @with_appcontext
-    def reset_db_command(with_seed):
-        """[CUIDADO] Apaga todos os dados e recria o banco do zero."""
-        
-        # APRIMORAMENTO: Adiciona uma confirmação real para evitar acidentes.
-        click.confirm('Você tem certeza que quer apagar TODO o banco de dados? Esta ação é irreversível.', abort=True)
-        
-        # CORREÇÃO: Adicionado o bloco 'except' para tratar erros e corrigir a sintaxe.
-        try:
-            click.secho("-> Apagando todas as tabelas...", fg="yellow")
-            db.drop_all()
-            
-            click.secho("-> Criando a estrutura do banco de dados...", fg="cyan")
-            db.create_all()
-
-            if with_seed:
-                click.secho("-> Inserindo dados de exemplo (seed)...", fg="cyan")
-                # Lógica para adicionar dados de exemplo (semente)
-                # Exemplo:
-                # user_demo = AppUser(email="demo@exemplo.com", ...)
-                # db.session.add(user_demo)
-                # db.session.commit()
-                pass # Adicione seu código de "seed" aqui se precisar
-
-            click.secho("\nBanco de dados resetado e inicializado com sucesso!", fg="green", bold=True)
-
-        except Exception as e:
-            # Em caso de erro, desfaz qualquer alteração pendente
-            db.session.rollback()
-            click.secho(f"\nERRO: Falha ao resetar o banco de dados.", fg="red", bold=True)
-            click.secho(f"Detalhe do erro: {e}", fg="red")
-
-    # Você pode adicionar outros comandos aqui no futuro
-    # Ex: @app.cli.command('outro-comando')
-    #     def ...
+    """Registra os comandos CLI na aplicação."""
+    app.cli.add_command(admin_cli)

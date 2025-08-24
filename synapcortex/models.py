@@ -1,7 +1,7 @@
 # =================================================================================
-# SYNAPCORTEX - ARQUIVO DE MODELOS DO BANCO DE DADOS (v2.1)
-# Responsável pela estrutura das tabelas e suas relações.
-# Versão com refinamentos em convenções de nomenclatura e type hinting.
+# SYNAPCORTEX - ARQUIVO DE MODELOS DO BANCO DE DADOS (v3.0 - Final)
+# A planta baixa de todos os dados da nossa aplicação.
+# Define a estrutura das tabelas AppUser, AnalyticsEvent e PaymentEvent.
 # =================================================================================
 
 from __future__ import annotations
@@ -9,13 +9,13 @@ import datetime
 from typing import Dict, Any, List, Optional
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin # <-- Importamos o UserMixin
+from flask_login import UserMixin
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, UniqueConstraint
 
-# A instância do db é criada aqui e inicializada na factory da aplicação.
-db = SQLAlchemy()
-
+# A instância do db é criada em `extensions.py` e inicializada em `__init__.py`
+# Aqui, apenas a importamos para usar nos modelos.
+from .extensions import db
 
 class SubscriptionStatus:
     """
@@ -24,7 +24,7 @@ class SubscriptionStatus:
     """
     ACTIVE = 'active'
     TRIAL = 'trial'
-    EXPIRED_TRIAL = 'expired_trial'
+    PAST_DUE = 'past_due' # Adicionado para falhas de pagamento
     CANCELED = 'canceled'
     DEMO = 'demo'
     
@@ -32,42 +32,38 @@ class SubscriptionStatus:
     VALID_STATUSES = frozenset({ACTIVE, TRIAL, DEMO})
 
 
-class AppUser(db.Model, UserMixin): # <-- Adicionamos o UserMixin aqui
+class AppUser(db.Model, UserMixin):
     """
     Representa uma conta de cliente (uma empresa) na plataforma SynapCortex.
-    Herda de UserMixin para integração com Flask-Login.
+    Herda de UserMixin para integração nativa com Flask-Login.
     """
     __tablename__ = 'app_user'
 
     # --- Colunas da Tabela ---
     id: Mapped[int] = mapped_column(primary_key=True)
-    country: Mapped[str] = mapped_column(String(80))
-    company_id: Mapped[str] = mapped_column(String(80))
+    company_name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(120), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(256))
-    company_name: Mapped[str] = mapped_column(String(120))
-    api_key: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    api_key: Mapped[str] = mapped_column(String(48), unique=True, index=True)
     created_at: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.utcnow)
+    
+    # --- Colunas de Assinatura (Stripe) ---
     subscription_status: Mapped[str] = mapped_column(String(20), default=SubscriptionStatus.TRIAL)
     trial_end_date: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
     stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(120), unique=True, nullable=True)
+    stripe_subscription_id: Mapped[Optional[str]] = mapped_column(String(120), unique=True, nullable=True)
 
-    # O tipo `db.JSON` se adapta automaticamente para o `JSONB` no PostgreSQL para melhor performance.
-    settings: Mapped[Dict[str, Any]] = mapped_column(db.JSON, default=dict)
-    campaign_config: Mapped[Optional[Dict[str, Any]]] = mapped_column(db.JSON, nullable=True, default=dict)
-
+    # --- Colunas de Configuração (JSON) ---
+    settings: Mapped[Dict[str, Any]] = mapped_column(db.JSON, default=lambda: {})
+    campaign_config: Mapped[Optional[Dict[str, Any]]] = mapped_column(db.JSON, nullable=True, default=lambda: {})
     is_campaign_active: Mapped[bool] = mapped_column(default=False)
     campaign_start_date: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
     campaign_end_date: Mapped[Optional[datetime.datetime]] = mapped_column(nullable=True)
 
     # --- Relações ---
-    # `lazy="dynamic"` é ótimo para coleções que podem ser grandes (não carrega todos os eventos de uma vez).
-    # `cascade="all, delete-orphan"` garante que, ao deletar um usuário, todos os seus eventos sejam deletados também.
     events: Mapped[List["AnalyticsEvent"]] = relationship(
         back_populates="owner", lazy="dynamic", cascade="all, delete-orphan"
     )
-
-    __table_args__ = (UniqueConstraint('company_id', 'country', name='_company_id_country_uc'),)
 
     # --- Propriedades (Lógica de Negócio) ---
     @property
@@ -106,3 +102,21 @@ class AnalyticsEvent(db.Model):
     def __repr__(self) -> str:
         """Representação textual do objeto para depuração."""
         return f"<AnalyticsEvent id={self.id} owner_id={self.owner_id} name='{self.event_name}'>"
+
+
+class PaymentEvent(db.Model):
+    """
+    Armazena um registro de cada evento de webhook recebido do Stripe.
+    Serve como um livro-caixa para auditoria e depuração.
+    """
+    __tablename__ = 'payment_event'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    stripe_event_id: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(255), index=True)
+    payload: Mapped[Dict[str, Any]] = mapped_column(db.JSON)
+    status: Mapped[str] = mapped_column(String(50), default='received', index=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<PaymentEvent id={self.id} stripe_event_id='{self.stripe_event_id}' status='{self.status}'>"

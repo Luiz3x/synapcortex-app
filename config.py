@@ -1,9 +1,19 @@
 # synapcortex/config.py
+import os
 
-# ... (outras linhas)
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'uma-chave-secreta-muito-forte'
-    # AGORA O CÓDIGO LÊ A SENHA DO AMBIENTE, SEM EXPÔ-LA
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///synapcortex.db'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-# ... (resto do arquivo)
+    # ... (outras configurações como SECRET_KEY, DATABASE_URL)
+    
+    # --- Configurações Específicas do SynapCortex ---
+    DEMO_EMAIL = os.getenv('DEMO_EMAIL', 'demo@synapcortex.com')
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+config_by_name = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+}

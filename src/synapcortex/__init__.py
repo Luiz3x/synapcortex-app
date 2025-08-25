@@ -1,5 +1,5 @@
 # =================================================================================
-# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v8.0 - Arquitetura Final)
+# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v8.1 - Foco no Deploy do Flask)
 # Versão final com Application Factory, login, CSRF, Sockets e blueprints corrigidos.
 # =================================================================================
 
@@ -50,28 +50,21 @@ def register_extensions(app: Flask) -> None:
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
 
-# --- FUNÇÃO CORRIGIDA ---
+# --- FUNÇÃO CORRIGIDA PARA O DEPLOY ---
 def register_blueprints(app: Flask) -> None:
-    """Registra todos os Blueprints da aplicação de forma moderna e correta."""
+    """Registra todos os Blueprints da aplicação Flask."""
     with app.app_context():
-        # --- MODO CORRETO DE IMPORTAR BLUEPRINTS ---
-        # Nós importamos do "pacote" do blueprint (graças aos __init__.py que corrigimos)
-        # em vez de ir diretamente no arquivo de rotas.
         from .blueprints.auth import auth_bp
         from .blueprints.dashboard import dashboard_bp
-        from .blueprints.api import api_bp
+        # from .blueprints.api import api_bp  # <-- DESATIVADO TEMPORARIAMENTE
         from .blueprints.payments import payments_bp
-        
-        # O dashboard tem um segundo blueprint para a API interna, que não está no __init__.py
-        # então a importação dele continua específica
         from .blueprints.dashboard.routes import dashboard_api_bp
         
-        # Lista de todos os blueprints a serem registrados
         blueprints = [
             auth_bp,
             dashboard_bp,
             dashboard_api_bp,
-            api_bp,
+            # api_bp,  # <-- DESATIVADO TEMPORARIAMENTE
             payments_bp
         ]
         
@@ -109,4 +102,3 @@ def configure_logging(app: Flask) -> None:
     app.logger.setLevel(logging.INFO)
     
     app.logger.info('Sistema de logging do SynapCortex configurado com sucesso.')
-    

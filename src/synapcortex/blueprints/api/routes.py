@@ -10,10 +10,10 @@ import logging
 from typing import Dict, Any
 
 # Importa os serviços e modelos da nossa biblioteca 'synapcortex'
-from src.synapcortex.services.cache_service import CacheService, get_cache_service
-from src.synapcortex.services.queue_service import QueueService, get_queue_service
-from src.synapcortex.services.security_service import get_current_user
-from src.synapcortex.models import AppUser
+from synapcortex.services.cache_service import CacheService, get_cache_service
+from synapcortex.services.queue_service import QueueService, get_queue_service
+from synapcortex.services.security_service import get_current_user
+from synapcortex.models import AppUser
 
 # --- CONFIGURAÇÃO INICIAL DA APLICAÇÃO ---
 app = FastAPI(

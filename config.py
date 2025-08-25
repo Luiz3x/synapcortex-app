@@ -1,4 +1,4 @@
-# synapcortex/config.py
+# src.synapcortex/config.py
 import os
 
 class Config:

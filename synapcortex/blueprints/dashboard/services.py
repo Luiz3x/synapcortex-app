@@ -94,3 +94,4 @@ def _perform_account_cancellation(user_id: int) -> Tuple[bool, str]:
     # EventPublisher.publish('user.account.canceled', {'user_id': user.id})
 
     return True, f"Processo de encerramento para user_id {user_id} concluído."
+    

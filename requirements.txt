@@ -17,7 +17,7 @@ Flask-SocketIO==5.3.6
 # --- Framework da API de Alta Performance ---
 fastapi==0.109.2
 uvicorn[standard]==0.27.1
-pydantic==2.5.3
+pydantic[email]==2.5.3
 pydantic-settings==2.1.0
 
 # --- Conexão com Banco de Dados e Cache ---

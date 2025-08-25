@@ -1,4 +1,6 @@
-# src.synapcortex/config.py
+# =================================================================================
+# src.SYNAPCORTEX - ARQUIVO DE CONFIGURAÇÃO (v2.0 - Unificado e Corrigido)
+# =================================================================================
 
 import os
 from dotenv import load_dotenv
@@ -9,28 +11,8 @@ from pathlib import Path
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# /src/synapcortex/config.py
-import os
 
 class Config:
-    """Configurações base para a aplicação Flask."""
-    SECRET_KEY = os.getenv('FLASK_SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    # --- Configurações Específicas do SynapCortex ---
-    DEMO_EMAIL = os.getenv('DEMO_EMAIL', 'demo@synapcortex.com')
-
-class DevelopmentConfig(Config):
-    DEBUG = True
-
-class ProductionConfig(Config):
-    DEBUG = False
-
-config_by_name = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-}
     """
     Configurações base, herdadas por todas as outras classes de configuração.
     Contém valores padrão e configurações que não mudam entre os ambientes.

@@ -1,10 +1,14 @@
-# /setup.py
+# /setup.py (v3.0 - Estrutura "Flat Layout" sem src)
+# =================================================================================
+# Configuração definitiva para a estrutura de projeto sem a pasta 'src'.
+# =================================================================================
+
 from setuptools import setup, find_packages
 
 # Lê o conteúdo do requirements.txt para não duplicar a lista de dependências
 try:
     with open('requirements.txt', encoding='utf-8') as f:
-        # Lê as dependências, mas ignora a linha '-e .'
+        # Continua ignorando a linha '-e .' para evitar o erro de loop
         required = [
             line for line in f.read().splitlines() if not line.startswith('-e')
         ]
@@ -13,14 +17,14 @@ except FileNotFoundError:
 
 setup(
     name='synapcortex',
-    version='1.0.2', # Nova versão para refletir o ajuste
+    version='2.0.0', # Nova versão maior para refletir a mudança de estrutura
     author='Luiz & Sócio',
     description='SynapCortex - Intelligent Growth Engine for E-commerce',
     
-    # --- AJUSTE: Simplificamos a descoberta de pacotes ---
-    # Agora apenas dizemos ONDE procurar, sem remapear o diretório.
-    # Isso deve resolver a confusão de caminhos no servidor.
-    packages=find_packages(where='src'), 
+    # --- CORREÇÃO ESTRUTURAL CRÍTICA ---
+    # Agora que não há pasta 'src', find_packages() encontra o pacote 'synapcortex'
+    # diretamente na raiz do projeto, que é o correto.
+    packages=find_packages(), 
     
     include_package_data=True,
     zip_safe=False,

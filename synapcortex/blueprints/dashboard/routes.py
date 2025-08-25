@@ -10,8 +10,7 @@ from flask_login import login_required, current_user, logout_user
 from pydantic import ValidationError
 
 # Importa os serviços especializados que contêm a lógica de negócio
-from ..services import UserService
-
+ 
 # Importa os schemas para validação e serialização de dados (Pydantic)
 from .schemas import UserSettingsSchema
 

@@ -34,8 +34,8 @@ class UserBase(BaseModel):
         - alias_generator: Converte snake_case (Python) para camelCase (JSON) automaticamente.
         """
         anystr_strip_whitespace = True
-        from_attributes = True  # ATUALIZADO: 'orm_mode' agora é 'from_attributes'
-        alias_generator = to_camel # ATUALIZADO: Forma mais moderna e simples de Pydantic V2
+        from_attributes = True
+        alias_generator = to_camel
         populate_by_name = True
 
 # ---------------------------------------------------------------------------------
@@ -77,5 +77,3 @@ class UserResponseSchema(UserBase):
     """
     id: int
     is_active: bool
-
-    # A Config é herdada automaticamente da UserBase, não precisa redefinir.

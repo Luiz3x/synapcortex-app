@@ -1,4 +1,4 @@
-# requirements.txt (v2.0 - Final com FastAPI e Tempo Real)
+# requirements.txt (v2.1 - Final com instalação local)
 
 # --- Núcleo da Aplicação Flask ---
 Flask==2.3.3
@@ -28,6 +28,7 @@ redis==5.0.1
 Jinja2==3.1.2
 requests==2.31.0
 alembic==1.16.4  # Dependência do Flask-Migrate
-celery==5.3.6     # Para nossas tarefas em background (ex: insights)
+celery==5.3.6    # Para nossas tarefas em background (ex: insights)
 
-# --- Instala o nosso próprio pacote src.SynapCortex
+# --- Instala o nosso próprio pacote synapcortex em modo editável ---
+-e .

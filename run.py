@@ -1,82 +1,31 @@
 # =================================================================================
-# src.SYNAPCORTEX - API PÚBLICA (v4.0 - "Olympus")
-# Ponto de entrada para a API FastAPI de alta performance.
+# SYNAPCORTEX - A CHAVE DE IGNIÇÃO (APLICAÇÃO PRINCIPAL FLASK)
+# Ponto de entrada único para a aplicação do usuário (Dashboard, Auth, etc.).
 # =================================================================================
 
-from fastapi import FastAPI, Depends, HTTPException, status, Request
-from pydantic import BaseModel, Field
-import json
-import logging
-from typing import Dict, Any
+import os
+from dotenv import load_dotenv
 
-# Importa os serviços e modelos da nossa biblioteca 'synapcortex'
-from src.synapcortex.services.cache_service import CacheService, get_cache_service
-from src.synapcortex.services.queue_service import QueueService, get_queue_service
-from src.synapcortex.services.security_service import get_current_user
-from src.synapcortex.models import AppUser
+# PASSO 1: Carrega as variáveis de ambiente do arquivo .env.
+# Deve ser a primeira coisa a ser feita.
+load_dotenv()
 
-# --- CONFIGURAÇÃO INICIAL DA APLICAÇÃO ---
-app = FastAPI(
-    title="SynapCortex Public API",
-    description="API de alta performance para coleta e configuração de dados em tempo real.",
-    version="4.0.0",
-    docs_url="/api/v4/docs", # Documentação interativa
-    redoc_url="/api/v4/redoc" # Documentação alternativa
-)
+# PASSO 2: Importa a nossa fábrica de aplicação e as extensões necessárias.
+# --- CORREÇÃO: Removido o prefixo 'src.' para compatibilidade com a estrutura do projeto ---
+from synapcortex import create_app
+from synapcortex.extensions import socketio
 
-logging.basicConfig(level=logging.INFO, format='{"timestamp": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}')
+# PASSO 3: Cria a instância da aplicação Flask.
+# É esta variável 'app' que o Gunicorn (servidor de produção) procura.
+app = create_app()
 
-# --- DEFINIÇÃO DE SCHEMAS (DTOs - Data Transfer Objects) ---
-class TrackEventPayload(BaseModel):
-    eventName: str = Field(..., example="page_view")
-    visitorId: str = Field(..., max_length=128, description="Identificador único do visitante.", example="vis-12345-abcde")
-    eventData: Dict[str, Any] = Field({}, description="Dados adicionais do evento.", example={"url": "/products/synapse-enhancer"})
-
-class ClientConfigResponse(BaseModel):
-    settings: Dict[str, Any]
-    is_campaign_active: bool
-
-# --- ROTAS DA API ---
-@app.get("/api/v4/config", response_model=ClientConfigResponse, tags=["Configuração"])
-async def get_client_config(
-    user: AppUser = Depends(get_current_user),
-    cache: CacheService = Depends(get_cache_service)
-):
-    """ Fornece a configuração do cliente, otimizada com cache-first. """
-    cache_key = f"config:{user.api_key}"
-    if cached_config := await cache.get(cache_key):
-        return json.loads(cached_config)
-
-    config_payload = {
-        'settings': user.settings or {},
-        'is_campaign_active': user.is_campaign_active
-    }
-    await cache.set(cache_key, json.dumps(config_payload), expire_seconds=300)
-    return config_payload
-
-@app.post("/api/v4/track", status_code=status.HTTP_202_ACCEPTED, tags=["Eventos"])
-async def track_event(
-    payload: TrackEventPayload,
-    request: Request,
-    user: AppUser = Depends(get_current_user),
-    queue: QueueService = Depends(get_queue_service)
-):
-    """ Recebe, valida e enfileira eventos de rastreamento para processamento assíncrono. """
-    try:
-        event_message = payload.dict()
-        event_message.update({
-            "apiKey": user.api_key,
-            "ip_address": request.client.host,
-            "user_agent": request.headers.get("User-Agent")
-        })
-        
-        await queue.publish('analytics_events', event_message)
-        return {"status": "accepted"}
-    except Exception as e:
-        logging.error(f"Falha ao enfileirar evento: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Serviço de coleta de eventos temporariamente indisponível."
-        )
-
-# Para rodar localmente: uvicorn api:app --reload --port 8000
+# --- Bloco de Execução Apenas para Desenvolvimento Local ---
+# Este trecho só é executado ao rodar o comando "python3 run.py".
+if __name__ == '__main__':
+    # Obtém host e porta das variáveis de ambiente para maior flexibilidade.
+    host = os.getenv('FLASK_RUN_HOST', '127.0.0.1')
+    port = int(os.getenv('FLASK_RUN_PORT', 5000))
+    
+    # Inicia o servidor de desenvolvimento usando o SocketIO para habilitar o tempo real.
+    # Usar socketio.run() em vez de app.run() é a forma correta.
+    socketio.run(app, host=host, port=port)

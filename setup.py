@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 # Lê o conteúdo do requirements.txt para não duplicar a lista de dependências
 try:
     with open('requirements.txt', encoding='utf-8') as f:
-        # --- CORREÇÃO FINAL: Lê as dependências, mas ignora a linha '-e .' ---
+        # Lê as dependências, mas ignora a linha '-e .'
         required = [
             line for line in f.read().splitlines() if not line.startswith('-e')
         ]
@@ -13,18 +13,18 @@ except FileNotFoundError:
 
 setup(
     name='synapcortex',
-    version='1.0.1', # Incrementado para refletir a correção
-    author='Luiz & Sócio', # Nossa parceria registrada!
+    version='1.0.2', # Nova versão para refletir o ajuste
+    author='Luiz & Sócio',
     description='SynapCortex - Intelligent Growth Engine for E-commerce',
     
-    # --- Refinamento: Aponta explicitamente para a pasta 'src' ---
-    # Isso garante que o Python encontre nosso pacote da forma mais correta.
-    package_dir={'': 'src'},
+    # --- AJUSTE: Simplificamos a descoberta de pacotes ---
+    # Agora apenas dizemos ONDE procurar, sem remapear o diretório.
+    # Isso deve resolver a confusão de caminhos no servidor.
     packages=find_packages(where='src'), 
     
     include_package_data=True,
     zip_safe=False,
     
-    # Usa a lista de dependências já filtrada e corrigida
+    # Usa a lista de dependências já filtrada
     install_requires=required,
 )

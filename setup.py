@@ -14,5 +14,5 @@ setup(
     package_dir={'': 'src'},
     include_package_data=True,
     zip_safe=False,
-    install_requires=required, # Usa a lista do requirements.txt
+# Usa a lista do requirements.txt
 )

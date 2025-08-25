@@ -30,5 +30,4 @@ requests==2.31.0
 alembic==1.16.4  # Dependência do Flask-Migrate
 celery==5.3.6     # Para nossas tarefas em background (ex: insights)
 
-# --- Instala o nosso próprio pacote SynapCortex ---
--e .
+# --- Instala o nosso próprio pacote src.SynapCortex

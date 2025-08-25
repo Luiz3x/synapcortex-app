@@ -26,3 +26,5 @@ redis==5.0.1
 # --- Outras dependências ---
 Jinja2==3.1.2
 requests==2.31.0
+# Instala o nosso próprio pacote SynapCortex em modo editável
+-e .

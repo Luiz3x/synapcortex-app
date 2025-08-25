@@ -1,17 +1,15 @@
 # =================================================================================
-# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO
-# Versão final com Application Factory, login e proteção CSRF.
+# SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v7.1 - Final com Blueprints Explícitos)
+# Versão final com Application Factory, login, CSRF, Sockets e todos os blueprints.
 # =================================================================================
 
 import os
 import logging
-from flask import Flask, Blueprint
+from flask import Flask
 
-# 1. Importações do projeto (Configuração e Extensões)
+# 1. Importações centrais da nossa arquitetura
 from .config import config_by_name
-# A importação agora inclui a extensão 'csrf'
-from .extensions import db, bcrypt, cors, migrate, login_manager, csrf # <--- CORREÇÃO AQUI
-# Importa o modelo de usuário para o user_loader
+from .extensions import db, bcrypt, cors, migrate, login_manager, csrf, socketio
 from .models import AppUser
 
 def create_app(config_name: str = None) -> Flask:
@@ -19,11 +17,14 @@ def create_app(config_name: str = None) -> Flask:
     Ponto de entrada principal (Application Factory).
     Cria, configura e retorna a instância da aplicação Flask.
     """
-    app = Flask(__name__)
+    # Usamos src.synapcortex para garantir que os imports funcionem com nossa estrutura de pacote
+    app = Flask(__name__.split('.')[0], instance_relative_config=True)
     
+    # Carrega a configuração a partir do ambiente (development/production)
     config_name = os.getenv('FLASK_CONFIG', 'development')
     app.config.from_object(config_by_name[config_name])
 
+    # Registra todos os componentes da aplicação
     register_extensions(app)
     register_blueprints(app)
     register_commands_and_shell(app)
@@ -32,62 +33,59 @@ def create_app(config_name: str = None) -> Flask:
     return app
 
 def register_extensions(app: Flask) -> None:
-    """Conecta as extensões Flask, incluindo a proteção CSRF."""
+    """Conecta e configura todas as extensões Flask."""
     db.init_app(app)
     bcrypt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    csrf.init_app(app) # <--- CORREÇÃO AQUI
+    csrf.init_app(app)
+    socketio.init_app(app)
 
     # --- Configuração do Sistema de Login ---
     @login_manager.user_loader
     def load_user(user_id):
-        # Esta função diz ao Flask-Login como encontrar um usuário a partir do ID na sessão
         return AppUser.query.get(int(user_id))
     
-    # Se um usuário não logado tentar acessar uma página protegida, ele será
-    # redirecionado para a rota 'auth.index' (nossa landing page com o modal).
     login_manager.login_view = 'auth.index'
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
 
-
 def register_blueprints(app: Flask) -> None:
-    """Detecta e registra todas as "alas" (Blueprints) da aplicação."""
+    """Registra todos os Blueprints da aplicação de forma explícita e clara."""
     with app.app_context():
-        # Supondo que seus arquivos de rotas estão em uma pasta 'blueprints'
-        from .blueprints import auth, dashboard, routes_api
+        # Importamos a variável do blueprint DIRETAMENTE do seu arquivo de rotas
+        from .blueprints.auth.routes import auth_bp
+        from .blueprints.dashboard.routes import dashboard_bp, dashboard_api_bp
+        from .blueprints.api.routes import api_bp
+        from .blueprints.payments.routes import payments_bp
         
-        blueprints: list[Blueprint] = [
-            auth.auth_bp,
-            dashboard.dashboard_bp,
-            routes_api.api_bp
+        # Lista de todos os blueprints a serem registrados
+        blueprints = [
+            auth_bp,
+            dashboard_bp,
+            dashboard_api_bp,
+            api_bp,
+            payments_bp
         ]
         
         for bp in blueprints:
             app.register_blueprint(bp)
 
 def register_commands_and_shell(app: Flask) -> None:
-    """Registra os comandos CLI customizados e o contexto do shell."""
-    # Supondo que você tenha um arquivo commands.py
-    # from . import commands
-    # commands.register(app)
+    """Registra comandos CLI e o contexto do `flask shell`."""
+    from .commands import admin_cli # Supondo que seus comandos estão em commands.py
+    app.cli.add_command(admin_cli)
     
     @app.shell_context_processor
     def make_shell_context():
-        """Pré-importa pacotes para o comando `flask shell` para facilitar o debug."""
-        from .models import AppUser, AnalyticsEvent
-        return {'db': db, 'AppUser': AppUser, 'AnalyticsEvent': AnalyticsEvent}
+        """Pré-importa pacotes para facilitar o debug via `flask shell`."""
+        from .models import AppUser, AnalyticsEvent, PaymentEvent
+        return {
+            'db': db, 
+            'AppUser': AppUser, 
+            'AnalyticsEvent': AnalyticsEvent,
+            'PaymentEvent': PaymentEvent
+        }
 
-def configure_logging(app: Flask) -> None:
-    """Configura o sistema de logging para o ambiente de produção."""
-    if not app.debug and not app.testing:
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-        handler.setFormatter(formatter)
-        
-        app.logger.addHandler(handler)
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('SynapCortex inicializado.')
+def configure

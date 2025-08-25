@@ -1,6 +1,6 @@
 # requirements.txt (v2.0 - Final com FastAPI e Tempo Real)
 
-# --- Núcleo da Aplicação ---
+# --- Núcleo da Aplicação Flask ---
 Flask==2.3.3
 python-dotenv==1.0.1
 gunicorn==21.2.0
@@ -16,8 +16,9 @@ Flask-SocketIO==5.3.6
 
 # --- Framework da API de Alta Performance ---
 fastapi==0.109.2
-uvicorn[standard]==0.27.1 # O trabalhador para o Gunicorn
+uvicorn[standard]==0.27.1
 pydantic==2.5.3
+pydantic-settings==2.1.0 # Para a configuração inteligente da API
 
 # --- Conexão com Banco de Dados e Cache ---
 psycopg2-binary==2.9.9
@@ -26,5 +27,8 @@ redis==5.0.1
 # --- Outras dependências ---
 Jinja2==3.1.2
 requests==2.31.0
-# Instala o nosso próprio pacote SynapCortex em modo editável
+alembic==1.16.4  # Dependência do Flask-Migrate
+celery==5.3.6     # Para nossas tarefas em background (ex: insights)
+
+# --- Instala o nosso próprio pacote SynapCortex ---
 -e .

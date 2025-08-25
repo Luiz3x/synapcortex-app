@@ -1,6 +1,6 @@
 # =================================================================================
-# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v7.2 - Final com Logging Corrigido)
-# Versão final com Application Factory, login, CSRF, Sockets e todos os blueprints.
+# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v8.0 - Arquitetura Final)
+# Versão final com Application Factory, login, CSRF, Sockets e blueprints corrigidos.
 # =================================================================================
 
 import os
@@ -17,7 +17,6 @@ def create_app(config_name: str = None) -> Flask:
     Ponto de entrada principal (Application Factory).
     Cria, configura e retorna a instância da aplicação Flask.
     """
-    # Usamos o nome do diretório 'src' para garantir que os imports funcionem
     app = Flask(__name__.split('.')[0], instance_relative_config=True)
     
     # Carrega a configuração a partir do ambiente (development/production)
@@ -28,7 +27,7 @@ def create_app(config_name: str = None) -> Flask:
     register_extensions(app)
     register_blueprints(app)
     register_commands_and_shell(app)
-    configure_logging(app) # Agora esta função existe e será chamada
+    configure_logging(app)
 
     return app
 
@@ -51,14 +50,21 @@ def register_extensions(app: Flask) -> None:
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
 
+# --- FUNÇÃO CORRIGIDA ---
 def register_blueprints(app: Flask) -> None:
-    """Registra todos os Blueprints da aplicação de forma explícita e clara."""
+    """Registra todos os Blueprints da aplicação de forma moderna e correta."""
     with app.app_context():
-        # Importamos a variável do blueprint DIRETAMENTE do seu arquivo de rotas
-        from .blueprints.auth.routes import auth_bp
-        from .blueprints.dashboard.routes import dashboard_bp, dashboard_api_bp
-        from .blueprints.api.routes import api_bp
-        from .blueprints.payments.routes import payments_bp
+        # --- MODO CORRETO DE IMPORTAR BLUEPRINTS ---
+        # Nós importamos do "pacote" do blueprint (graças aos __init__.py que corrigimos)
+        # em vez de ir diretamente no arquivo de rotas.
+        from .blueprints.auth import auth_bp
+        from .blueprints.dashboard import dashboard_bp
+        from .blueprints.api import api_bp
+        from .blueprints.payments import payments_bp
+        
+        # O dashboard tem um segundo blueprint para a API interna, que não está no __init__.py
+        # então a importação dele continua específica
+        from .blueprints.dashboard.routes import dashboard_api_bp
         
         # Lista de todos os blueprints a serem registrados
         blueprints = [
@@ -90,21 +96,17 @@ def register_commands_and_shell(app: Flask) -> None:
 
 def configure_logging(app: Flask) -> None:
     """Configura o sistema de logging da aplicação para ser visível nos logs da Render."""
-    # Define um formato padrão para os logs
     log_format = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Cria um handler que envia os logs para a saída padrão (console)
     handler = logging.StreamHandler()
     handler.setFormatter(log_format)
     
-    # Limpa handlers existentes para evitar logs duplicados
     app.logger.handlers.clear()
     
-    # Adiciona o novo handler e define o nível de log
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
     
-    # Log inicial para confirmar que a configuração funcionou
     app.logger.info('Sistema de logging do SynapCortex configurado com sucesso.')
+    

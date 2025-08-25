@@ -1,5 +1,5 @@
 # =================================================================================
-# SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v7.1 - Final com Blueprints Explícitos)
+# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v7.2 - Final com Logging Corrigido)
 # Versão final com Application Factory, login, CSRF, Sockets e todos os blueprints.
 # =================================================================================
 
@@ -17,7 +17,7 @@ def create_app(config_name: str = None) -> Flask:
     Ponto de entrada principal (Application Factory).
     Cria, configura e retorna a instância da aplicação Flask.
     """
-    # Usamos src.synapcortex para garantir que os imports funcionem com nossa estrutura de pacote
+    # Usamos o nome do diretório 'src' para garantir que os imports funcionem
     app = Flask(__name__.split('.')[0], instance_relative_config=True)
     
     # Carrega a configuração a partir do ambiente (development/production)
@@ -28,7 +28,7 @@ def create_app(config_name: str = None) -> Flask:
     register_extensions(app)
     register_blueprints(app)
     register_commands_and_shell(app)
-    configure_logging(app)
+    configure_logging(app) # Agora esta função existe e será chamada
 
     return app
 
@@ -88,4 +88,23 @@ def register_commands_and_shell(app: Flask) -> None:
             'PaymentEvent': PaymentEvent
         }
 
-def configure
+def configure_logging(app: Flask) -> None:
+    """Configura o sistema de logging da aplicação para ser visível nos logs da Render."""
+    # Define um formato padrão para os logs
+    log_format = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Cria um handler que envia os logs para a saída padrão (console)
+    handler = logging.StreamHandler()
+    handler.setFormatter(log_format)
+    
+    # Limpa handlers existentes para evitar logs duplicados
+    app.logger.handlers.clear()
+    
+    # Adiciona o novo handler e define o nível de log
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.INFO)
+    
+    # Log inicial para confirmar que a configuração funcionou
+    app.logger.info('Sistema de logging do SynapCortex configurado com sucesso.')

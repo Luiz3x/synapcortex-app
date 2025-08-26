@@ -15,8 +15,8 @@ class AuthService:
 
         new_user = AppUser(
             email=data['email'],
-            company_name=data['company_name'],
-            password_hash=hashed_password,
+            nome_empresa=data['company_name'],
+            senha_hash=hashed_password, # CORRIGIDO
             country=data.get('country'),
             company_id=company_identifier,
             api_key=secrets.token_hex(24),
@@ -29,6 +29,6 @@ class AuthService:
     @staticmethod
     def verify_credentials(email: str, password: str) -> Optional[AppUser]:
         user = AppUser.query.filter_by(email=email).first()
-        if user and bcrypt.check_password_hash(user.password_hash, password):
+        if user and bcrypt.check_password_hash(user.senha_hash, password): # CORRIGIDO
             return user
         return None

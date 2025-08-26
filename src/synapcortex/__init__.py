@@ -1,38 +1,36 @@
 # =================================================================================
-# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v9.0 - Deploy da Vitória)
-# Versão final focada nos blueprints estáveis para o deploy de produção.
+# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v9.1 - Versão Unificada)
 # =================================================================================
-
 import os
 import logging
-from flask import Flask
+from flask import Flask, g
+from flask_login import current_user
 
-# 1. Importações centrais da nossa arquitetura
 from .config import config_by_name
 from .extensions import db, bcrypt, cors, migrate, login_manager, csrf, socketio
 from .models import AppUser
 
 def create_app(config_name: str = None) -> Flask:
-    """
-    Ponto de entrada principal (Application Factory).
-    Cria, configura e retorna a instância da aplicação Flask.
-    """
     app = Flask(__name__.split('.')[0], instance_relative_config=True)
-    
-    # Carrega a configuração a partir do ambiente
     config_name = os.getenv('FLASK_CONFIG', 'development')
     app.config.from_object(config_by_name[config_name])
 
-    # Registra todos os componentes da aplicação
+    # --- CORREÇÃO FINAL: O MORDOMO ---
+    # Esta função será executada antes de CADA requisição.
+    # Ela garante que g.user esteja sempre disponível para os templates.
+    @app.before_request
+    def before_request_handler():
+        """ Disponibiliza o usuário logado globalmente para os templates via g.user. """
+        g.user = current_user
+
     register_extensions(app)
     register_blueprints(app)
     register_commands_and_shell(app)
     configure_logging(app)
-
     return app
 
 def register_extensions(app: Flask) -> None:
-    """Conecta e configura todas as extensões Flask."""
+    # ... (esta função continua perfeita, sem alterações) ...
     db.init_app(app)
     bcrypt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
@@ -40,61 +38,37 @@ def register_extensions(app: Flask) -> None:
     login_manager.init_app(app)
     csrf.init_app(app)
     socketio.init_app(app)
-
-    # --- Configuração do Sistema de Login ---
     @login_manager.user_loader
     def load_user(user_id):
         return AppUser.query.get(int(user_id))
-    
     login_manager.login_view = 'auth.index'
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
 
-# --- FUNÇÃO FINAL E CORRIGIDA ---
 def register_blueprints(app: Flask) -> None:
-    """Registra os blueprints essenciais que estão prontos para o deploy."""
+    # ... (esta função continua perfeita, com os blueprints desativados) ...
     with app.app_context():
-        # Agora importamos apenas os blueprints que realmente vamos usar
         from .blueprints.auth import auth_bp
         from .blueprints.dashboard import dashboard_bp
-        
-        # Lista final e limpa com os módulos estáveis
-        blueprints = [
-            auth_bp,
-            dashboard_bp,
-        ]
-        
+        blueprints = [auth_bp, dashboard_bp]
         for bp in blueprints:
             app.register_blueprint(bp)
 
 def register_commands_and_shell(app: Flask) -> None:
-    """Registra comandos CLI e o contexto do `flask shell`."""
-    from .commands import admin_cli 
+    # ... (esta função continua perfeita, sem alterações) ...
+    from .commands import admin_cli
     app.cli.add_command(admin_cli)
-    
     @app.shell_context_processor
     def make_shell_context():
-        """Pré-importa pacotes para facilitar o debug via `flask shell`."""
         from .models import AppUser, AnalyticsEvent, PaymentEvent
-        return {
-            'db': db, 
-            'AppUser': AppUser, 
-            'AnalyticsEvent': AnalyticsEvent,
-            'PaymentEvent': PaymentEvent
-        }
+        return {'db': db, 'AppUser': AppUser, 'AnalyticsEvent': AnalyticsEvent, 'PaymentEvent': PaymentEvent}
 
 def configure_logging(app: Flask) -> None:
-    """Configura o sistema de logging da aplicação para ser visível nos logs da Render."""
-    log_format = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    
+    # ... (esta função continua perfeita, sem alterações) ...
+    log_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler = logging.StreamHandler()
     handler.setFormatter(log_format)
-    
     app.logger.handlers.clear()
-    
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
-    
     app.logger.info('Sistema de logging do SynapCortex configurado com sucesso.')

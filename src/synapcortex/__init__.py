@@ -1,6 +1,6 @@
 # =================================================================================
-# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v8.2 - Deploy Estável)
-# Versão focada nos blueprints essenciais para o deploy inicial.
+# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v9.0 - Deploy da Vitória)
+# Versão final focada nos blueprints estáveis para o deploy de produção.
 # =================================================================================
 
 import os
@@ -50,23 +50,18 @@ def register_extensions(app: Flask) -> None:
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
 
-# --- FUNÇÃO CORRIGIDA PARA O DEPLOY ---
+# --- FUNÇÃO FINAL E CORRIGIDA ---
 def register_blueprints(app: Flask) -> None:
-    """Registra apenas os blueprints essenciais para o primeiro deploy."""
+    """Registra os blueprints essenciais que estão prontos para o deploy."""
     with app.app_context():
+        # Agora importamos apenas os blueprints que realmente vamos usar
         from .blueprints.auth import auth_bp
         from .blueprints.dashboard import dashboard_bp
-        # from .blueprints.api import api_bp          # Desativado para o deploy inicial
-        # from .blueprints.payments import payments_bp # Desativado para o deploy inicial
-        from .blueprints.dashboard.routes import dashboard_api_bp
         
-        # Lista apenas com os blueprints ativos
+        # Lista final e limpa com os módulos estáveis
         blueprints = [
             auth_bp,
             dashboard_bp,
-            dashboard_api_bp,
-            # api_bp,      # Desativado
-            # payments_bp, # Desativado
         ]
         
         for bp in blueprints:
@@ -74,7 +69,6 @@ def register_blueprints(app: Flask) -> None:
 
 def register_commands_and_shell(app: Flask) -> None:
     """Registra comandos CLI e o contexto do `flask shell`."""
-    # A importação deve ser local para evitar importação circular
     from .commands import admin_cli 
     app.cli.add_command(admin_cli)
     

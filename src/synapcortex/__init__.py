@@ -1,6 +1,6 @@
 # =================================================================================
-# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v8.1 - Foco no Deploy do Flask)
-# Versão final com Application Factory, login, CSRF, Sockets e blueprints corrigidos.
+# src.SYNAPCORTEX - O CORAÇÃO DA APLICAÇÃO (v8.2 - Deploy Estável)
+# Versão focada nos blueprints essenciais para o deploy inicial.
 # =================================================================================
 
 import os
@@ -19,7 +19,7 @@ def create_app(config_name: str = None) -> Flask:
     """
     app = Flask(__name__.split('.')[0], instance_relative_config=True)
     
-    # Carrega a configuração a partir do ambiente (development/production)
+    # Carrega a configuração a partir do ambiente
     config_name = os.getenv('FLASK_CONFIG', 'development')
     app.config.from_object(config_by_name[config_name])
 
@@ -52,20 +52,21 @@ def register_extensions(app: Flask) -> None:
 
 # --- FUNÇÃO CORRIGIDA PARA O DEPLOY ---
 def register_blueprints(app: Flask) -> None:
-    """Registra todos os Blueprints da aplicação Flask."""
+    """Registra apenas os blueprints essenciais para o primeiro deploy."""
     with app.app_context():
         from .blueprints.auth import auth_bp
         from .blueprints.dashboard import dashboard_bp
-        # from .blueprints.api import api_bp  # <-- DESATIVADO TEMPORARIAMENTE
-        from .blueprints.payments import payments_bp
+        # from .blueprints.api import api_bp          # Desativado para o deploy inicial
+        # from .blueprints.payments import payments_bp # Desativado para o deploy inicial
         from .blueprints.dashboard.routes import dashboard_api_bp
         
+        # Lista apenas com os blueprints ativos
         blueprints = [
             auth_bp,
             dashboard_bp,
             dashboard_api_bp,
-            # api_bp,  # <-- DESATIVADO TEMPORARIAMENTE
-            payments_bp
+            # api_bp,      # Desativado
+            # payments_bp, # Desativado
         ]
         
         for bp in blueprints:
@@ -73,7 +74,8 @@ def register_blueprints(app: Flask) -> None:
 
 def register_commands_and_shell(app: Flask) -> None:
     """Registra comandos CLI e o contexto do `flask shell`."""
-    from .commands import admin_cli # Supondo que seus comandos estão em commands.py
+    # A importação deve ser local para evitar importação circular
+    from .commands import admin_cli 
     app.cli.add_command(admin_cli)
     
     @app.shell_context_processor

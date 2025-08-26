@@ -10,7 +10,8 @@ from flask_login import login_required, current_user, logout_user
 from pydantic import ValidationError
 
 # Importa os serviços especializados que contêm a lógica de negócio
- 
+from .services import UserService # <-- ADICIONADO DE VOLTA
+
 # Importa os schemas para validação e serialização de dados (Pydantic)
 from .schemas import UserSettingsSchema
 
@@ -98,9 +99,11 @@ def cancel_account_api():
     A lógica de negócio (ex: cancelar assinatura, anonimizar dados) é encapsulada no serviço.
     """
     try:
+        # A lógica mais complexa é encapsulada no serviço
         success, message = UserService.cancel_user_account(current_user)
         
         if not success:
+            # Se o serviço retornar um erro (ex: não foi possível cancelar a assinatura)
             return jsonify({'status': 'error', 'message': message}), 422
 
         logout_user()

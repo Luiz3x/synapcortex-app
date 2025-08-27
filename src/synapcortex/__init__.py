@@ -11,7 +11,7 @@ from .extensions import db, bcrypt, cors, migrate, login_manager, csrf, socketio
 from .models import AppUser
 
 def create_app(config_name: str = None) -> Flask:
-    app = Flask(__name__.split('.')[0], instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True)
     config_name = os.getenv('FLASK_CONFIG', 'development')
     app.config.from_object(config_by_name[config_name])
 

@@ -54,10 +54,14 @@ def register_blueprints(app: Flask) -> None:
         for bp in blueprints:
             app.register_blueprint(bp)
 
+# Dentro de src/synapcortex/__init__.py
+
 def register_commands_and_shell(app: Flask) -> None:
-    # ... (esta função continua perfeita, sem alterações) ...
-    from .commands import admin_cli
-    app.cli.add_command(admin_cli)
+    # Importa o MÓDULO de comandos inteiro
+    from . import commands
+    # CHAMA a nossa nova função de registro explícita
+    commands.register_commands(app)
+    
     @app.shell_context_processor
     def make_shell_context():
         from .models import AppUser, AnalyticsEvent, PaymentEvent
